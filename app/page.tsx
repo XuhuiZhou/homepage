@@ -74,11 +74,75 @@ export default function Personal() {
         variants={VARIANTS_SECTION}
         transition={TRANSITION_SECTION}
       >
-        <div className="flex-1">
+        <div className="flex-1 space-y-4">
           <p className="text-zinc-600 dark:text-zinc-400">
-            Focused on creating intuitive and performant web experiences.
-            Bridging the gap between design and development.
+            I am a PhD student at the{' '}
+            <a
+              href="https://www.lti.cs.cmu.edu/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="font-medium text-zinc-900 underline decoration-zinc-300 underline-offset-2 dark:text-zinc-50 dark:decoration-zinc-700"
+            >
+              Language Technologies Institute at CMU
+            </a>
+            , advised by{' '}
+            <a
+              href="http://maartensap.com/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="font-medium text-zinc-900 underline decoration-zinc-300 underline-offset-2 dark:text-zinc-50 dark:decoration-zinc-700"
+            >
+              Maarten Sap
+            </a>
+            .
           </p>
+          <p className="text-zinc-600 dark:text-zinc-400">
+            I am interested in socially intelligent AI. More specifically:
+          </p>
+          <ul className="space-y-2 text-zinc-600 dark:text-zinc-400">
+            <li className="flex gap-2">
+              <span>📢</span>
+              <span>
+                How do we define and build socially intelligent AI systems? e.g.,{' '}
+                <a
+                  href="https://sotopia.world/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="font-medium text-zinc-900 underline decoration-zinc-300 underline-offset-2 dark:text-zinc-50 dark:decoration-zinc-700"
+                >
+                  Sotopia
+                </a>
+              </span>
+            </li>
+            <li className="flex gap-2">
+              <span>🧱</span>
+              <span>
+                How do we create better (socially) grounded AI systems? e.g.,{' '}
+                <a
+                  href="https://webarena.dev/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="font-medium text-zinc-900 underline decoration-zinc-300 underline-offset-2 dark:text-zinc-50 dark:decoration-zinc-700"
+                >
+                  WebArena
+                </a>
+              </span>
+            </li>
+            <li className="flex gap-2">
+              <span>🛡️</span>
+              <span>
+                How do we safeguard AI systems from harmful behaviors? e.g.,{' '}
+                <a
+                  href="https://haicosystem.org/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="font-medium text-zinc-900 underline decoration-zinc-300 underline-offset-2 dark:text-zinc-50 dark:decoration-zinc-700"
+                >
+                  HAICOSYSTEM
+                </a>
+              </span>
+            </li>
+          </ul>
         </div>
       </motion.section>
 

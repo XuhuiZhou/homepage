@@ -76,26 +76,6 @@ export const WORK_EXPERIENCE: WorkExperience[] = [
 
 export const BLOG_POSTS: BlogPost[] = [
   {
-    title: 'Exploring the Intersection of Design, AI, and Design Engineering',
-    description: 'How AI is changing the way we design',
-    link: '/blog/exploring-the-intersection-of-design-ai-and-design-engineering',
-    uid: 'blog-1',
-  },
-  {
-    title: 'Why I left my job to start my own company',
-    description:
-      'A deep dive into my decision to leave my job and start my own company',
-    link: '/blog/exploring-the-intersection-of-design-ai-and-design-engineering',
-    uid: 'blog-2',
-  },
-  {
-    title: 'What I learned from my first year of freelancing',
-    description:
-      'A look back at my first year of freelancing and what I learned',
-    link: '/blog/exploring-the-intersection-of-design-ai-and-design-engineering',
-    uid: 'blog-3',
-  },
-  {
     title: 'How to Export Metadata from MDX for Next.js SEO',
     description: 'A guide on exporting metadata from MDX files to leverage Next.js SEO features.',
     link: '/blog/example-mdx-metadata',
@@ -105,21 +85,25 @@ export const BLOG_POSTS: BlogPost[] = [
 
 export const SOCIAL_LINKS: SocialLink[] = [
   {
-    label: 'Github',
-    link: 'https://github.com/ibelick',
+    label: 'GitHub',
+    link: 'https://github.com/XuhuiZhou',
   },
   {
     label: 'Twitter',
-    link: 'https://twitter.com/ibelick',
+    link: 'https://twitter.com/nlpxuhui',
   },
   {
-    label: 'LinkedIn',
-    link: 'https://www.linkedin.com/in/ibelick',
+    label: 'Google Scholar',
+    link: 'https://scholar.google.com/citations?user=CKyX_Y8AAAAJ&hl',
   },
   {
-    label: 'Instagram',
-    link: 'https://www.instagram.com/ibelick',
+    label: 'Semantic Scholar',
+    link: 'https://www.semanticscholar.org/author/Xuhui-Zhou/144101734',
+  },
+  {
+    label: 'BlueSky',
+    link: 'https://bsky.app/profile/nlpxuhui.bsky.social',
   },
 ]
 
-export const EMAIL = 'your@email.com'
+export const EMAIL = 'xuhuiz@cs.cmu.edu'
