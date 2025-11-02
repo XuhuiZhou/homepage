@@ -13,16 +13,103 @@ export type Publication = {
   pdf?: string
   award?: string
   selected?: boolean
+  themes?: string[]
+  tweet?: string
+  representative?: boolean
 }
 
 export const PUBLICATIONS: Publication[] = [
   // 2025
   {
     year: 2025,
-    title: 'Words Like Knives: Backstory-Personalized Modeling and Detection of Violent Communication',
-    authors: ['Jocelyn Shen', 'Akhila Yerukola', 'Xuhui Zhou', 'Cynthia Breazeal', 'Maarten Sap', 'Hae Won Park'],
+    title: 'SoMi-ToM: Evaluating Multi-Perspective Theory of Mind in Embodied Social Interactions',
+    authors: ['Xianzhe Fan', 'Xuhui Zhou', 'Chenxu Jin', 'Kathryn Nottingham', 'Hao Zhu', 'Maarten Sap'],
+    venue: 'NeurIPS 2025 Datasets and Benchmarks',
+    abbr: 'NeurIPS',
+    url: 'https://arxiv.org/abs/2410.11398',
+    arxiv: 'https://arxiv.org/abs/2410.11398',
+    themes: ['Social AI', 'Agents'],
+  },
+  {
+    year: 2025,
+    title: 'TOM-SWE: User Mental Modeling For Software Engineering Agents',
+    authors: ['Xuhui Zhou', 'Valerie Chen', 'Zora Zhiruo Wang', 'Graham Neubig', 'Maarten Sap', 'Xingyao Wang'],
     venue: 'arXiv preprint',
     abbr: 'arXiv',
+    url: 'https://arxiv.org/abs/2510.21903',
+    arxiv: 'https://arxiv.org/abs/2510.21903',
+    tweet: 'https://x.com/nlpxuhui/status/1984314871375126689',
+    themes: ['Agents', 'Social AI'],
+    representative: true,
+  },
+  {
+    year: 2025,
+    title: 'Social World Models',
+    authors: ['Xuhui Zhou', 'Jiarui Liu', 'Akhila Yerukola', 'Hyunwoo Kim', 'Maarten Sap'],
+    venue: 'arXiv preprint',
+    abbr: 'arXiv',
+    url: 'https://arxiv.org/abs/2509.00559',
+    arxiv: 'https://arxiv.org/abs/2509.00559',
+    themes: ['Social AI', 'Multi-Agent Systems'],
+    representative: true,
+  },
+  {
+    year: 2025,
+    title: 'OpenAgentSafety: A Comprehensive Framework for Evaluating Real-World AI Agent Safety',
+    authors: ['Sanidhya Vijayvargiya', 'Aditya Bharat Soni', 'Xuhui Zhou', 'Zora Zhiruo Wang', 'Nouha Dziri', 'Graham Neubig', 'Maarten Sap'],
+    venue: 'arXiv preprint',
+    abbr: 'arXiv',
+    url: 'https://arxiv.org/abs/2507.06134',
+    arxiv: 'https://arxiv.org/abs/2507.06134',
+    themes: ['AI Safety', 'Agents'],
+    representative: true,
+  },
+  {
+    year: 2025,
+    title: '1-2-3 Check: Enhancing Contextual Privacy in LLM via Multi-Agent Reasoning',
+    authors: ['Wenkai Li', 'Liwen Sun', 'Zhenxiang Guan', 'Xuhui Zhou', 'Maarten Sap'],
+    venue: 'arXiv preprint',
+    abbr: 'arXiv',
+    url: 'https://arxiv.org/abs/2508.07667',
+    arxiv: 'https://arxiv.org/abs/2508.07667',
+    themes: ['AI Safety', 'Multi-Agent Systems'],
+  },
+  {
+    year: 2025,
+    title: 'The PIMMUR Principles: Ensuring Validity in Collective Behavior of LLM Societies',
+    authors: ['Jiaxu Zhou', 'Jen-tse Huang', 'Xuhui Zhou', 'Man Ho Lam', 'Xintao Wang', 'Hao Zhu', 'Wenxuan Wang', 'Maarten Sap'],
+    venue: 'arXiv preprint',
+    abbr: 'arXiv',
+    url: 'https://arxiv.org/abs/2509.18052',
+    arxiv: 'https://arxiv.org/abs/2509.18052',
+    themes: ['Multi-Agent Systems', 'Social AI'],
+  },
+  {
+    year: 2025,
+    title: 'How can we assess human-agent interactions? Case studies in software agent design',
+    authors: ['Valerie Chen', 'Rohit Malhotra', 'Xingyao Wang', 'Juan Michelini', 'Xuhui Zhou', 'Aditya Bharat Soni', 'Hoang H. Tran', 'Calvin Smith', 'Ameet Talwalkar', 'Graham Neubig'],
+    venue: 'arXiv preprint',
+    abbr: 'arXiv',
+    url: 'https://arxiv.org/abs/2510.09801',
+    arxiv: 'https://arxiv.org/abs/2510.09801',
+    themes: ['Agents', 'Social AI'],
+  },
+  {
+    year: 2025,
+    title: 'Rethinking Theory of Mind Benchmarks for LLMs: Towards A User-Centered Perspective',
+    authors: ['Qiaosi Wang', 'Xuhui Zhou', 'Maarten Sap', 'Jodi Forlizzi', 'Hong Shen'],
+    venue: 'arXiv preprint',
+    abbr: 'arXiv',
+    url: 'https://arxiv.org/abs/2504.10839',
+    arxiv: 'https://arxiv.org/abs/2504.10839',
+    themes: ['Social AI'],
+  },
+  {
+    year: 2025,
+    title: 'Words Like Knives: Backstory-Personalized Modeling and Detection of Violent Communication',
+    authors: ['Jocelyn Shen', 'Akhila Yerukola', 'Xuhui Zhou', 'Cynthia Breazeal', 'Maarten Sap', 'Hae Won Park'],
+    venue: 'EMNLP 2025',
+    abbr: 'EMNLP',
     url: 'https://arxiv.org/abs/2505.21451',
     arxiv: 'https://arxiv.org/abs/2505.21451',
   },
@@ -34,6 +121,8 @@ export const PUBLICATIONS: Publication[] = [
     abbr: 'arXiv',
     url: 'https://arxiv.org/abs/2502.13069',
     arxiv: 'https://arxiv.org/abs/2502.13069',
+    themes: ['Agents', 'Social AI'],
+    representative: true,
   },
   {
     year: 2025,
@@ -60,6 +149,7 @@ export const PUBLICATIONS: Publication[] = [
     abbr: 'NAACL',
     url: 'https://arxiv.org/abs/2409.09013',
     arxiv: 'https://arxiv.org/abs/2409.09013',
+    themes: ['AI Safety', 'Agents'],
   },
   {
     year: 2025,
@@ -71,16 +161,19 @@ export const PUBLICATIONS: Publication[] = [
     arxiv: 'https://arxiv.org/abs/2409.00862',
   },
 
-  // 2024
   {
-    year: 2024,
+    year: 2025,
     title: 'TheAgentCompany: Benchmarking LLM Agents on Consequential Real World Tasks',
     authors: ['Frank F Xu', 'Yiwei Song', 'Bowen Li', 'Yujia Tang', 'Khushi Jain', 'Mingyu Bao', 'Zhengzhong Wang', 'Xuhui Zhou', 'Zhiyi Guo'],
-    venue: 'arXiv preprint',
-    abbr: 'arXiv',
+    venue: 'NeurIPS 2025 Datasets and Benchmarks',
+    abbr: 'NeurIPS',
     url: 'https://arxiv.org/abs/2412.14161',
     arxiv: 'https://arxiv.org/abs/2412.14161',
+    themes: ['Agents', 'Evaluation'],
+    representative: true,
   },
+
+  // 2024
   {
     year: 2024,
     title: 'Consent in Crisis: The Rapid Decline of the AI Data Commons',
@@ -101,32 +194,35 @@ export const PUBLICATIONS: Publication[] = [
     arxiv: 'https://arxiv.org/abs/2411.07042',
   },
   {
-    year: 2024,
+    year: 2025,
     title: 'BIG5-CHAT: Shaping LLM Personalities Through Training on Human-Grounded Data',
     authors: ['Wenkai Li', 'Jiarui Liu', 'Andy Liu', 'Xuhui Zhou', 'Mona Diab', 'Maarten Sap'],
-    venue: 'arXiv preprint',
-    abbr: 'arXiv',
+    venue: 'ACL 2025',
+    abbr: 'ACL',
     url: 'https://arxiv.org/abs/2410.16491',
     arxiv: 'https://arxiv.org/abs/2410.16491',
   },
   {
-    year: 2024,
+    year: 2025,
     title: 'HAICOSYSTEM: An Ecosystem for Sandboxing Safety Risks in Human-AI Interactions',
     authors: ['Xuhui Zhou', 'Hyunwoo Kim', 'Faeze Brahman', 'Liwei Jiang', 'Hao Zhu', 'Ximing Lu', 'Frank Xu', 'Bill Yuchen Lin', 'Yejin Choi', 'Niloofar Mireshghallah', 'Ronan Le Bras', 'Maarten Sap'],
-    venue: 'arXiv preprint',
-    abbr: 'arXiv',
+    venue: 'COLM 2025',
+    abbr: 'COLM',
     url: 'https://arxiv.org/abs/2409.16427',
     arxiv: 'https://arxiv.org/abs/2409.16427',
     website: 'https://haicosystem.org/',
+    themes: ['AI Safety', 'Social AI', 'Multi-Agent Systems'],
+    representative: true,
   },
   {
-    year: 2024,
-    title: 'On the Resilience of Multi-Agent Systems with Malicious Agents',
+    year: 2025,
+    title: 'On the Resilience of LLM-Based Multi-Agent Collaboration with Faulty Agents',
     authors: ['Jen-tse Huang', 'Jiaxu Zhou', 'Tailin Jin', 'Xuhui Zhou', 'Zixi Chen', 'Wenxuan Wang', 'Youliang Yuan', 'Maarten Sap', 'Michael R. Lyu'],
-    venue: 'arXiv preprint',
-    abbr: 'arXiv',
+    venue: 'ICML 2025',
+    abbr: 'ICML',
     url: 'https://arxiv.org/abs/2408.00989',
     arxiv: 'https://arxiv.org/abs/2408.00989',
+    themes: ['Multi-Agent Systems', 'AI Safety'],
   },
   {
     year: 2024,
@@ -144,6 +240,8 @@ export const PUBLICATIONS: Publication[] = [
     abbr: 'EMNLP',
     url: 'https://arxiv.org/abs/2403.05020',
     arxiv: 'https://arxiv.org/abs/2403.05020',
+    themes: ['Social AI'],
+    representative: true,
   },
   {
     year: 2024,
@@ -154,6 +252,8 @@ export const PUBLICATIONS: Publication[] = [
     url: 'https://openreview.net/forum?id=gmg7t8b4s0',
     website: 'https://confaide.github.io/',
     award: 'Spotlight (top 5%)',
+    themes: ['AI Safety'],
+    representative: true,
   },
   {
     year: 2024,
@@ -165,6 +265,8 @@ export const PUBLICATIONS: Publication[] = [
     website: 'https://www.sotopia.world/',
     award: 'Spotlight (top 5%)',
     selected: true,
+    themes: ['Social AI', 'Multi-Agent Systems'],
+    representative: true,
   },
   {
     year: 2024,
@@ -175,6 +277,8 @@ export const PUBLICATIONS: Publication[] = [
     url: 'https://openreview.net/forum?id=oKn9c6ytLx',
     website: 'https://webarena.dev/',
     demo: 'https://webarena.dev/#try-it-yourself',
+    themes: ['Agents', 'Grounding'],
+    representative: true,
   },
   {
     year: 2024,
@@ -184,6 +288,7 @@ export const PUBLICATIONS: Publication[] = [
     abbr: 'EACL',
     url: 'https://arxiv.org/abs/2305.14763',
     arxiv: 'https://arxiv.org/abs/2305.14763',
+    themes: ['Social AI'],
   },
 
   // 2023
@@ -198,6 +303,8 @@ export const PUBLICATIONS: Publication[] = [
     website: 'https://cobra.xuhuiz.com/',
     demo: 'https://cobra.allen.ai/',
     selected: true,
+    themes: ['AI Safety'],
+    representative: true,
   },
   {
     year: 2023,
@@ -217,6 +324,7 @@ export const PUBLICATIONS: Publication[] = [
     url: 'https://arxiv.org/abs/2310.15421',
     arxiv: 'https://arxiv.org/abs/2310.15421',
     website: 'https://hyunw.kim/fantom/',
+    representative: true,
   },
   {
     year: 2023,
@@ -268,6 +376,7 @@ export const PUBLICATIONS: Publication[] = [
     pdf: 'https://www.aclweb.org/anthology/2021.eacl-main.274.pdf',
     code: 'https://github.com/XuhuiZhou/Toxic_Debias',
     selected: true,
+    themes: ['AI Safety'],
   },
 
   // 2020
