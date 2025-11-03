@@ -46,6 +46,16 @@ export function Header() {
           Publications
         </Link>
         <Link
+          href="/cv"
+          className={`transition-colors ${
+            pathname === '/cv'
+              ? 'font-medium text-zinc-900 dark:text-zinc-50'
+              : 'text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-50'
+          }`}
+        >
+          CV
+        </Link>
+        <Link
           href="/blog"
           className={`transition-colors ${
             pathname?.startsWith('/blog')
@@ -54,6 +64,16 @@ export function Header() {
           }`}
         >
           Blog
+        </Link>
+        <Link
+          href="/more"
+          className={`transition-colors ${
+            pathname === '/more'
+              ? 'font-medium text-zinc-900 dark:text-zinc-50'
+              : 'text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-50'
+          }`}
+        >
+          More
         </Link>
       </nav>
     </header>

@@ -76,10 +76,10 @@ export const WORK_EXPERIENCE: WorkExperience[] = [
 
 export const BLOG_POSTS: BlogPost[] = [
   {
-    title: 'How to Export Metadata from MDX for Next.js SEO',
-    description: 'A guide on exporting metadata from MDX files to leverage Next.js SEO features.',
-    link: '/blog/example-mdx-metadata',
-    uid: 'blog-4',
+    title: 'The overlooked "bad" word list ☠️',
+    description: 'Stop using outdated bad word lists. Use ToxicTrig instead for better toxic language analysis.',
+    link: '/blog/the-overlooked-bad-word-list',
+    uid: 'blog-1',
   },
 ]
 

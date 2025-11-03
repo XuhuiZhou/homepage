@@ -18,6 +18,11 @@
   ::file-selector-button {
     border-color: var(--color-gray-200, currentColor);
   }
+
+  /* Increase base font size by 2px (from 16px to 18px) */
+  html {
+    font-size: 18px;
+  }
 }
 
 :root {

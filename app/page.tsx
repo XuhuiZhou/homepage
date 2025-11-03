@@ -9,6 +9,7 @@ import {
   EMAIL,
   SOCIAL_LINKS,
 } from './data'
+import { NEWS_ITEMS } from './data/news'
 
 const VARIANTS_CONTAINER = {
   hidden: { opacity: 0 },
@@ -82,12 +83,12 @@ export default function Personal() {
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.4 }}
         >
-          <div className="relative w-48 h-48 md:w-52 md:h-52">
+          <div className="relative w-48 h-64 md:w-52 md:h-72">
             <Image
               src="/profile.jpg"
               alt="Xuhui Zhou"
               fill
-              className="rounded-2xl object-cover ring-2 ring-zinc-200 dark:ring-zinc-800"
+              className="rounded-2xl object-cover object-top ring-2 ring-zinc-200 dark:ring-zinc-800"
               priority
             />
           </div>
@@ -123,7 +124,7 @@ export default function Personal() {
             <li className="flex gap-2">
               <span>📢</span>
               <span>
-                How do we define and build socially intelligent AI systems? e.g.,{' '}
+                How do we build socially intelligent AI systems? e.g.,{' '}
                 <a
                   href="https://sotopia.world/"
                   target="_blank"
@@ -146,7 +147,7 @@ export default function Personal() {
             <li className="flex gap-2">
               <span>🧱</span>
               <span>
-                How do we create AI agents that better help/collaborate with humans in the work? e.g.,{' '}
+                How do we create AI agents that effectively help humans? e.g.,{' '}
                 <a
                   href="https://webarena.dev/"
                   target="_blank"
@@ -169,7 +170,7 @@ export default function Personal() {
             <li className="flex gap-2">
               <span>🛡️</span>
               <span>
-                How do we safeguard AI systems from harmful behaviors? e.g.,{' '}
+                How do we ensure AI systems behave safely and align with human values? e.g.,{' '}
                 <a
                   href="https://haicosystem.org/"
                   target="_blank"
@@ -200,36 +201,38 @@ export default function Personal() {
         variants={VARIANTS_SECTION}
         transition={TRANSITION_SECTION}
       >
-        <h3 className="mb-3 text-lg font-medium">Blog</h3>
-        <div className="flex flex-col space-y-0">
-          <AnimatedBackground
-            enableHover
-            className="h-full w-full rounded-lg bg-zinc-100 dark:bg-zinc-900/80"
-            transition={{
-              type: 'spring',
-              bounce: 0,
-              duration: 0.2,
-            }}
-          >
-            {BLOG_POSTS.map((post) => (
-              <Link
-                key={post.uid}
-                className="-mx-3 rounded-xl px-3 py-3"
-                href={post.link}
-                data-id={post.uid}
-              >
-                <div className="flex flex-col space-y-1">
-                  <h4 className="font-normal dark:text-zinc-100">
-                    {post.title}
-                  </h4>
-                  <p className="text-zinc-500 dark:text-zinc-400">
-                    {post.description}
-                  </p>
-                </div>
-              </Link>
-            ))}
-          </AnimatedBackground>
+        <h3 className="mb-3 text-lg font-medium">News</h3>
+        <div className="overflow-x-auto">
+          <table className="w-full">
+            <tbody className="divide-y divide-zinc-100 dark:divide-zinc-800">
+              {NEWS_ITEMS.slice(0, 5).map((item, index) => (
+                <tr key={index} className="group">
+                  <td className="py-3 pr-4 text-sm text-zinc-500 dark:text-zinc-400 whitespace-nowrap align-top">
+                    {new Date(item.date).toLocaleDateString('en-US', {
+                      month: 'short',
+                      day: 'numeric',
+                      year: 'numeric',
+                    })}
+                  </td>
+                  <td
+                    className="py-3 text-sm text-zinc-600 dark:text-zinc-400"
+                    dangerouslySetInnerHTML={{ __html: item.content }}
+                  />
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
+        {NEWS_ITEMS.length > 5 && (
+          <div className="mt-4">
+            <Link
+              href="/news"
+              className="text-sm text-zinc-600 underline decoration-zinc-300 underline-offset-2 hover:text-zinc-900 dark:text-zinc-400 dark:decoration-zinc-700 dark:hover:text-zinc-50"
+            >
+              View all news →
+            </Link>
+          </div>
+        )}
       </motion.section>
 
       <motion.section
