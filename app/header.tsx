@@ -10,7 +10,7 @@ export function Header() {
     <header className="mb-8">
       <div className="flex items-center justify-between">
         <div>
-          <Link href="/" className="font-medium text-black dark:text-white">
+          <Link href="/" className="text-2xl md:text-3xl font-bold text-black dark:text-white">
             Xuhui Zhou
           </Link>
           <TextEffect
@@ -20,7 +20,7 @@ export function Header() {
             className="text-zinc-600 dark:text-zinc-500"
             delay={0.5}
           >
-            NLP Researcher
+            Making Socially Intelligent AI
           </TextEffect>
         </div>
       </div>

@@ -2,6 +2,7 @@
 import { motion } from 'motion/react'
 import { Magnetic } from '@/components/ui/magnetic'
 import Link from 'next/link'
+import Image from 'next/image'
 import { AnimatedBackground } from '@/components/ui/animated-background'
 import {
   BLOG_POSTS,
@@ -74,7 +75,26 @@ export default function Personal() {
         variants={VARIANTS_SECTION}
         transition={TRANSITION_SECTION}
       >
-        <div className="flex-1 space-y-4">
+        {/* Profile Picture - Float Right on Desktop, Centered on Mobile */}
+        <motion.div
+          className="float-none md:float-right mb-6 md:mb-0 md:ml-8 flex justify-center md:justify-end"
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.4 }}
+        >
+          <div className="relative w-48 h-48 md:w-52 md:h-52">
+            <Image
+              src="/profile.jpg"
+              alt="Xuhui Zhou"
+              fill
+              className="rounded-2xl object-cover ring-2 ring-zinc-200 dark:ring-zinc-800"
+              priority
+            />
+          </div>
+        </motion.div>
+
+        {/* Bio Content with Text Wrapping */}
+        <div className="space-y-4">
           <p className="text-zinc-600 dark:text-zinc-400">
             I am a PhD student at the{' '}
             <a
@@ -112,12 +132,21 @@ export default function Personal() {
                 >
                   Sotopia
                 </a>
+                ,{' '}
+                <a
+                  href="https://arxiv.org/abs/2509.00559"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="font-medium text-zinc-900 underline decoration-zinc-300 underline-offset-2 dark:text-zinc-50 dark:decoration-zinc-700"
+                >
+                  Social World Models
+                </a>
               </span>
             </li>
             <li className="flex gap-2">
               <span>🧱</span>
               <span>
-                How do we create better (socially) grounded AI systems? e.g.,{' '}
+                How do we create AI agents that better help/collaborate with humans in the work? e.g.,{' '}
                 <a
                   href="https://webarena.dev/"
                   target="_blank"
@@ -125,6 +154,15 @@ export default function Personal() {
                   className="font-medium text-zinc-900 underline decoration-zinc-300 underline-offset-2 dark:text-zinc-50 dark:decoration-zinc-700"
                 >
                   WebArena
+                </a>
+                ,{' '}
+                <a
+                  href="https://arxiv.org/abs/2510.21903"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="font-medium text-zinc-900 underline decoration-zinc-300 underline-offset-2 dark:text-zinc-50 dark:decoration-zinc-700"
+                >
+                  TOM-SWE
                 </a>
               </span>
             </li>
@@ -140,10 +178,22 @@ export default function Personal() {
                 >
                   HAICOSYSTEM
                 </a>
+                ,{' '}
+                <a
+                  href="https://arxiv.org/abs/2507.06134"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="font-medium text-zinc-900 underline decoration-zinc-300 underline-offset-2 dark:text-zinc-50 dark:decoration-zinc-700"
+                >
+                  OpenAgentSafety
+                </a>
               </span>
             </li>
           </ul>
         </div>
+
+        {/* Clear float for next section */}
+        <div className="clear-both"></div>
       </motion.section>
 
       <motion.section
