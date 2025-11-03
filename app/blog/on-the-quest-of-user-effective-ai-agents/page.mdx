@@ -1,0 +1,177 @@
+export const metadata = {
+  title: 'On the quest of user-effective AI agents',
+  description: 'Exploring what makes AI agents truly effective for users, beyond benchmark performance.',
+  date: '2025-01-15',
+  authors: [{ name: 'Xuhui Zhou' }],
+}
+
+# On the quest of user-effective AI agents
+
+<div className="not-prose mb-8 border-b border-zinc-200 pb-6 dark:border-zinc-800">
+  <div className="text-sm text-zinc-500 dark:text-zinc-400">
+    By Xuhui Zhou · Nov 2, 2025
+  </div>
+</div>
+
+{/* <div className="not-prose mb-8 rounded-lg border border-blue-200 bg-blue-50 p-4 dark:border-blue-900/30 dark:bg-blue-900/10">
+  <div className="text-sm font-semibold text-blue-900 dark:text-blue-200">TL;DR</div>
+  <div className="mt-2 text-sm text-blue-800 dark:text-blue-300">
+    While AI agents achieve impressive benchmark scores, true effectiveness requires understanding user needs, building appropriate mental models, and designing for real-world interaction patterns. This post explores the gap between agent capabilities and user-effective AI systems.
+  </div>
+</div> */}
+
+The past year has seen remarkable progress in AI agents—from coding assistants to research tools, these systems demonstrate increasingly sophisticated capabilities on standardized benchmarks. Yet a critical question remains: **do high benchmark scores translate to user-effective AI agents?**
+
+Consider a coding agent that achieves 90% accuracy on SWE-bench but frustrates users with opaque reasoning, or a research assistant that retrieves perfect documents but fails to understand when users need summaries versus deep analysis. The gap between benchmark performance and user effectiveness reveals a fundamental challenge in AI agent development.
+
+This post explores what makes AI agents truly effective for users, drawing from recent research and real-world deployments.
+
+## What does "user-effective" mean?
+
+User-effective AI agents go beyond task completion metrics. They must:
+
+### Build appropriate mental models
+
+Users develop mental models of how agents work—their capabilities, limitations, and reasoning processes. Effective agents:
+- Communicate their reasoning transparently
+- Set accurate expectations about what they can and cannot do
+- Provide feedback that helps users refine their mental models over time
+
+### Adapt to user expertise and context
+
+A novice user and an expert have fundamentally different needs:
+- **Novice users** benefit from guided interactions, explanations, and error prevention
+- **Expert users** need efficiency, shortcuts, and fine-grained control
+- **Context matters**: the same user may need different interaction patterns for exploration versus execution
+
+### Handle uncertainty gracefully
+
+Real-world tasks involve ambiguity that benchmarks rarely capture:
+- When should an agent ask for clarification versus making reasonable assumptions?
+- How should agents communicate confidence in their outputs?
+- What failure modes are acceptable, and which are catastrophic?
+
+## The theory of mind gap
+
+Recent work on Theory of Mind in AI agents<Cite id="liu2021">Liu et al, 2021</Cite> reveals a critical challenge: agents must model not just task requirements, but user beliefs, goals, and knowledge states. For some more examples of weight normalization approaches, see <Cite id="salimans2016">Salimans et al, 2016</Cite>, <Cite id="miyato2018">Miyato et al, 2018</Cite>.
+
+### Understanding user intent
+
+Users rarely specify complete requirements. An effective agent must infer:
+- Implicit goals and constraints
+- Background knowledge the user possesses
+- Preferences learned from past interactions
+
+### Collaborative task decomposition
+
+Rather than executing rigid plans, user-effective agents:
+- Propose task breakdowns for user validation
+- Adjust strategies based on user feedback
+- Recognize when to escalate decisions to users
+
+## Design principles for user-effective agents
+
+Based on empirical studies and theoretical frameworks, several design principles emerge:
+
+### 1. Progressive disclosure of complexity
+
+Start simple, add complexity as needed:
+- Default to simple interfaces for common cases
+- Expose advanced controls for power users
+- Make complexity opt-in, not mandatory
+
+### 2. Legible decision-making
+
+Users trust agents they understand:
+- Show reasoning traces, not just outputs
+- Explain why alternatives were rejected
+- Highlight uncertain decisions
+
+### 3. Bidirectional adaptation
+
+The agent-user relationship evolves:
+- Agents learn user preferences and patterns
+- Users develop better prompting strategies
+- The system improves through interaction
+
+## Measuring user effectiveness
+
+Traditional metrics fall short. We need new evaluation frameworks:
+
+### Beyond task success rate
+
+- **Time to success**: How efficiently do users accomplish goals?
+- **Cognitive load**: How much mental effort does interaction require?
+- **Error recovery**: How easily can users correct agent mistakes?
+- **Learnability**: Do users get better at working with the agent over time?
+
+### Qualitative dimensions
+
+- **Trust calibration**: Are users appropriately confident in agent outputs?
+- **Mental model accuracy**: Do users understand agent capabilities?
+- **Workflow integration**: Does the agent fit naturally into existing practices?
+
+## Case studies
+
+### Coding assistants
+
+Modern coding assistants like GitHub Copilot demonstrate both progress and challenges:
+
+**What works:**
+- Inline suggestions reduce friction
+- Context awareness from surrounding code
+- Fast iteration cycles
+
+**What needs improvement:**
+- Explaining why suggestions were made
+- Handling multi-file refactoring transparently
+- Adapting to team-specific coding patterns
+
+### Research agents
+
+AI research assistants face unique challenges:
+
+**Critical requirements:**
+- Source attribution and verification
+- Understanding research context and novelty
+- Balancing comprehensiveness with relevance
+
+**Open problems:**
+- How to represent uncertainty in findings?
+- When to pivot search strategies?
+- Supporting exploratory versus focused research modes
+
+## Looking forward
+
+Building user-effective AI agents requires:
+
+### Interdisciplinary collaboration
+
+- **HCI research** on interaction patterns and mental models
+- **NLP/ML** for robust language understanding and generation
+- **Cognitive science** on human reasoning and learning
+- **Design** for intuitive, accessible interfaces
+
+### New benchmarks
+
+We need evaluation frameworks that capture:
+- Interaction quality over multiple turns
+- Adaptation to diverse user types
+- Real-world task complexity and ambiguity
+
+### Ethical considerations
+
+User-effective agents must also be:
+- **Transparent** about capabilities and limitations
+- **Aligned** with user values and societal norms
+- **Accountable** when mistakes occur
+
+## Conclusion
+
+The quest for user-effective AI agents is not just about better models or higher benchmark scores—it requires fundamentally rethinking how we design, evaluate, and deploy AI systems that work *with* users rather than just *for* them.
+
+As we continue building more capable agents, keeping users at the center of our design process will determine whether these systems truly augment human capabilities or merely automate tasks in frustrating ways.
+
+---
+
+*Thanks to collaborators for discussions that shaped this post.*

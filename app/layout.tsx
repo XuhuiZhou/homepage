@@ -1,27 +1,10 @@
-import type { Metadata, Viewport } from 'next'
+'use client'
 import { Geist, Geist_Mono } from 'next/font/google'
 import './globals.css'
 import { Header } from './header'
 import { Footer } from './footer'
 import { ThemeProvider } from 'next-themes'
-
-export const viewport: Viewport = {
-  width: 'device-width',
-  initialScale: 1,
-  themeColor: '#ffffff',
-}
-
-export const metadata: Metadata = {
-  metadataBase: new URL('https://nim-fawn.vercel.app/'),
-  alternates: {
-    canonical: '/'
-  },
-  title: {
-    default: 'Xuhui Zhou',
-    template: '%s | Xuhui Zhou'
-  },
-  description:  'Xuhui Zhou - PhD student at CMU LTI working on socially intelligent AI, safety, and language understanding.',
-};
+import { usePathname } from 'next/navigation'
 
 const geist = Geist({
   variable: '--font-geist',
@@ -38,6 +21,9 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode
 }>) {
+  const pathname = usePathname()
+  const isBlogPage = pathname?.startsWith('/blog')
+
   return (
     <html lang="en" suppressHydrationWarning>
       <body
@@ -50,11 +36,15 @@ export default function RootLayout({
           defaultTheme="system"
         >
           <div className="flex min-h-screen w-full flex-col font-[family-name:var(--font-inter-tight)]">
-            <div className="relative mx-auto w-full max-w-screen-sm flex-1 px-4 pt-20">
-              <Header />
-              {children}
-              <Footer />
-            </div>
+            {isBlogPage ? (
+              <>{children}</>
+            ) : (
+              <div className="relative mx-auto w-full max-w-screen-sm flex-1 px-4 pt-20">
+                <Header />
+                {children}
+                <Footer />
+              </div>
+            )}
           </div>
         </ThemeProvider>
       </body>

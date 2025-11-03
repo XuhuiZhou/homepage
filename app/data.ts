@@ -20,6 +20,7 @@ type BlogPost = {
   description: string
   link: string
   uid: string
+  date: string
 }
 
 type SocialLink = {
@@ -76,10 +77,18 @@ export const WORK_EXPERIENCE: WorkExperience[] = [
 
 export const BLOG_POSTS: BlogPost[] = [
   {
+    title: 'On the quest of user-effective AI agents',
+    description: 'Exploring what makes AI agents truly effective for users, beyond benchmark performance.',
+    link: '/blog/on-the-quest-of-user-effective-ai-agents',
+    uid: 'blog-2',
+    date: '2025-01-15',
+  },
+  {
     title: 'The overlooked "bad" word list ☠️',
     description: 'Stop using outdated bad word lists. Use ToxicTrig instead for better toxic language analysis.',
     link: '/blog/the-overlooked-bad-word-list',
     uid: 'blog-1',
+    date: '2024-12-15',
   },
 ]
 
