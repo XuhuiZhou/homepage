@@ -61,7 +61,7 @@ function createHeading(level: number) {
   return ({ children }: { children?: React.ReactNode }) => {
     const text = typeof children === 'string' ? children : String(children)
     const slug = slugify(text)
-    const Tag = `h${level}` as keyof JSX.IntrinsicElements
+    const Tag = `h${level}` as 'h1' | 'h2' | 'h3' | 'h4' | 'h5' | 'h6'
 
     return (
       <Tag id={slug}>

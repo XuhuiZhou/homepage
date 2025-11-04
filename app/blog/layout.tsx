@@ -4,7 +4,6 @@ import { usePathname } from 'next/navigation'
 import { TextMorph } from '@/components/ui/text-morph'
 import { ScrollProgress } from '@/components/ui/scroll-progress'
 import { useEffect, useState } from 'react'
-import { Footer } from '../footer'
 import dynamic from 'next/dynamic'
 
 // Dynamically import shared TOC component
