@@ -1,5 +1,6 @@
 import RLCurvePlot from './RLCurvePlot'
 import ModelComparisonChart from './ModelComparisonChart'
+import Citation from '../Citation'
 
 export const metadata = {
   title: 'The Quest of User-Effective AI Agents',
@@ -119,7 +120,6 @@ The initial user instruction is further perturbed to create a more challenging s
 The agents have to correctly query the user for clarification about the tasks (*PPP Principle 2: Proactivity*).
 Furthermore, the agents are given access to the user's past conversation history and must learn to adapt from those past interactions (the conversation history averaged around 1.5 million tokens, thus creating a huge context window requiring efficient memory management), e.g., ask a &ldquo;low verbosity&rdquo; user too many questions, and their satisfaction score will drop. This pushes agents to move beyond just task completion and become effective collaborators that can model and adapt to their users (*PPP Principle 3: Personalization*). 
 
-
 ## Reinforcing User-Effective AI Agents with PPP-inspired Rewards
 
 ## Looking forward
@@ -132,6 +132,14 @@ Building user-effective AI agents requires:
 The quest for user-effective AI agents is not just about better models or higher benchmark scores, it requires fundamentally rethinking how we design, evaluate, and deploy AI systems that work *with* users rather than just *for* them.
 
 As we continue building more capable agents, keeping users at the center of our design process will determine whether these systems truly augment human capabilities or merely automate tasks in frustrating ways.
+
+<Citation
+  author="Xuhui Zhou and Weiwei Sun"
+  title="The Quest of User-Effective AI Agents"
+  year="2025"
+  url="https://xuhuizhou.github.io/blog/on-the-quest-of-user-effective-ai-agents"
+  bibtexKey="zhou2025usereffective"
+/>
 
 ---
 

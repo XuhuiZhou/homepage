@@ -5,6 +5,10 @@ import { TextMorph } from '@/components/ui/text-morph'
 import { ScrollProgress } from '@/components/ui/scroll-progress'
 import { useEffect, useState } from 'react'
 import { Footer } from '../footer'
+import dynamic from 'next/dynamic'
+
+// Dynamically import shared TOC component
+const TableOfContents = dynamic(() => import('./TableOfContents'), { ssr: false })
 
 function CopyButton() {
   const [text, setText] = useState('Copy')
@@ -120,35 +124,7 @@ export default function BlogLayout({
               {/* Table of Contents Sidebar */}
               <aside className="hidden lg:block">
                 <div className="sticky top-24">
-                  <nav className="space-y-1 text-sm">
-                    <div className="font-semibold text-zinc-900 dark:text-zinc-100 mb-3">
-                      On this page
-                    </div>
-                    <a href="#introduction" className="block py-1 text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100">
-                      Introduction
-                    </a>
-                    <a href="#what-does-user-effective-mean" className="block py-1 text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100">
-                      What does "user-effective" mean?
-                    </a>
-                    <a href="#the-theory-of-mind-gap" className="block py-1 text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100">
-                      The theory of mind gap
-                    </a>
-                    <a href="#design-principles-for-user-effective-agents" className="block py-1 text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100">
-                      Design principles
-                    </a>
-                    <a href="#measuring-user-effectiveness" className="block py-1 text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100">
-                      Measuring user effectiveness
-                    </a>
-                    <a href="#case-studies" className="block py-1 text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100">
-                      Case studies
-                    </a>
-                    <a href="#looking-forward" className="block py-1 text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100">
-                      Looking forward
-                    </a>
-                    <a href="#conclusion" className="block py-1 text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100">
-                      Conclusion
-                    </a>
-                  </nav>
+                  <TableOfContents />
                 </div>
               </aside>
 
