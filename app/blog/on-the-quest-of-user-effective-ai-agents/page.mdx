@@ -1,17 +1,30 @@
+import RLCurvePlot from './RLCurvePlot'
+import ModelComparisonChart from './ModelComparisonChart'
+
 export const metadata = {
-  title: 'On the quest of user-effective AI agents',
+  title: 'The Quest of User-Effective AI Agents',
   description: 'Exploring what makes AI agents truly effective for users, beyond benchmark performance.',
-  date: '2025-01-15',
+  date: '2025-11-02',
   authors: [{ name: 'Xuhui Zhou' }],
 }
 
-# On the quest of user-effective AI agents
+# The Quest of User-Effective AI Agents
 
 <div className="not-prose mb-8 border-b border-zinc-200 pb-6 dark:border-zinc-800">
   <div className="text-sm text-zinc-500 dark:text-zinc-400">
     By Xuhui Zhou · Nov 2, 2025
   </div>
 </div>
+
+<Cover
+  src="/images/user_effective.png"
+  alt="A robot pushing a large boulder up a mountain"
+  caption="The feeling of using an AI agent that is not user-effective"
+/>
+
+<Epigraph cite="Andrej Karpathy, &ldquo;We're summoning ghosts, not building animals&rdquo;">
+  It's not the year of AI agents, but the decade of AI agents<Cite id="karpathy2023">Here's the [video](https://www.youtube.com/watch?v=lXUZvyajciY) of Andrej Karpathy talking about AI agents. Highly recommended.</Cite>.
+</Epigraph>
 
 {/* <div className="not-prose mb-8 rounded-lg border border-blue-200 bg-blue-50 p-4 dark:border-blue-900/30 dark:bg-blue-900/10">
   <div className="text-sm font-semibold text-blue-900 dark:text-blue-200">TL;DR</div>
@@ -20,155 +33,103 @@ export const metadata = {
   </div>
 </div> */}
 
-The past year has seen remarkable progress in AI agents—from coding assistants to research tools, these systems demonstrate increasingly sophisticated capabilities on standardized benchmarks. Yet a critical question remains: **do high benchmark scores translate to user-effective AI agents?**
+The past year has seen remarkable progress in AI agents, from coding assistants to research tools, these systems demonstrate increasingly sophisticated capabilities on standardized benchmarks. 
+Yet the dream of one person commanding dozens of AI &ldquo;interns&rdquo; for 10× productivity still feels like a mirage.
+In reality, users can get stuck in endless loops, pushing really hard to get the AI agent to do something, but ended up with little progress. 
+Benchmark wins don’t seem to translate to real-world gains directly<Cite id="failureofbenchmarks">For some examples, see [Becker et al., 2025](https://metr.org/blog/2025-07-10-early-2025-ai-experienced-os-dev-study/) and our work [Chen et al., 2025](https://arxiv.org/abs/2510.09801)</Cite>.
+What's missing?
 
-Consider a coding agent that achieves 90% accuracy on SWE-bench but frustrates users with opaque reasoning, or a research assistant that retrieves perfect documents but fails to understand when users need summaries versus deep analysis. The gap between benchmark performance and user effectiveness reveals a fundamental challenge in AI agent development.
+The dominant paradigm in training and evaluating AI agents centers on task success, overlooking the *fundamental goal of supporting real-world users*.
+This post outlines our efforts to rethink that paradigm for more user-effective AI agents.
 
-This post explores what makes AI agents truly effective for users, drawing from recent research and real-world deployments.
+## What does &ldquo;user-effective&rdquo; mean?
 
-## What does "user-effective" mean?
+There are many ways to define what makes an AI agent *user-effective*. But intuitively, we can agree on some fundamental principles, what we call the *PPP Principles*.
+First, an AI agent must be able to actually do the task well when given a clear and correct instruction. That’s what most benchmarks today focus on. But beyond accuracy, user-effectiveness also means efficiency, i.e., how fast the agent can complete the task. This exactly pinpoints one of the foundations of user-effectiveness, the first P: *Productivity*.
 
-User-effective AI agents go beyond task completion metrics. They must:
+But wait, is this enough? Not every task is a simple one-off, and not every instruction is complete or correct. Often, users themselves aren’t entirely sure what they want, let alone how to describe it precisely. 
+In these cases, the agent needs to ask questions, clarify goals, and guide the user through the process of refining instructions. 
+That’s where the second P: *Proactivity* comes in. 
+Furthermore, a proactive agent doesn’t just seek missing information, it also helps users understand how to best work with the agent, what it produces, and how to use those results effectively. For instance, if the agent writes a Linux kernel memory management package, its job doesn’t end there, it should also help the user understand how to use it, handle edge cases, and recognize limitations. 
+This kind of proactivity not only improves outcomes but also builds trust between the user and the agent.
 
-### Build appropriate mental models
+Finally, every user has their *own* way of working with AI agents. Some prefer to give high-level language instructions; others like to co-create step by step. 
+Some are comfortable letting the agent take risks; others want close oversight. 
+Even stylistic preferences, like a &ldquo;pythonic&rdquo; versus &ldquo;C-style&rdquo; approach, can differ widely. That’s why there’s no one-size-fits-all agentic solution for the third P: *Personalization*. To truly be user-effective, agents must be agile and flexible to adapt to different users, contexts, and collaboration styles.
 
-Users develop mental models of how agents work—their capabilities, limitations, and reasoning processes. Effective agents:
-- Communicate their reasoning transparently
-- Set accurate expectations about what they can and cannot do
-- Provide feedback that helps users refine their mental models over time
+Our research shows that optimizing solely for Productivity may yield short-term gains in overall user effectiveness (across all three PPP dimensions). However, as optimization continues, it inevitably undermines the other two Ps: *Proactivity* and *Personalization* (see Figure 1).
 
-### Adapt to user expertise and context
+<RLCurvePlot />
 
-A novice user and an expert have fundamentally different needs:
-- **Novice users** benefit from guided interactions, explanations, and error prevention
-- **Expert users** need efficiency, shortcuts, and fine-grained control
-- **Context matters**: the same user may need different interaction patterns for exploration versus execution
+Interestingly, the PPP principles align closely with recent research on Scaling Collaborative Effort <Cite id="scalingcollaborativeeffort">In [Shen et al., 2025](https://arxiv.org/abs/2510.25744), authors introduce *collaborative effort scaling*,
+a framework that captures how an agent’s utility
+grows with increasing user involvement</Cite>, where authors argue that two additional metrics are needed to truly measure how well agents collaborate with humans:
+1. *User Effort* — how much cognitive and investigative work users invest in the collaboration process, which
+may involve actively building an understanding of the task or the agent’s reasoning process, or simply
+answering the agent’s clarification prompts;
+2. *Utility of Joint Actions* — how much the joint human and agent team can accomplish together, reminiscent
+of joint human-AI team performance studied in prior literature <Cite id="bansal2021">In [Bansal et al., 2021](https://arxiv.org/abs/2102.03006), authors study the performance of joint human-AI teams and find that the utility of joint actions increases with increasing user involvement</Cite>.
 
-### Handle uncertainty gracefully
+This perspective resonates deeply with our **PPP Principles**: Productivity captures the efficiency of joint outcomes, Proactivity shapes the interaction that drives user engagement, and Personalization determines how seamlessly the agent adapts to each user’s level of effort and collaboration style.
 
-Real-world tasks involve ambiguity that benchmarks rarely capture:
-- When should an agent ask for clarification versus making reasonable assumptions?
-- How should agents communicate confidence in their outputs?
-- What failure modes are acceptable, and which are catastrophic?
+### Pioneering research on the proactive behavior of AI agents
+In 2024, we initiated a project to investigate the question asking behavior of coding assistants <Cite id="vijayvargiya2024">For more details, see [Vijayvargiya et al., 2025](https://arxiv.org/abs/2502.13069)</Cite>.
+We found that most of the software engineering (SWE) agents are not good at asking questions. In fact, they barely ask any questions at all. 
+
+Specifically, we took the SWE-bench-verified dataset<Cite id="swebenchverified">The dataset is released by [OpenAI](https://openai.com/index/introducing-swe-bench-verified/), where they hired experienced SWE developers to verify the issue/instruction of the task is complete and clear.</Cite> and transformed the complete and clear task instruction into an incomplete and ambiguous one by applying LLM-based perturbation.
+We then gave the original instruction to an LLM-simulated human user (mimicking a scenario where users have more context and knowledge about the task than the agent). The perturbed instruction was given to the agent, and we asked it to complete the task and explicitly informed the agent that it could ask the user questions if it was uncertain about any part of the task.
+As shown in Figure 2, agents powered by leading agentic models rarely asked questions (that's why they have zero false positive rate). Interestingly, models not specifically tuned for agentic tasks were the ones that actually initiated questions, even though often in incorrect ways.
+
+<ModelComparisonChart />
+
+Through this study, we realized a fundamental gap in how today's AI agents are trained and evaluated, which is a missing piece that limits their real-world effectiveness. 
+And we are now *on a quest* to address that gap.
+
 
 ## The theory of mind gap
 
-Recent work on Theory of Mind in AI agents<Cite id="liu2021">Liu et al, 2021</Cite> reveals a critical challenge: agents must model not just task requirements, but user beliefs, goals, and knowledge states. For some more examples of weight normalization approaches, see <Cite id="salimans2016">Salimans et al, 2016</Cite>, <Cite id="miyato2018">Miyato et al, 2018</Cite>.
+In reinforcement learning, tasks where an agent has full access to the current state of the environment are modeled as a *Markov Decision Process (MDP)*. For complex, fully-observable tasks, AI agents have already achieved superhuman performance (e.g., *AlphaGo* <Cite id="alphago">The GOAT! [Silver et al., 2016](https://www.nature.com/articles/nature16961)</Cite>).
 
-### Understanding user intent
+However, most complex, self-contained benchmarks are *already* *Partially Observable Markov Decision Processes (POMDPs)* <Cite id="pomdp">For more details, see [Puterman, 1994](https://www.sciencedirect.com/science/article/pii/B9780125966701500098)</Cite>, as the agent must reason under uncertainty about the environment's true state. For instance, benchmarks like *SWE-bench* and *BrowseComp* <Cite id="browsecomp">[BrowseComp](https://browsecomp.github.io/) is a QA benchmark requiring agents to extensively explore the webdata</Cite> are not MDPs. An agent in *SWE-bench* must infer the hidden state of the codebase from partial observations (file snippets and tool outputs), just as an agent in *BrowseComp* must infer the structure of the web from a single rendered page.
 
-Users rarely specify complete requirements. An effective agent must infer:
-- Implicit goals and constraints
-- Background knowledge the user possesses
-- Preferences learned from past interactions
+Crucially, in these &ldquo;task-POMDPs&rdquo;, the underlying state is *static*—the codebase or web graph doesn't change unexpectedly. The challenge is one of *exploration and inference*.
 
-### Collaborative task decomposition
+This assumption of a static, environmental hidden state breaks down in the *real world*, where agents must collaborate with *human users*. This introduces a second, fundamentally different source of partial observability. The underlying process is not just a POMDP over the *task*, but one that must also account for the *user*. The agent must now reason under uncertainty about the user's *unobservable mental state*.
 
-Rather than executing rigid plans, user-effective agents:
-- Propose task breakdowns for user validation
-- Adjust strategies based on user feedback
-- Recognize when to escalate decisions to users
+This human-centric POMDP has long been studied in *human-AI interaction*. Many works on *Theory of Mind (ToM)* explore precisely this issue, focusing on how agents can infer the unobservable mental states of others <Cite id="tom">For a couple of examples, see [Zhang et al., 2025](https://arxiv.org/abs/2502.15676), [Zhu et al., 2021](https://proceedings.mlr.press/v139/zhu21d.html), and our work [Zhou et al., 2024](https://arxiv.org/abs/2310.11667)</Cite>.
 
-## Design principles for user-effective agents
+We hypothesize that building truly *user-effective* AI agents requires moving beyond solving just the *environmental* POMDP. Agents must also model the *human* POMDP, inferring the user’s *intent and goals*, *knowledge and belief states*, and *preferences and constraints*—exactly what Theory of Mind aims to capture.
 
-Based on empirical studies and theoretical frameworks, several design principles emerge:
+### ToM-SWE: User Mental Modeling For Software Engineering Agents
+ToM-SWE<Cite id="tomswe">For more details, see [Zhou et al., 2025](https://arxiv.org/abs/2510.21903)</Cite> serves as our very first attempt to model the user's mental state and continuously learn from the user's feedback. As shown in Figure 3, we propose this dual-agent framework where the code agent and ToM agent could be powered by different LLMs and mangage different tasks.
+Specifically, the ToM agent communicates with the code agent while also agentically managing the hierarchical database to persist the user's previous conversation history and user models.
+<figure className="fullwidth not-prose my-8">
+  <img
+    src="/images/tom-swe-diagram.png"
+    alt="ToM-SWE system architecture showing user interaction with SWE Agent, ToM Agent, and hierarchical memory"
+    className="w-full"
+  />
+  <figcaption className="text-center mt-3 text-sm text-zinc-600 dark:text-zinc-400"> 
+    <strong>Figure 3</strong> Overview of the ToM-SWE framework: the SWE agent handles code generation and execution, while the ToM agent focuses on user modeling and intent inference. The SWE agent consults the ToM agent to predict the user's mental state before suggesting technical actions. Meanwhile, the ToM agent maintains an external hierarchical memory system to persist the user's state and update user models after each session (with update\_memory action).
+  </figcaption>
+</figure>
 
-### 1. Progressive disclosure of complexity
+To really evaluate agent's ability in modeling user's mental state in the long run, we build this benchmark dataset called Stateful SWE Bench, where we collected 453 real-world developer-agent sessions and created 15 distinct &ldquo;developer profiles&rdquo;, each with unique communication styles (like verbosity) and coding preferences (like testing habits). Our benchmark then uses an LLM-powered simulator to &ldquo;act&rdquo; as these different profiles.
+The initial user instruction is further perturbed to create a more challenging setting, e.g., a single sentence vague description for the complex Github issue.
+The agents have to correctly query the user for clarification about the tasks (*PPP Principle 2: Proactivity*).
+Furthermore, the agents are given access to the user's past conversation history and must learn to adapt from those past interactions (the conversation history averaged around 1.5 million tokens, thus creating a huge context window requiring efficient memory management), e.g., ask a &ldquo;low verbosity&rdquo; user too many questions, and their satisfaction score will drop. This pushes agents to move beyond just task completion and become effective collaborators that can model and adapt to their users (*PPP Principle 3: Personalization*). 
 
-Start simple, add complexity as needed:
-- Default to simple interfaces for common cases
-- Expose advanced controls for power users
-- Make complexity opt-in, not mandatory
 
-### 2. Legible decision-making
-
-Users trust agents they understand:
-- Show reasoning traces, not just outputs
-- Explain why alternatives were rejected
-- Highlight uncertain decisions
-
-### 3. Bidirectional adaptation
-
-The agent-user relationship evolves:
-- Agents learn user preferences and patterns
-- Users develop better prompting strategies
-- The system improves through interaction
-
-## Measuring user effectiveness
-
-Traditional metrics fall short. We need new evaluation frameworks:
-
-### Beyond task success rate
-
-- **Time to success**: How efficiently do users accomplish goals?
-- **Cognitive load**: How much mental effort does interaction require?
-- **Error recovery**: How easily can users correct agent mistakes?
-- **Learnability**: Do users get better at working with the agent over time?
-
-### Qualitative dimensions
-
-- **Trust calibration**: Are users appropriately confident in agent outputs?
-- **Mental model accuracy**: Do users understand agent capabilities?
-- **Workflow integration**: Does the agent fit naturally into existing practices?
-
-## Case studies
-
-### Coding assistants
-
-Modern coding assistants like GitHub Copilot demonstrate both progress and challenges:
-
-**What works:**
-- Inline suggestions reduce friction
-- Context awareness from surrounding code
-- Fast iteration cycles
-
-**What needs improvement:**
-- Explaining why suggestions were made
-- Handling multi-file refactoring transparently
-- Adapting to team-specific coding patterns
-
-### Research agents
-
-AI research assistants face unique challenges:
-
-**Critical requirements:**
-- Source attribution and verification
-- Understanding research context and novelty
-- Balancing comprehensiveness with relevance
-
-**Open problems:**
-- How to represent uncertainty in findings?
-- When to pivot search strategies?
-- Supporting exploratory versus focused research modes
+## Reinforcing User-Effective AI Agents with PPP-inspired Rewards
 
 ## Looking forward
 
 Building user-effective AI agents requires:
 
-### Interdisciplinary collaboration
-
-- **HCI research** on interaction patterns and mental models
-- **NLP/ML** for robust language understanding and generation
-- **Cognitive science** on human reasoning and learning
-- **Design** for intuitive, accessible interfaces
-
-### New benchmarks
-
-We need evaluation frameworks that capture:
-- Interaction quality over multiple turns
-- Adaptation to diverse user types
-- Real-world task complexity and ambiguity
-
-### Ethical considerations
-
-User-effective agents must also be:
-- **Transparent** about capabilities and limitations
-- **Aligned** with user values and societal norms
-- **Accountable** when mistakes occur
 
 ## Conclusion
 
-The quest for user-effective AI agents is not just about better models or higher benchmark scores—it requires fundamentally rethinking how we design, evaluate, and deploy AI systems that work *with* users rather than just *for* them.
+The quest for user-effective AI agents is not just about better models or higher benchmark scores, it requires fundamentally rethinking how we design, evaluate, and deploy AI systems that work *with* users rather than just *for* them.
 
 As we continue building more capable agents, keeping users at the center of our design process will determine whether these systems truly augment human capabilities or merely automate tasks in frustrating ways.
 

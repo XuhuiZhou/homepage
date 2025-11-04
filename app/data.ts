@@ -77,11 +77,11 @@ export const WORK_EXPERIENCE: WorkExperience[] = [
 
 export const BLOG_POSTS: BlogPost[] = [
   {
-    title: 'On the quest of user-effective AI agents',
+    title: 'The Quest of User-Effective AI Agents',
     description: 'Exploring what makes AI agents truly effective for users, beyond benchmark performance.',
     link: '/blog/on-the-quest-of-user-effective-ai-agents',
     uid: 'blog-2',
-    date: '2025-01-15',
+    date: '2025-11-02',
   },
   {
     title: 'The overlooked "bad" word list ☠️',

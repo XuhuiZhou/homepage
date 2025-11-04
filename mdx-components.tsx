@@ -1,9 +1,7 @@
 import type { MDXComponents } from 'mdx/types'
 import { ComponentPropsWithoutRef } from 'react'
 import { highlight } from 'sugar-high'
-
-let citationCounter = 0
-const citations: Record<string, number> = {}
+import Image from 'next/image'
 
 function slugify(text: string): string {
   return text
@@ -13,40 +11,49 @@ function slugify(text: string): string {
 }
 
 function Cite({ children, id }: { children: React.ReactNode; id: string }) {
-  if (!citations[id]) {
-    citationCounter++
-    citations[id] = citationCounter
-  }
-  const num = citations[id]
-
   return (
     <>
-      <sup className="text-zinc-600 dark:text-zinc-400">
-        {num}
-      </sup>
-      <span className="sidenote hidden xl:inline-block float-right clear-right w-[280px] mr-[-312px] mt-0 mb-4 text-sm text-zinc-600 dark:text-zinc-400 leading-relaxed font-charter">
-        <sup className="mr-1">{num}</sup>
+      <label htmlFor={`sn-${id}`} className="sidenote-number text-[#111] dark:text-[#ddd]"></label>
+      <input type="checkbox" id={`sn-${id}`} className="hidden" />
+      <span className="sidenote hidden xl:inline-block float-right clear-right relative w-[50%] mr-[-60%] mt-[0.3rem] mb-0 text-[16.5px] text-[#111] dark:text-[#ddd] leading-[1.3] align-baseline font-charter">
         {children}
       </span>
     </>
   )
 }
 
-function Citation({ children, num, id }: { children: React.ReactNode; num: number; id: string }) {
+function Epigraph({ children, cite }: { children: React.ReactNode; cite?: string }) {
   return (
-    <div id={`citation-${num}`} className="flex gap-2 text-sm">
-      <span className="text-zinc-500 dark:text-zinc-400">[{num}]</span>
-      <div className="flex-1">
+    <div className="my-8">
+      <blockquote className="text-[18px] italic border-none pl-8">
         {children}
-        {' '}
-        <a
-          href={`#ref-${num}`}
-          className="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300"
-        >
-          ↩
-        </a>
-      </div>
+        {cite && (
+          <footer className="text-right mt-2 text-[18px] not-italic">
+            {cite}
+          </footer>
+        )}
+      </blockquote>
     </div>
+  )
+}
+
+function NewThought({ children }: { children: React.ReactNode }) {
+  return (
+    <span className="font-variant-small-caps text-[1.2em]">
+      {children}
+    </span>
+  )
+}
+
+function MarginNote({ children, id }: { children: React.ReactNode; id: string }) {
+  return (
+    <>
+      <label htmlFor={`mn-${id}`} className="inline-block cursor-pointer">⊕</label>
+      <input type="checkbox" id={`mn-${id}`} className="hidden" />
+      <span className="marginnote hidden xl:inline-block float-right clear-right relative w-[50%] mr-[-60%] mt-[0.3rem] mb-0 text-[16.5px] text-[#111] dark:text-[#ddd] leading-[1.3] align-baseline font-charter">
+        {children}
+      </span>
+    </>
   )
 }
 
@@ -74,7 +81,9 @@ export function useMDXComponents(components: MDXComponents): MDXComponents {
     h5: createHeading(5),
     h6: createHeading(6),
     Cite,
-    Citation,
+    Epigraph,
+    NewThought,
+    MarginNote,
     Cover: ({
       src,
       alt,
@@ -85,9 +94,16 @@ export function useMDXComponents(components: MDXComponents): MDXComponents {
       caption: string
     }) => {
       return (
-        <figure>
-          <img src={src} alt={alt} className="rounded-xl" />
-          <figcaption className="text-center">{caption}</figcaption>
+        <figure className="not-prose my-8">
+          <img
+            src={src}
+            alt={alt}
+            className="w-full rounded-xl"
+            loading="eager"
+          />
+          <figcaption className="text-center mt-3 text-sm text-zinc-600 dark:text-zinc-400">
+            {caption}
+          </figcaption>
         </figure>
       )
     },

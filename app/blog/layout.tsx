@@ -40,7 +40,7 @@ export default function BlogLayout({
   const isPostPage = pathname !== '/blog'
 
   return (
-    <div className="flex min-h-screen flex-col">
+    <div className="flex min-h-screen flex-col blog-tufte-light dark:blog-tufte-dark">
       {/* Compact header - for all blog pages */}
       <header className="w-full border-b border-zinc-100 dark:border-zinc-900">
         <div className="flex w-full items-center justify-between px-6 py-4">
@@ -106,7 +106,7 @@ export default function BlogLayout({
       </header>
 
       {/* Blog content */}
-      <div className="relative mx-auto w-full max-w-[1600px] flex-1 px-6 pt-12">
+      <div className="relative mx-auto w-full max-w-[1400px] flex-1 px-6 pt-12 blog-post">
         {isPostPage ? (
           <>
             <ScrollProgress
@@ -157,7 +157,7 @@ export default function BlogLayout({
                 <div className="absolute right-4 top-4">
                   <CopyButton />
                 </div>
-                <main className="prose prose-gray pb-20 font-charter text-base prose-h4:prose-base dark:prose-invert prose-h1:text-3xl prose-h1:font-bold prose-h1:leading-tight prose-h2:mt-12 prose-h2:scroll-m-20 prose-h2:text-lg prose-h2:font-bold prose-h3:text-base prose-h3:font-medium prose-h4:font-medium prose-h5:text-base prose-h5:font-medium prose-h6:text-base prose-h6:font-medium prose-strong:font-medium">
+                <main className="prose prose-gray pb-20 font-charter text-[18px] leading-[27px] prose-h4:prose-base dark:prose-invert prose-h1:text-[48px] prose-h1:font-bold prose-h1:leading-[1] prose-h1:mb-4 prose-h2:mt-12 prose-h2:mb-3 prose-h2:scroll-m-20 prose-h2:text-[33px] prose-h2:leading-[1] prose-h2:font-normal prose-h2:italic prose-h3:text-[25.5px] prose-h3:leading-[1] prose-h3:font-normal prose-h3:italic prose-h3:mt-6 prose-h3:mb-2 prose-h4:font-medium prose-h5:text-base prose-h5:font-medium prose-h6:text-base prose-h6:font-medium prose-strong:font-semibold prose-a:text-inherit prose-a:no-underline prose-a:border-b prose-a:border-current">
                   {children}
                 </main>
               </div>
