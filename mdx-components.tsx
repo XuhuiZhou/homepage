@@ -13,9 +13,9 @@ function slugify(text: string): string {
 function Cite({ children, id }: { children: React.ReactNode; id: string }) {
   return (
     <>
-      <label htmlFor={`sn-${id}`} className="sidenote-number text-[#111] dark:text-[#ddd]"></label>
+      <label htmlFor={`sn-${id}`} className="sidenote-number text-[#111]"></label>
       <input type="checkbox" id={`sn-${id}`} className="hidden" />
-      <span className="sidenote hidden xl:inline-block float-right clear-right relative w-[50%] mr-[-60%] mt-[0.3rem] mb-0 text-[16.5px] text-[#111] dark:text-[#ddd] leading-[1.3] align-baseline font-charter">
+      <span className="sidenote hidden xl:inline-block float-right clear-right relative w-[50%] mr-[-60%] mt-[0.3rem] mb-0 text-[16.5px] text-[#111] leading-[1.3] align-baseline font-charter">
         {children}
       </span>
     </>
@@ -50,7 +50,7 @@ function MarginNote({ children, id }: { children: React.ReactNode; id: string })
     <>
       <label htmlFor={`mn-${id}`} className="inline-block cursor-pointer">⊕</label>
       <input type="checkbox" id={`mn-${id}`} className="hidden" />
-      <span className="marginnote hidden xl:inline-block float-right clear-right relative w-[50%] mr-[-60%] mt-[0.3rem] mb-0 text-[16.5px] text-[#111] dark:text-[#ddd] leading-[1.3] align-baseline font-charter">
+      <span className="marginnote hidden xl:inline-block float-right clear-right relative w-[50%] mr-[-60%] mt-[0.3rem] mb-0 text-[16.5px] text-[#111] leading-[1.3] align-baseline font-charter">
         {children}
       </span>
     </>
@@ -101,7 +101,7 @@ export function useMDXComponents(components: MDXComponents): MDXComponents {
             className="w-full rounded-xl"
             loading="eager"
           />
-          <figcaption className="text-center mt-3 text-sm text-zinc-600 dark:text-zinc-400">
+          <figcaption className="text-center mt-3 text-sm text-zinc-600">
             {caption}
           </figcaption>
         </figure>

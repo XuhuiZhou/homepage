@@ -250,7 +250,7 @@ const RLCurvePlot = () => {
   return (
     <figure className="not-prose my-8 fullwidth">
       <svg ref={svgRef} width="100%" height="350" className="overflow-visible" />
-      <figcaption className="text-center mt-3 text-sm text-zinc-600 dark:text-zinc-400">
+      <figcaption className="text-center mt-3 text-sm text-zinc-600">
         <strong>Figure 1</strong> While optimizing only for the task success, the productivity score improves at the cost of proactivity and personalization. The red line represents the method we proposed (See xx), which jointly optimizes for the productivity, proactivity and personalization.
       </figcaption>
     </figure>

@@ -35,7 +35,7 @@ export default function Blog() {
         <div className="flex flex-col space-y-0">
           <AnimatedBackground
             enableHover
-            className="h-full w-full rounded-lg bg-zinc-100 dark:bg-zinc-900/80"
+            className="h-full w-full rounded-lg bg-zinc-100"
             transition={{
               type: 'spring',
               bounce: 0,
@@ -51,10 +51,10 @@ export default function Blog() {
               >
                 <div className="flex flex-col space-y-1">
                   <div className="flex items-center gap-2">
-                    <h4 className="font-normal dark:text-zinc-100">
+                    <h4 className="font-normal">
                       {post.title}
                     </h4>
-                    <span className="text-xs text-zinc-400 dark:text-zinc-500">
+                    <span className="text-xs text-zinc-400">
                       {new Date(post.date).toLocaleDateString('en-US', {
                         month: 'short',
                         day: 'numeric',
@@ -62,7 +62,7 @@ export default function Blog() {
                       })}
                     </span>
                   </div>
-                  <p className="text-zinc-500 dark:text-zinc-400">
+                  <p className="text-zinc-500">
                     {post.description}
                   </p>
                 </div>

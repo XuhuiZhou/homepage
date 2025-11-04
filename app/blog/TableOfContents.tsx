@@ -63,7 +63,7 @@ export default function TableOfContents() {
 
   return (
     <nav className="space-y-1 text-sm">
-      <div className="font-semibold text-zinc-900 dark:text-zinc-100 mb-3">
+      <div className="font-semibold text-zinc-900 mb-3">
         On this page
       </div>
       {headings.map((heading) => (
@@ -74,8 +74,8 @@ export default function TableOfContents() {
             heading.level === 3 ? 'pl-4' : ''
           } ${
             activeId === heading.id
-              ? 'text-zinc-900 dark:text-zinc-100 font-medium'
-              : 'text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100'
+              ? 'text-zinc-900 font-medium'
+              : 'text-zinc-600 hover:text-zinc-900'
           }`}
           onClick={(e) => {
             e.preventDefault()

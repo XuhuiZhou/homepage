@@ -35,18 +35,18 @@ export default function Citation({
   }
 
   return (
-    <div className="not-prose my-12 border-t border-zinc-200 pt-8 dark:border-zinc-800">
-      <h2 className="mb-6 text-2xl font-semibold text-zinc-900 dark:text-zinc-100">
+    <div className="not-prose my-12 border-t border-zinc-200 pt-8">
+      <h2 className="mb-6 text-2xl font-semibold text-zinc-900">
         Citation
       </h2>
 
       <div className="space-y-6">
         <div>
-          <p className="mb-2 text-sm font-medium text-zinc-700 dark:text-zinc-300">
+          <p className="mb-2 text-sm font-medium text-zinc-700">
             Please cite this work as:
           </p>
-          <div className="rounded-lg bg-zinc-50 p-4 dark:bg-zinc-900">
-            <p className="font-charter text-sm leading-relaxed text-zinc-800 dark:text-zinc-200">
+          <div className="rounded-lg bg-zinc-50 p-4">
+            <p className="font-charter text-sm leading-relaxed text-zinc-800">
               {author}, &ldquo;{title}&rdquo;, {year}.
             </p>
           </div>
@@ -54,18 +54,18 @@ export default function Citation({
 
         <div>
           <div className="mb-2 flex items-center justify-between">
-            <p className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
+            <p className="text-sm font-medium text-zinc-700">
               Or use the BibTeX citation:
             </p>
             <button
               onClick={handleCopy}
-              className="rounded px-3 py-1 text-sm font-medium text-zinc-600 transition-colors hover:bg-zinc-100 hover:text-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-zinc-100"
+              className="rounded px-3 py-1 text-sm font-medium text-zinc-600 transition-colors hover:bg-zinc-100 hover:text-zinc-900"
             >
               {copied ? 'Copied!' : 'Copy'}
             </button>
           </div>
-          <div className="rounded-lg bg-zinc-50 p-4 dark:bg-zinc-900">
-            <pre className="overflow-x-auto text-sm text-zinc-800 dark:text-zinc-200">
+          <div className="rounded-lg bg-zinc-50 p-4">
+            <pre className="overflow-x-auto text-sm text-zinc-800">
               <code>{bibtexContent}</code>
             </pre>
           </div>

@@ -167,7 +167,7 @@ const ModelComparisonChart = () => {
   return (
     <figure className="not-prose my-8">
       <svg ref={svgRef} width="100%" height="450" className="overflow-visible" />
-      <figcaption className="text-center mt-3 text-sm text-zinc-600 dark:text-zinc-400">
+      <figcaption className="text-center mt-3 text-sm text-zinc-600">
         <strong>Figure 2</strong> Comparison of model performance in detecting ambiguity of SWE tasks across accuracy, false
         positive rate (FPR), and false negative rate (FNR) metrics. Higher accuracy is better,
         while lower FPR and FNR are preferred.

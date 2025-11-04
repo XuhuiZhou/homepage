@@ -25,7 +25,7 @@ function CopyButton() {
         setText('Copied')
         navigator.clipboard.writeText(currentUrl)
       }}
-      className="font-base flex items-center gap-1 text-center text-sm text-zinc-500 transition-colors dark:text-zinc-400"
+      className="font-base flex items-center gap-1 text-center text-sm text-zinc-500 transition-colors"
       type="button"
     >
       <TextMorph>{text}</TextMorph>
@@ -43,13 +43,13 @@ export default function BlogLayout({
   const isPostPage = pathname !== '/blog'
 
   return (
-    <div className="flex min-h-screen flex-col blog-tufte-light dark:blog-tufte-dark">
+    <div className="flex min-h-screen flex-col blog-tufte-light">
       {/* Compact header - for all blog pages */}
-      <header className="w-full border-b border-zinc-100 dark:border-zinc-900">
+      <header className="w-full border-b border-zinc-100">
         <div className="flex w-full items-center justify-between px-6 py-4">
           <Link
             href="/"
-            className="text-sm font-semibold text-zinc-900 dark:text-zinc-100"
+            className="text-sm font-semibold text-zinc-900"
           >
             Xuhui Zhou
           </Link>
@@ -58,8 +58,8 @@ export default function BlogLayout({
               href="/"
               className={`transition-colors ${
                 pathname === '/'
-                  ? 'font-medium text-zinc-700 dark:text-zinc-300'
-                  : 'text-zinc-400 hover:text-zinc-700 dark:text-zinc-500 dark:hover:text-zinc-300'
+                  ? 'font-medium text-zinc-700'
+                  : 'text-zinc-400 hover:text-zinc-700'
               }`}
             >
               About
@@ -68,8 +68,8 @@ export default function BlogLayout({
               href="/publications"
               className={`transition-colors ${
                 pathname === '/publications'
-                  ? 'font-medium text-zinc-700 dark:text-zinc-300'
-                  : 'text-zinc-400 hover:text-zinc-700 dark:text-zinc-500 dark:hover:text-zinc-300'
+                  ? 'font-medium text-zinc-700'
+                  : 'text-zinc-400 hover:text-zinc-700'
               }`}
             >
               Publications
@@ -78,8 +78,8 @@ export default function BlogLayout({
               href="/cv"
               className={`transition-colors ${
                 pathname === '/cv'
-                  ? 'font-medium text-zinc-700 dark:text-zinc-300'
-                  : 'text-zinc-400 hover:text-zinc-700 dark:text-zinc-500 dark:hover:text-zinc-300'
+                  ? 'font-medium text-zinc-700'
+                  : 'text-zinc-400 hover:text-zinc-700'
               }`}
             >
               CV
@@ -88,8 +88,8 @@ export default function BlogLayout({
               href="/blog"
               className={`transition-colors ${
                 pathname?.startsWith('/blog')
-                  ? 'font-medium text-zinc-700 dark:text-zinc-300'
-                  : 'text-zinc-400 hover:text-zinc-700 dark:text-zinc-500 dark:hover:text-zinc-300'
+                  ? 'font-medium text-zinc-700'
+                  : 'text-zinc-400 hover:text-zinc-700'
               }`}
             >
               Blog
@@ -98,8 +98,8 @@ export default function BlogLayout({
               href="/more"
               className={`transition-colors ${
                 pathname === '/more'
-                  ? 'font-medium text-zinc-700 dark:text-zinc-300'
-                  : 'text-zinc-400 hover:text-zinc-700 dark:text-zinc-500 dark:hover:text-zinc-300'
+                  ? 'font-medium text-zinc-700'
+                  : 'text-zinc-400 hover:text-zinc-700'
               }`}
             >
               More
@@ -113,7 +113,7 @@ export default function BlogLayout({
         {isPostPage ? (
           <>
             <ScrollProgress
-              className="fixed top-0 z-20 h-0.5 bg-gray-300 dark:bg-zinc-600"
+              className="fixed top-0 z-20 h-0.5 bg-gray-300"
               springOptions={{
                 bounce: 0,
               }}
@@ -132,7 +132,7 @@ export default function BlogLayout({
                 <div className="absolute right-4 top-4">
                   <CopyButton />
                 </div>
-                <main className="prose prose-gray pb-20 font-charter text-[18px] leading-[27px] prose-h4:prose-base dark:prose-invert prose-h1:text-[48px] prose-h1:font-bold prose-h1:leading-[1] prose-h1:mb-4 prose-h2:mt-12 prose-h2:mb-3 prose-h2:scroll-m-20 prose-h2:text-[33px] prose-h2:leading-[1] prose-h2:font-normal prose-h2:italic prose-h3:text-[25.5px] prose-h3:leading-[1] prose-h3:font-normal prose-h3:italic prose-h3:mt-6 prose-h3:mb-2 prose-h4:font-medium prose-h5:text-base prose-h5:font-medium prose-h6:text-base prose-h6:font-medium prose-strong:font-semibold prose-a:text-inherit prose-a:no-underline prose-a:border-b prose-a:border-current">
+                <main className="prose prose-gray pb-20 font-charter text-[18px] leading-[27px] prose-h4:prose-base prose-h1:text-[48px] prose-h1:font-bold prose-h1:leading-[1] prose-h1:mb-4 prose-h2:mt-12 prose-h2:mb-3 prose-h2:scroll-m-20 prose-h2:text-[33px] prose-h2:leading-[1] prose-h2:font-normal prose-h2:italic prose-h3:text-[25.5px] prose-h3:leading-[1] prose-h3:font-normal prose-h3:italic prose-h3:mt-6 prose-h3:mb-2 prose-h4:font-medium prose-h5:text-base prose-h5:font-medium prose-h6:text-base prose-h6:font-medium prose-strong:font-semibold prose-a:text-inherit prose-a:no-underline prose-a:border-b prose-a:border-current">
                   {children}
                 </main>
               </div>
