@@ -2,8 +2,12 @@ import type { MDXComponents } from 'mdx/types'
 import { ComponentPropsWithoutRef } from 'react'
 import { highlight } from 'sugar-high'
 import Image from 'next/image'
+import { Figure } from './app/blog/Figure'
+import { Ref } from './app/blog/Ref'
+import { NumberedHeading } from './app/blog/NumberedHeading'
+import Citation from './app/blog/Citation'
 
-function slugify(text: string): string {
+export function slugify(text: string): string {
   return text
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, '-')
@@ -61,12 +65,11 @@ function createHeading(level: number) {
   return ({ children }: { children?: React.ReactNode }) => {
     const text = typeof children === 'string' ? children : String(children)
     const slug = slugify(text)
-    const Tag = `h${level}` as 'h1' | 'h2' | 'h3' | 'h4' | 'h5' | 'h6'
 
     return (
-      <Tag id={slug}>
+      <NumberedHeading level={level} id={slug}>
         {children}
-      </Tag>
+      </NumberedHeading>
     )
   }
 }
@@ -84,6 +87,9 @@ export function useMDXComponents(components: MDXComponents): MDXComponents {
     Epigraph,
     NewThought,
     MarginNote,
+    Figure,
+    Ref,
+    Citation,
     Cover: ({
       src,
       alt,

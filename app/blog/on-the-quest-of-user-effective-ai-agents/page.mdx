@@ -1,5 +1,7 @@
 import RLCurvePlot from './RLCurvePlot'
 import ModelComparisonChart from './ModelComparisonChart'
+import StatefulSWEChart from './StatefulSWEChart'
+import CostEfficiencyChart from './CostEfficiencyChart'
 import Citation from '../Citation'
 
 export const metadata = {
@@ -58,9 +60,11 @@ Finally, every user has their *own* way of working with AI agents. Some prefer t
 Some are comfortable letting the agent take risks; others want close oversight. 
 Even stylistic preferences, like a &ldquo;pythonic&rdquo; versus &ldquo;C-style&rdquo; approach, can differ widely. That’s why there’s no one-size-fits-all agentic solution for the third P: *Personalization*. To truly be user-effective, agents must be agile and flexible to adapt to different users, contexts, and collaboration styles.
 
-Our research shows that optimizing solely for Productivity may yield short-term gains in overall user effectiveness (across all three PPP dimensions). However, as optimization continues, it inevitably undermines the other two Ps: *Proactivity* and *Personalization* (see Figure 1).
+Our research shows that optimizing solely for Productivity may yield short-term gains in overall user effectiveness (across all three PPP dimensions). However, as optimization continues, it inevitably undermines the other two Ps: *Proactivity* and *Personalization* (see <Ref fig="rl-curves" />).
 
-<RLCurvePlot />
+<Figure id="rl-curves">
+  <RLCurvePlot />
+</Figure>
 
 Interestingly, the PPP principles align closely with recent research on Scaling Collaborative Effort <Cite id="scalingcollaborativeeffort">In [Shen et al., 2025](https://arxiv.org/abs/2510.25744), authors introduce *collaborative effort scaling*,
 a framework that captures how an agent’s utility
@@ -79,9 +83,11 @@ We found that most of the software engineering (SWE) agents are not good at aski
 
 Specifically, we took the SWE-bench-verified dataset<Cite id="swebenchverified">The dataset is released by [OpenAI](https://openai.com/index/introducing-swe-bench-verified/), where they hired experienced SWE developers to verify the issue/instruction of the task is complete and clear.</Cite> and transformed the complete and clear task instruction into an incomplete and ambiguous one by applying LLM-based perturbation.
 We then gave the original instruction to an LLM-simulated human user (mimicking a scenario where users have more context and knowledge about the task than the agent). The perturbed instruction was given to the agent, and we asked it to complete the task and explicitly informed the agent that it could ask the user questions if it was uncertain about any part of the task.
-As shown in Figure 2, agents powered by leading agentic models rarely asked questions (that's why they have zero false positive rate). Interestingly, models not specifically tuned for agentic tasks were the ones that actually initiated questions, even though often in incorrect ways.
+As shown in <Ref fig="model-comparison" />, agents powered by leading agentic models rarely asked questions (that's why they have zero false positive rate). Interestingly, models not specifically tuned for agentic tasks were the ones that actually initiated questions, even though often in incorrect ways.
 
-<ModelComparisonChart />
+<Figure id="model-comparison">
+  <ModelComparisonChart />
+</Figure>
 
 Through this study, we realized a fundamental gap in how today's AI agents are trained and evaluated, which is a missing piece that limits their real-world effectiveness. 
 And we are now *on a quest* to address that gap.
@@ -89,49 +95,84 @@ And we are now *on a quest* to address that gap.
 
 ## The theory of mind gap
 
-In reinforcement learning, tasks where an agent has full access to the current state of the environment are modeled as a *Markov Decision Process (MDP)*. For complex, fully-observable tasks, AI agents have already achieved superhuman performance (e.g., *AlphaGo* <Cite id="alphago">The GOAT! [Silver et al., 2016](https://www.nature.com/articles/nature16961)</Cite>).
+In reinforcement learning, tasks where an agent has full access to the current state of the environment are modeled as a *Markov Decision Process (MDP)*. For complex, fully-observable tasks, AI agents have already achieved superhuman performance (e.g., *AlphaGo* <Cite id="alphago">The GOAT! [Silver et al., 2016](https://www.nature.com/articles/nature16961)</Cite>). Current agentic benchmarks are *Partially Observable Markov Decision Processes (POMDPs)* <Cite id="pomdp">For more details, see [Puterman, 1994](https://www.sciencedirect.com/science/article/pii/B9780125966701500098)</Cite>, as the agent must reason under uncertainty about the environment's true state (e.g., *SWE-bench* and *BrowseComp* <Cite id="browsecomp">[BrowseComp](https://browsecomp.github.io/) is a QA benchmark requiring agents to extensively explore the webdata</Cite>). 
 
-However, most complex, self-contained benchmarks are *already* *Partially Observable Markov Decision Processes (POMDPs)* <Cite id="pomdp">For more details, see [Puterman, 1994](https://www.sciencedirect.com/science/article/pii/B9780125966701500098)</Cite>, as the agent must reason under uncertainty about the environment's true state. For instance, benchmarks like *SWE-bench* and *BrowseComp* <Cite id="browsecomp">[BrowseComp](https://browsecomp.github.io/) is a QA benchmark requiring agents to extensively explore the webdata</Cite> are not MDPs. An agent in *SWE-bench* must infer the hidden state of the codebase from partial observations (file snippets and tool outputs), just as an agent in *BrowseComp* must infer the structure of the web from a single rendered page.
+However, in these &ldquo;task-POMDPs&rdquo;, the underlying state is *static*, i.e., the codebase or web graph doesn't change unexpectedly. The challenge is one of *exploration and inference*. This assumption of a static, environmental hidden state breaks down in the real world, where agents must collaborate with human users. This introduces a second, fundamentally different source of partial observability. The underlying process is not just a POMDP over the *task*, but one that must also account for the *user*. The agent must now reason under uncertainty about the user's *unobservable mental state*. This human-centric POMDP has long been studied in *human-AI interaction*. Many works on *Theory of Mind (ToM)* explore precisely this issue, focusing on how agents can infer the unobservable mental states of others <Cite id="tom">For a couple of examples, see [Zhang et al., 2025](https://arxiv.org/abs/2502.15676), [Zhu et al., 2021](https://proceedings.mlr.press/v139/zhu21d.html), and our work [Zhou et al., 2024](https://arxiv.org/abs/2310.11667)</Cite>.
 
-Crucially, in these &ldquo;task-POMDPs&rdquo;, the underlying state is *static*—the codebase or web graph doesn't change unexpectedly. The challenge is one of *exploration and inference*.
+We hypothesize that building truly *user-effective* AI agents requires moving beyond solving just the *environmental* POMDP. Agents must also model the *human* POMDP, inferring the user’s *intent and goals*, *knowledge and belief states*, and *preferences and constraints* across long-horizon sessions.
 
-This assumption of a static, environmental hidden state breaks down in the *real world*, where agents must collaborate with *human users*. This introduces a second, fundamentally different source of partial observability. The underlying process is not just a POMDP over the *task*, but one that must also account for the *user*. The agent must now reason under uncertainty about the user's *unobservable mental state*.
-
-This human-centric POMDP has long been studied in *human-AI interaction*. Many works on *Theory of Mind (ToM)* explore precisely this issue, focusing on how agents can infer the unobservable mental states of others <Cite id="tom">For a couple of examples, see [Zhang et al., 2025](https://arxiv.org/abs/2502.15676), [Zhu et al., 2021](https://proceedings.mlr.press/v139/zhu21d.html), and our work [Zhou et al., 2024](https://arxiv.org/abs/2310.11667)</Cite>.
-
-We hypothesize that building truly *user-effective* AI agents requires moving beyond solving just the *environmental* POMDP. Agents must also model the *human* POMDP, inferring the user’s *intent and goals*, *knowledge and belief states*, and *preferences and constraints*—exactly what Theory of Mind aims to capture.
-
-### ToM-SWE: User Mental Modeling For Software Engineering Agents
-ToM-SWE<Cite id="tomswe">For more details, see [Zhou et al., 2025](https://arxiv.org/abs/2510.21903)</Cite> serves as our very first attempt to model the user's mental state and continuously learn from the user's feedback. As shown in Figure 3, we propose this dual-agent framework where the code agent and ToM agent could be powered by different LLMs and mangage different tasks.
+### ToM-SWE: user mental modeling for software engineering agents
+ToM-SWE<Cite id="tomswe">For more details, see [Zhou et al., 2025](https://arxiv.org/abs/2510.21903)</Cite> serves as our very first attempt to model the user's mental state and continuously learn from the user's feedback in a complex and long-horizon setting. As shown in <Ref fig="tom-swe" />, we propose this dual-agent framework where the code agent and ToM agent could be powered by different LLMs and mangage different tasks.
 Specifically, the ToM agent communicates with the code agent while also agentically managing the hierarchical database to persist the user's previous conversation history and user models.
-<figure className="fullwidth not-prose my-8">
-  <img
-    src="/images/tom-swe-diagram.png"
-    alt="ToM-SWE system architecture showing user interaction with SWE Agent, ToM Agent, and hierarchical memory"
-    className="w-full"
-  />
-  <figcaption className="text-center mt-3 text-sm text-zinc-600">
-    <strong>Figure 3</strong> Overview of the ToM-SWE framework: the SWE agent handles code generation and execution, while the ToM agent focuses on user modeling and intent inference. The SWE agent consults the ToM agent to predict the user's mental state before suggesting technical actions. Meanwhile, the ToM agent maintains an external hierarchical memory system to persist the user's state and update user models after each session (with update\_memory action).
-  </figcaption>
-</figure>
+<Figure id="tom-swe">
+  <figure className="fullwidth not-prose my-8">
+    <img
+      src="/images/tom-swe-diagram.png"
+      alt="ToM-SWE system architecture showing user interaction with SWE Agent, ToM Agent, and hierarchical memory"
+      className="w-full"
+    />
+    <figcaption className="text-center mt-3 text-sm text-zinc-600">
+      Overview of the ToM-SWE framework: the SWE agent handles code generation and execution, while the ToM agent focuses on user modeling and intent inference. The SWE agent consults the ToM agent to predict the user's mental state before suggesting technical actions. Meanwhile, the ToM agent maintains an external hierarchical memory system to persist the user's state and update user models after each session (with update\_memory action).
+    </figcaption>
+  </figure>
+</Figure>
 
 To really evaluate agent's ability in modeling user's mental state in the long run, we build this benchmark dataset called Stateful SWE Bench, where we collected 453 real-world developer-agent sessions and created 15 distinct &ldquo;developer profiles&rdquo;, each with unique communication styles (like verbosity) and coding preferences (like testing habits). Our benchmark then uses an LLM-powered simulator to &ldquo;act&rdquo; as these different profiles.
 The initial user instruction is further perturbed to create a more challenging setting, e.g., a single sentence vague description for the complex Github issue.
-The agents have to correctly query the user for clarification about the tasks (*PPP Principle 2: Proactivity*).
-Furthermore, the agents are given access to the user's past conversation history and must learn to adapt from those past interactions (the conversation history averaged around 1.5 million tokens, thus creating a huge context window requiring efficient memory management), e.g., ask a &ldquo;low verbosity&rdquo; user too many questions, and their satisfaction score will drop. This pushes agents to move beyond just task completion and become effective collaborators that can model and adapt to their users (*PPP Principle 3: Personalization*). 
 
-## Reinforcing User-Effective AI Agents with PPP-inspired Rewards
+The agents have to correctly query the user for clarification about the tasks (*PPP Principle 2: Proactivity*).
+Furthermore, the agents are given access to the user's past conversation history and must learn to adapt from those past interactions <Cite id="contextwindow">The conversation history averaged around 1.5 million tokens, thus creating a huge context window requiring efficient memory management</Cite>, e.g., ask a &ldquo;low verbosity&rdquo; user too many questions, and their satisfaction score will drop. This pushes agents to move beyond just task completion and become effective collaborators that can model and adapt to their users (*PPP Principle 3: Personalization*).
+
+<Figure id="stateful-swe">
+  <StatefulSWEChart />
+</Figure>
+
+Our ToM-SWE agent significantly outperforms baselines on the Stateful SWE Bench (<Ref fig="stateful-swe" />). More importantly, <Ref fig="cost-efficiency" /> reveals that even small LLMs, when powering the ToM agent, dramatically boost performance. This result is key: it suggests that modeling the user's mental state is a distinct and critical capability, one that can be powered by smaller, more efficient models.
+
+To validate this in a real-world setting, we ran a three-week study where 17 developers used our ToM-enhanced CLI for their own daily coding tasks. Across 209 sessions, developers accepted (fully or partially) the ToM agent's suggestions 86% of the time, confirming its practical, real-world utility.
+
+<Figure id="cost-efficiency">
+  <CostEfficiencyChart />
+</Figure>
+
+## Reinforcing user-effective AI agents with PPP-inspired rewards
 
 ## Looking forward
 
-Building user-effective AI agents requires:
+This blog post was created by the authors collaorating with various LLMs and Coding Agents. And there are definitely moments where the authors were frustrated with the agents and wishing them could be better. Sometimes we even wonder why we are using it. But we know that they are really capable and the speed of them coding something is no human developers can match. In this process, we are also not sure if the was really working for us yet you know sometimes lazy humans just want to YOLO it. We know they are imperfect but there's defs no way for us going back to the old days without them.
+
+Looking forward, this is a really exciting time, where agents ability are finally strong and generalizable enough to be able to collaborate with humans. In one way, we are aware that both sides are coming from very different training paradigms, so we would know that there will be a huge oppurtunity to complement each other <Cite id="fateandfaith">For example, in [Dziri et al., 2023](https://arxiv.org/abs/2305.18654), authors study the inherent limitations of LLMs in compositionality.</Cite>. In another way, there's always this prevalent narrative of LLM AI is producitive in a way that they will eventually replace human workers <Cite id="llmreplacinghumans">There are numerous news articles reflecting this narrative, amplifying the public anxiety: [Anthropic’s new Claude can code for 30 hours. Think of it as your AI coworker](https://venturebeat.com/ai/anthropics-new-claude-can-code-for-30-hours-think-of-it-as-your-ai-coworker); [Anthropic cofounders say the likelihood of AI replacing human jobs is so high that they needed to warn the world about it](https://www.businessinsider.com/anthropic-ceo-warning-world-ai-replacing-jobs-necessary-2025-9)</Cite>. 
+
+This narrative somehow creates huge public attention through fear, furthre getting amplified though the media. Yet the "driven-by-fear" or "FOMO" narrative missing the big picture of how AI agents can complement or collaborate with humans, reaching a more robust and sustainable social dynamics and future society <Cite id="hai2025">It's great to see there more recent effort from Silicon Valley betting on this more collaborative and human-centric future: [Humans& is building AI models that are better at interacting with humans](https://www.forbes.com/sites/annatong/2025/10/31/xai-researcher-early-googler-in-talks-to-raise-1-billion-at-5-billion-valuation-for-new-frontier-lab/)</Cite>.
+
+Yet how? how can we further push the boundary of AI agents to be more user-effective or collaborative with humans?
+Here we throw some ideas and hope to inspire more research in this direction, diving by the three critical aspects of RL training: context, priors, and environment.
+
+### Human users as context
+Probably the most straightforward, or quickest fix is to bridge the context gap between the agent and the human user. The current breakdown of human agent collboration often falls short due to the mismatch of context. We are using agents while the instruction often ignore a large chunk of contexts that we have below the surface of the instruction. This could come from the website we just browsed, the paper we just read, the code we just wrote, the conversation we just had, etc. It's interesting that if we squeeze hard enough, we could actually get more context from the human user, at least for the virtual context that happening beyond the agent inferface <Cite id="usercontext">[Shaikh et al., 2025](https://arxiv.org/abs/2505.10831) pioneered the idea of capturing user's computer screen as additional context for the agent.</Cite>.
+This is the same by having acccess to previous user conversation history, as such history could provide a lot of context for the agent to understand the user's intent and goals <Cite id="memgpt">[MemGPT](https://arxiv.org/abs/2310.08560) started this whole wave of research of user memory management.</Cite>.
+
+In the future, the art of context engineering, especially for the part to obtain more user-side context will still be a big direction to explore, as Karl Marx once wrote that ``the human essence is the ensemble of social relations'', suggesting that individuals are not isolated entities but are fundamentally shaped by their interactions with other entities, within which contexts play a constitutive and essential role. With the advent of computers and artificial intelligence, these contexts are no longer limited to purely human--human interactions: human--machine interactions are included as well. Then a central question emerges: How can machines better understand our situations and purposes? To address this challenge, researchers have recently introduced the concept of context engineering. Although it is often regarded as a recent innovation of the agent era, we argue that related practices can be traced back more than twenty years. Since the early 1990s, the field has evolved through distinct historical phases, each shaped by the intelligence level of machines: from early human--computer interaction frameworks built around primitive computers, to today's human--agent interaction paradigms driven by intelligent agents, and potentially to human--level or superhuman intelligence in the future. In this paper, we situate context engineering, provide a systematic definition, outline its historical and conceptual landscape, and examine key design considerations for practice. By addressing these questions, we aim to offer a conceptual foundation for context engineering and sketch its promising future. This paper is a stepping stone for a broader community effort toward systematic context engineering in AI systems <Cite id="contextengineering">[Hua et al., 2025](https://arxiv.org/abs/2509.00559)</Cite>. 
+
+### Better priors for understanding user dynamics
+We could never get ALL the context from the user by just observing their daily behaviors. The idea of human goal, intent, belief, many of these higher level mental states are not directly observable. Furthermore, the context window could quickly explode with the long-horizon sessions. In human society, we in our daily life that don't have the full context of each other yet we could build up this mental model of the each other and the social objects around us. The idea of joint attention is a key to understand the user's mental state <Cite id="jointattention">[Why We Cooperate](https://mitpress.mit.edu/9780262013598/why-we-cooperate/)</Cite>.
+
+We believe that the idea of mental modeling is another key to unlock better user-effective AI agents. In this case, partially observable world could be better inferred though the AI agent thus enable this "I know what you want" feeling in the collaboration. A pivotal question is that how? As for current LLM training paradigm, the amount of innner mologue or social reasoning data is limited due to reporting biases. Can we create synthetic data to fill the gap? Is this where the idea of social world models comes in <Cite id="socialworldmodels">[Social World Models](https://arxiv.org/abs/2509.00559)</Cite>?
+This also is a stepping stone to put such agent into a reinforcement learning environment that is possible training more generalizable and user-effective agents.
+
+### Building the RL environment for user-effective AI agents
+
+We already have a lot of research on building the RL environment for AI agents <Cite id="rlenvironment">There are environments focusing on the task completion [Pan et al., 2024](https://arxiv.org/abs/2412.21139) and [Wang et al., 2025](https://arxiv.org/abs/2508.09123).</Cite> There are also bunch of research works plugging off-the-shelf LLM simulated users as part of the environment <Cite id="humanrl">Some examples include [Wu et al., 2025](https://arxiv.org/abs/2502.00640), and ours [Zhou et al., 2025](https://arxiv.org/abs/2510.21903)</Cite>.
+A crucial question is that how such LLM simulated users are actually doing a faithful job at simulating the human users. 
+Many works have investigated this issue and found that just using off-the-shelf LLM for user simulation is probably not enough as the current SOTA LLMs behaviors are very different from current human users <Cite id="llmuser">[Oh et al., 2025](https://arxiv.org/abs/2510.05141)</Cite> and they often suffer from mode collapse issue resulting in poor diversity of behaviors.
+
+This points to the idea of building more realistic and diverse user simulators that could provide more faithful and diverse user behaviors for the RL environment.
 
 
 ## Conclusion
 
-The quest for user-effective AI agents is not just about better models or higher benchmark scores, it requires fundamentally rethinking how we design, evaluate, and deploy AI systems that work *with* users rather than just *for* them.
+The quest for user-effective AI agents is not just about better models or higher benchmark scores, it requires fundamentally rethinking how we design, evaluate, and deploy AI systems that work *with* users rather than just *for* them. We are actively working on these aspects and if you are interested in this direction, please feel free to reach out to us.
 
-As we continue building more capable agents, keeping users at the center of our design process will determine whether these systems truly augment human capabilities or merely automate tasks in frustrating ways.
 
 <Citation
   author="Xuhui Zhou and Weiwei Sun"
