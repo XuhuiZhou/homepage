@@ -11,7 +11,7 @@ interface ReferenceContextType {
   sections: Map<string, string>
 }
 
-const ReferenceContext = createContext<ReferenceContextType | undefined>(undefined)
+export const ReferenceContext = createContext<ReferenceContextType | undefined>(undefined)
 
 export function ReferenceProvider({ children }: { children: ReactNode }) {
   const figuresRef = useRef<Map<string, number>>(new Map())

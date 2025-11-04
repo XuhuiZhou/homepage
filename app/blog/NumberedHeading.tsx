@@ -1,7 +1,7 @@
 'use client'
 
-import { useEffect, useState } from 'react'
-import { useReferences } from './ReferenceContext'
+import { useEffect, useState, useContext } from 'react'
+import { ReferenceContext } from './ReferenceContext'
 
 interface NumberedHeadingProps {
   level: number
@@ -9,17 +9,26 @@ interface NumberedHeadingProps {
   children: React.ReactNode
 }
 
+/**
+ * NumberedHeading component that works both inside and outside ReferenceProvider.
+ *
+ * - Inside ReferenceProvider (blog posts): Displays section numbers (e.g., "1 Heading")
+ * - Outside ReferenceProvider (other pages): Displays plain headings
+ *
+ * Note: Unlike Figure and Ref components which require ReferenceProvider,
+ * this component uses useContext directly to gracefully handle missing context.
+ */
 export function NumberedHeading({ level, id, children }: NumberedHeadingProps) {
-  const { registerSection, getSectionNumber } = useReferences()
+  const context = useContext(ReferenceContext)
   const [sectionNumber, setSectionNumber] = useState<string>('')
 
   useEffect(() => {
-    // Only number h2, h3, h4
-    if (level >= 2 && level <= 4) {
-      const number = registerSection(id, level)
+    // Only number h2, h3, h4 and only if we have a context
+    if (context && level >= 2 && level <= 4) {
+      const number = context.registerSection(id, level)
       setSectionNumber(number)
     }
-  }, [id, level, registerSection])
+  }, [id, level, context])
 
   const Tag = `h${level}` as 'h1' | 'h2' | 'h3' | 'h4' | 'h5' | 'h6'
 
