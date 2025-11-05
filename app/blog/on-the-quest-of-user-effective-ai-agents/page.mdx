@@ -15,7 +15,7 @@ export const metadata = {
 
 <div className="not-prose mb-8 border-b border-zinc-200 pb-6">
   <div className="text-sm text-zinc-500">
-    By Xuhui Zhou · Nov 2, 2025
+    By Xuhui Zhou and Weiwei Sun· Nov 2, 2025
   </div>
 </div>
 
@@ -135,7 +135,112 @@ To validate this in a real-world setting, we ran a three-week study where 17 dev
   <CostEfficiencyChart />
 </Figure>
 
-## Reinforcing user-effective AI agents with PPP-inspired rewards
+## Reinforcing User-Effective AI Agents with PPP-Inspired Rewards
+
+The PPP principles give us a clear target, but a critical question remains: how do we actually train agents to be Productive, Proactive, and Personalized? As we saw in <Ref fig="rl-curves" />, optimizing for Productivity (task success) alone isn’t merely insufficient—it can actively harm Proactivity and Personalization.
+
+The core bottleneck is the lack of a scalable training environment that can provide informative user feedback. We can’t hire enough human users to interact with an agent for thousands of hours. To solve this, we built **UserVille**, an interactive environment populated with diverse, preference-aware LLM-based user simulators, as a scalable and challenging training ground for agents to learn in.
+
+UserVille provides training signals that standard benchmarks lack:
+- **Vague-ification**: convert precise task prompts into underspecified ones to create controlled information asymmetry.
+- **Preference-aware simulators**: diverse “user” profiles (brevity, JSON-only, language constraints, expert vs amateur, etc.) drive interaction rules and preference checks.
+- **User-effort labeling**: each agent question is labeled by the effort the answer would impose on the user: (i) *Low-effort* (answerable from the hidden precise prompt); (ii) *Medium-effort* (unanswerable / poorly posed); (iii) *High-effort* (requires extra work beyond the precise prompt).
+
+### From Interaction to Learning Signal
+
+Each episode begins from a paired prompt: (1) a precise “ground truth” task specification (held by the user simulator), and (2) a deliberately vague prompt (given to the agent).
+
+During an episode, the agent may call tools (e.g., `browse`, `bash`) and an `ask_user` tool.
+
+Given the vague user prompt $q$, the agent produces a multi-turn trajectory
+
+$$
+\tau=(a_1,o_1,\ldots,a_T,o_T),\quad
+p_{\theta}(\tau\mid q)=\prod_{t=1}^{T}\pi_{\theta}\!\big(a_t\mid q,\tau_{<t}\big),
+$$where each $a_t$ may be a tool call or an `ask_user` call, and $o_t$ is the corresponding observation/answer.
+
+The simulator:
+
+  * answers questions **subject to a user preference**, and
+  * labels every question with a **user-effort** class: low, medium, or high.
+
+This produces three rewards per trajectory $\tau$:
+
+1.  Productivity ($R_{\text{prod}}$): task success (e.g., pass tests, EM/F1); 
+2.  Proactivity ($R_{\text{proact}}$): encourage **easy-to-answer** questions and discourage costly ones;  
+3.  Personalization ($R_{\text{pers}}$): match the stated preference.
+
+We sum them:
+$$
+R(\tau)=R_{\text{prod}}+R_{\text{proact}}+R_{\text{pers}}
+$$
+
+<Figure id="ppp-overview"\>
+  {/\* Placeholder: PPP overview diagram — (Vague prompt + Preference) → Agent (tools + ask\_user) → Simulator feedback → (R\_prod, R\_proact, R\_pers) → RL update \*/}
+\</Figure\>
+
+### Policy Optimization
+
+We optimize with a GRPO-style clipped objective and token-level credit assignment. For each prompt $q$ we sample $G$ rollouts $\{\tau_i\}_{i=1}^G$ from $\pi_{\text{old}}$, compute total reward $R_i$ per rollout, and form a group-relative advantage:
+
+$$\\hat{A}\_{i,t}=\\frac{\\operatorname{clip}(R\_i,0,1)-\\operatorname{mean}({R\_j})}{\\operatorname{std}({R\_j})}.
+$$Let $r_{i,t}(\theta)=\frac{\pi_{\theta}(\tau_{i,t}\mid q,\tau_{i,<t})}{\pi_{\text{old}}(\tau_{i,t}\mid q,\tau_{i,<t})}$.
+The objective is
+
+$$
+\mathcal{J}=\frac{1}{\sum_i|\tau_i|}\sum_{i=1}^{G}\sum_{t=1}^{|\tau_i|}
+\min\!\Big\{r_{i,t}(\theta)\hat{A}_{i,t},\;
+\operatorname{clip}\!\big(r_{i,t}(\theta),1-\epsilon,1+\epsilon\big)\hat{A}_{i,t}\Big\}.
+$$
+This encourages full-trajectory behaviors that **finish tasks**, **ask minimally-disruptive low-effort questions**, and **adhere to user preferences**.
+
+&lt;Figure id=&quot;ppp-dynamics&quot;&gt;
+  {/* Placeholder: training dynamics — counts of low / medium / high-effort questions over steps, showing “ask more early → ask better later” (medium/high drop) */}
+&lt;/Figure&gt;
+
+### Key Results
+
+> Does interaction help when prompts are vague?
+
+&lt;Ref fig=&quot;interaction-necessity&quot; /&gt; presents our first key finding: agent-user interaction is essential for handling vague prompts, **but only when agents are trained to interact effectively.**
+
+The vague prompt causes a 20.39-point F1 drop (64.50 → 44.11) without interaction. Simply allowing the base model to ask questions doesn't help—it needs to be trained with proper interaction objectives. With PPP training, the agent nearly recovers the full performance, demonstrating that effective interaction can bridge the information gap.
+
+> How does PPP compare to baselines across all three dimensions?
+
+&lt;Ref fig=&quot;ppp-main-results&quot; /&gt; presents comprehensive evaluation results comparing our PPP-trained agents against strong baselines and ablations.
+
+Key observations:
+
+- Frontier LLMs show imbalanced performance: GPT-5 achieves strong productivity (64.28 F1 on SWE) but weak proactivity (35.62) and personalization (41.73). This confirms our hypothesis that optimizing for task success alone doesn’t yield user-effective agents.
+- PPP achieves substantial improvements: our method shows +16.89 average score improvement over GPT-5 on SWE-Func-Loc and +27.78 on BrowseComp+. The improvements are particularly dramatic on proactivity (+42.62 on SWE) and personalization (+30.42 on SWE).
+- All three objectives are necessary: ablations removing any single objective show clear degradation.
+- Trade-offs exist but are manageable: optimizing only Prod + Proact hurts personalization (38.92); optimizing only Prod + Pers hurts proactivity (45.71). Full PPP successfully balances all three.
+
+
+> What interaction behaviors emerge from PPP training?
+
+**Learning to distinguish precise vs. vague prompts**
+A critical capability for minimally-disruptive agents is asking only when necessary. &lt;Ref fig=&quot;precise-vague-distinction&quot; /&gt; shows how PPP-trained agents develop this discrimination.
+
+PPP-trained agents show dramatically different behavior on precise vs. vague prompts: they ask questions in 96.8% of vague SWE instances but only 12.4% of precise ones—an 84.4 percentage point difference. This confirms the agent learned to identify ambiguity rather than asking indiscriminately.
+
+**The "increase-then-decrease" learning dynamic**
+&lt;Ref fig=&quot;learning-dynamic&quot; /&gt; reveals a fascinating pattern in how agents learn to ask *better* questions over training.
+
+* The **PPP method** shows a clear increase-then-decrease pattern for medium-effort questions: they rise from 0.14 to 0.35 (as the agent learns to ask more), then fall to 0.15 (as it learns to ask better). Low-effort questions consistently increase from 0.32 to 1.02.
+* In stark contrast, the **Prod-only baseline** shows continuous degradation: medium-effort questions explode to 0.94 and high-effort to 0.32. This represents an agent becoming "lazy"—offloading work to the user rather than doing its own exploration.
+
+> Does PPP generalize to unseen scenarios?
+
+**Generalization to unseen user preferences**
+We evaluate on 8 held-out preferences (\#13-20) that involve different modalities: language constraints (Italian, multilingual, ALL CAPS), formatting (JSON, no commas, three sentences), and style (humor, code snippets).
+
+&lt;Ref fig=&quot;unseen-preferences&quot; /&gt; shows personalization scores throughout training.
+
+* PPP achieves **76% average personalization on completely unseen preferences**—only slightly lower than the 79.46% on seen preferences during training.
+* The Prod-only baseline shows **catastrophic degradation**, dropping from initial scores around 0.90 to final scores around 0.34. Even simple mechanical preferences like "JSON format" degrade severely (0.29 final score), confirming that personalization is actively *unlearned* when not explicitly optimized.
+
 
 ## Looking forward
 
