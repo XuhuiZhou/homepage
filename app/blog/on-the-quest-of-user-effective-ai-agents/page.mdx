@@ -1,7 +1,4 @@
-import RLCurvePlot from './RLCurvePlot'
-import ModelComparisonChart from './ModelComparisonChart'
-import StatefulSWEChart from './StatefulSWEChart'
-import CostEfficiencyChart from './CostEfficiencyChart'
+import { RLCurvePlot, ModelComparisonChart, StatefulSWEChart, CostEfficiencyChart } from './ChartComponents'
 import Citation from '../Citation'
 
 export const metadata = {
@@ -156,8 +153,9 @@ Given the vague user prompt $q$, the agent produces a multi-turn trajectory
 
 $$
 \tau=(a_1,o_1,\ldots,a_T,o_T),\quad
-p_{\theta}(\tau\mid q)=\prod_{t=1}^{T}\pi_{\theta}\!\big(a_t\mid q,\tau_{<t}\big),
-$$where each $a_t$ may be a tool call or an `ask_user` call, and $o_t$ is the corresponding observation/answer.
+p_{\theta}(\tau\mid q)=\prod_{t=1}^{T}\pi_{\theta}\!\big(a_t\mid q,\tau_{\lt t}\big), 
+$$
+where each $a_t$ may be a tool call or an `ask_user` call, and $o_t$ is the corresponding observation/answer.
 
 The simulator:
 
@@ -170,21 +168,25 @@ This produces three rewards per trajectory $\tau$:
 2.  Proactivity ($R_{\text{proact}}$): encourage **easy-to-answer** questions and discourage costly ones;  
 3.  Personalization ($R_{\text{pers}}$): match the stated preference.
 
+
 We sum them:
 $$
 R(\tau)=R_{\text{prod}}+R_{\text{proact}}+R_{\text{pers}}
 $$
 
-<Figure id="ppp-overview"\>
-  {/\* Placeholder: PPP overview diagram — (Vague prompt + Preference) → Agent (tools + ask\_user) → Simulator feedback → (R\_prod, R\_proact, R\_pers) → RL update \*/}
-\</Figure\>
+{/* <Figure id="ppp-overview"\>
+  Placeholder: PPP overview diagram — (Vague prompt + Preference) → Agent (tools + ask\_user) → Simulator feedback → (R\_prod, R\_proact, R\_pers) → RL update 
+\</Figure\>  */}
 
 ### Policy Optimization
 
 We optimize with a GRPO-style clipped objective and token-level credit assignment. For each prompt $q$ we sample $G$ rollouts $\{\tau_i\}_{i=1}^G$ from $\pi_{\text{old}}$, compute total reward $R_i$ per rollout, and form a group-relative advantage:
 
 $$\\hat{A}\_{i,t}=\\frac{\\operatorname{clip}(R\_i,0,1)-\\operatorname{mean}({R\_j})}{\\operatorname{std}({R\_j})}.
-$$Let $r_{i,t}(\theta)=\frac{\pi_{\theta}(\tau_{i,t}\mid q,\tau_{i,<t})}{\pi_{\text{old}}(\tau_{i,t}\mid q,\tau_{i,<t})}$.
+$$
+
+Let $r_{i,t}(\theta)=\frac{\pi_{\theta}(\tau_{i,t}\mid q,\tau_{i,<t})}{\pi_{\text{old}}(\tau_{i,t}\mid q,\tau_{i,<t})}$.
+
 The objective is
 
 $$
@@ -192,11 +194,12 @@ $$
 \min\!\Big\{r_{i,t}(\theta)\hat{A}_{i,t},\;
 \operatorname{clip}\!\big(r_{i,t}(\theta),1-\epsilon,1+\epsilon\big)\hat{A}_{i,t}\Big\}.
 $$
+
 This encourages full-trajectory behaviors that **finish tasks**, **ask minimally-disruptive low-effort questions**, and **adhere to user preferences**.
 
-&lt;Figure id=&quot;ppp-dynamics&quot;&gt;
-  {/* Placeholder: training dynamics — counts of low / medium / high-effort questions over steps, showing “ask more early → ask better later” (medium/high drop) */}
-&lt;/Figure&gt;
+
+Placeholder: training dynamics — counts of low / medium / high-effort questions over steps, showing “ask more early → ask better later” (medium/high drop)
+
 
 ### Key Results
 

@@ -3,9 +3,7 @@ import { motion } from 'motion/react'
 import { Magnetic } from '@/components/ui/magnetic'
 import Link from 'next/link'
 import Image from 'next/image'
-import { AnimatedBackground } from '@/components/ui/animated-background'
 import {
-  BLOG_POSTS,
   EMAIL,
   SOCIAL_LINKS,
 } from './data'
@@ -76,14 +74,14 @@ export default function Personal() {
         variants={VARIANTS_SECTION}
         transition={TRANSITION_SECTION}
       >
-        {/* Profile Picture - Float Right on Desktop, Centered on Mobile */}
+        {/* Profile Picture - Hidden on Mobile, Float Right on Desktop */}
         <motion.div
-          className="float-none md:float-right mb-6 md:mb-0 md:ml-8 flex justify-center md:justify-end"
+          className="hidden md:float-right md:ml-8 md:flex md:justify-end"
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.4 }}
         >
-          <div className="relative w-48 h-64 md:w-52 md:h-72">
+          <div className="relative w-46 h-60"> 
             <Image
               src="/profile.jpg"
               alt="Xuhui Zhou"
