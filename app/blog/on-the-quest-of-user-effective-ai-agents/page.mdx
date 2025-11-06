@@ -196,13 +196,13 @@ We found that frontier LLMs perform unevenly. For example, GPT-5 scores high on 
 <PPPComparisonRadar />
 </Figure>
 
-Our PPP approach makes big gains: it improves GPT-5's average score by +16.89 on SWE-Func-Loc<Cite id="swe-func-loc">This is the same task as the SWE-Bench-Verified benchmark, here, we only ask the agent to locate the function needed to fix the issue rather than the full task.</Cite> and +27.78 on BrowseComp+<Cite id="browsecompp">[BrowseComp+](https://arxiv.org/abs/2508.06600) is a QA benchmark replicating the feature of BrowseComp, coming with a static database without the need to search the dynamic, real-world websites.</Cite>. The boosts are especially large for proactivity (+42.62 on SWE) and personalization (+30.42 on SWE).
+Our PPP approach makes big gains: it improves GPT-5's average score by +21.6 on SWE-Func-Loc<Cite id="swe-func-loc">This is the same task as the SWE-Bench-Verified benchmark, here, we only ask the agent to locate the function needed to fix the issue rather than the full task.</Cite> and BrowseComp+<Cite id="browsecompp">[BrowseComp+](https://arxiv.org/abs/2508.06600) is a QA benchmark replicating the feature of BrowseComp, coming with a static database without the need to search the dynamic, real-world websites.</Cite>. The boosts are especially large for proactivity (+38.9 on SWE) and personalization (+76.3 on SWE).
 
-We also confirmed that all three objectives are essential. Removing any one of them clearly hurts performance. While there are some trade-offs—optimizing only productivity + proactivity lowers personalization (38.92), and optimizing only productivity + personalization reduces proactivity (45.71), we found that the full PPP setup balances all three effectively.
+We also confirmed that all three objectives are essential. Removing any one of them clearly hurts performance. While there are some trade-offs—optimizing only productivity + proactivity lowers personalization (-21.82), and optimizing only productivity + personalization reduces proactivity (-5.95), we found that the full PPP setup balances all three effectively.
 
 > What are some key interactive behaviors that emerge from PPP training?
 
-We first found that PPP-trained agents learned to distinguish precise vs. vague prompts: they ask questions in 96.8% of vague SWE instances but only 12.4% of precise ones—an 84.4 percentage point difference. This confirms the agent learned to identify ambiguity rather than asking indiscriminately. A critical capability for minimally-disruptive agents is asking only when necessary.
+We first found that PPP-trained agents learned to distinguish precise vs. vague prompts: they ask questions in 100% of vague SWE instances but only 6% of precise ones—an 94 percentage point difference. This confirms the agent learned to identify ambiguity rather than asking indiscriminately. A critical capability for minimally-disruptive agents is asking only when necessary.
 
 We also discovered the &ldquo;increase-then-decrease&rdquo; learning dynamic. <Ref fig="learning-dynamic" /> reveals a fascinating pattern in how agents learn to ask *better* questions over training.
 
@@ -210,9 +210,9 @@ We also discovered the &ldquo;increase-then-decrease&rdquo; learning dynamic. <R
 <InteractionDynamicsChart />
 </Figure>
 
-From <Ref fig="learning-dynamic" />, we can see that the PPP method shows a clear increase-then-decrease pattern for medium-effort questions: they rise from 0.14 to 0.35 (as the agent learns to ask more), then fall to 0.15 (as it learns to ask better). Low-effort questions consistently increase from 0.32 to 1.02. In stark contrast, the Prod-only baseline shows continuous degradation: medium-effort questions explode to 0.94 and high-effort to 0.32. This represents an agent becoming &ldquo;lazy&rdquo;—offloading work to the user rather than doing its own exploration.
+From <Ref fig="learning-dynamic" />, we can see that the PPP method shows a clear increase-then-decrease pattern for medium-effort questions: they rise from 0.13 to 0.38 (as the agent learns to ask more), then fall to 0.04 (as it learns to ask better). Low-effort questions consistently increase from 0.35 to 0.92. In stark contrast, the Prod-only baseline shows continuous degradation: medium-effort questions explode to 0.53 and high-effort to 0.31. This represents an agent becoming &ldquo;lazy&rdquo;—offloading work to the user rather than doing its own exploration.
 
-Finally, to test generalization, we evaluate `PPP-36B` on 8 unseen user preferences (e.g., language: Italian, multilingual, ALL CAPS; formatting: JSON, no commas, three sentences; style: humor, code snippets). We find that `PPP-36B` generalizes well, achieving 76% personalization accuracy, only slightly below the 79.46% on seen preferences. In contrast, if we only train the model with task success reward, the performance collapses from 90% to 34%.
+Finally, to test generalization, we evaluate `PPP-36B` on 8 unseen user preferences (e.g., language: Italian, multilingual, ALL CAPS; formatting: JSON, no commas, three sentences; style: humor, code snippets). We find that `PPP-36B` generalizes well, achieving 87.7% personalization accuracy. In contrast, if we only train the model with task success reward, the performance collapses from 69.8% to 48.2%.
 
 
 ## Looking forward
