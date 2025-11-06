@@ -213,7 +213,7 @@ const InteractionDynamicsChart = () => {
     <figure className="not-prose my-8">
       <svg ref={svgRef} width="100%" className="overflow-visible" />
       <figcaption className="text-center mt-3 text-sm text-zinc-600">
-        <strong>Figure 7:</strong> Average number of interactions between user and agent per session, comparing our
+        <strong>Figure 8:</strong> Average number of interactions between user and agent per session, comparing our
         method with a baseline trained without the <em>proactivity</em> reward (R<sub>Proact</sub>). We also report
         interaction quality: low-effort interactions are easy for the user to answer and directly address missing
         information; medium-effort interactions are those that the user cannot answer; high-effort interactions are

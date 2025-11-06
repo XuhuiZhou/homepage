@@ -8,3 +8,4 @@ export const StatefulSWEChart = dynamic(() => import('./StatefulSWEChart'), { ss
 export const CostEfficiencyChart = dynamic(() => import('./CostEfficiencyChart'), { ssr: false })
 export const VaguePromptChart = dynamic(() => import('./VaguePromptChart'), { ssr: false })
 export const InteractionDynamicsChart = dynamic(() => import('./InteractionDynamicsChart'), { ssr: false })
+export const PPPComparisonRadar = dynamic(() => import('./PPPComparisonRadar'), { ssr: false })

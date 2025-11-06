@@ -113,7 +113,7 @@ export default function BlogLayout({
       {/* Blog content */}
       <div className="relative mx-auto w-full max-w-[1400px] flex-1 px-6 pt-12 blog-post">
         <MathProvider>
-          <ReferenceProvider>
+          <ReferenceProvider key={pathname}>
             {isPostPage ? (
               <>
                 <ScrollProgress
