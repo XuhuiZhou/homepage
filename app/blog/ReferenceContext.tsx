@@ -1,6 +1,6 @@
 'use client'
 
-import { createContext, useContext, useState, useCallback, ReactNode } from 'react'
+import { createContext, useContext, useState, useCallback, useRef, useEffect, ReactNode } from 'react'
 
 interface ReferenceContextType {
   registerFigure: (id: string) => number
@@ -14,61 +14,67 @@ interface ReferenceContextType {
 export const ReferenceContext = createContext<ReferenceContextType | undefined>(undefined)
 
 export function ReferenceProvider({ children }: { children: ReactNode }) {
-  const [figures, setFigures] = useState<Map<string, number>>(new Map())
-  const [sections, setSections] = useState<Map<string, string>>(new Map())
-  const [sectionCounters, setSectionCounters] = useState<{ h2: number; h3: number; h4: number }>({ h2: 0, h3: 0, h4: 0 })
+  const figuresRef = useRef<Map<string, number>>(new Map())
+  const sectionsRef = useRef<Map<string, string>>(new Map())
+  const sectionCountersRef = useRef<{ h2: number; h3: number; h4: number }>({ h2: 0, h3: 0, h4: 0 })
   const [figureCounter, setFigureCounter] = useState(0)
   const [, setRefreshKey] = useState(0)
 
+  // Reset all refs on mount to ensure clean state
+  useEffect(() => {
+    figuresRef.current = new Map()
+    sectionsRef.current = new Map()
+    sectionCountersRef.current = { h2: 0, h3: 0, h4: 0 }
+    setFigureCounter(0)
+    setRefreshKey(0)
+  }, [])
+
   const registerFigure = useCallback((id: string) => {
-    if (!figures.has(id)) {
-      const number = figureCounter + 1
-      setFigures(prev => new Map(prev).set(id, number))
-      setFigureCounter(number)
+    if (!figuresRef.current.has(id)) {
+      setFigureCounter(prev => {
+        const number = prev + 1
+        figuresRef.current.set(id, number)
+        return number
+      })
       setRefreshKey(prev => prev + 1)
-      return number
+      return figuresRef.current.get(id)!
     }
-    return figures.get(id)!
-  }, [figures, figureCounter])
+    return figuresRef.current.get(id)!
+  }, [])
 
   const getFigureNumber = useCallback((id: string) => {
-    return figures.get(id)
-  }, [figures])
+    return figuresRef.current.get(id)
+  }, [])
 
   const registerSection = useCallback((id: string, level: number) => {
-    if (!sections.has(id)) {
+    if (!sectionsRef.current.has(id)) {
+      const counters = sectionCountersRef.current
       let sectionNumber = ''
 
-      setSectionCounters(prevCounters => {
-        const newCounters = { ...prevCounters }
+      if (level === 2) {
+        counters.h2++
+        counters.h3 = 0
+        counters.h4 = 0
+        sectionNumber = `${counters.h2}`
+      } else if (level === 3) {
+        counters.h3++
+        counters.h4 = 0
+        sectionNumber = `${counters.h2}.${counters.h3}`
+      } else if (level === 4) {
+        counters.h4++
+        sectionNumber = `${counters.h2}.${counters.h3}.${counters.h4}`
+      }
 
-        if (level === 2) {
-          newCounters.h2++
-          newCounters.h3 = 0
-          newCounters.h4 = 0
-          sectionNumber = `${newCounters.h2}`
-        } else if (level === 3) {
-          newCounters.h3++
-          newCounters.h4 = 0
-          sectionNumber = `${newCounters.h2}.${newCounters.h3}`
-        } else if (level === 4) {
-          newCounters.h4++
-          sectionNumber = `${newCounters.h2}.${newCounters.h3}.${newCounters.h4}`
-        }
-
-        return newCounters
-      })
-
-      setSections(prev => new Map(prev).set(id, sectionNumber))
+      sectionsRef.current.set(id, sectionNumber)
       setRefreshKey(prev => prev + 1)
       return sectionNumber
     }
-    return sections.get(id)!
-  }, [sections])
+    return sectionsRef.current.get(id)!
+  }, [])
 
   const getSectionNumber = useCallback((id: string) => {
-    return sections.get(id)
-  }, [sections])
+    return sectionsRef.current.get(id)
+  }, [])
 
   return (
     <ReferenceContext.Provider value={{
@@ -76,8 +82,8 @@ export function ReferenceProvider({ children }: { children: ReactNode }) {
       getFigureNumber,
       registerSection,
       getSectionNumber,
-      figures,
-      sections
+      figures: figuresRef.current,
+      sections: sectionsRef.current
     }}>
       {children}
     </ReferenceContext.Provider>

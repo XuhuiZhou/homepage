@@ -217,8 +217,8 @@ const PPPComparisonRadar = () => {
 
       <figcaption className="text-center -mt-8 text-sm text-zinc-600">
         <strong>Figure 7:</strong> Interactive radar chart comparing model performance across three dimensions (Productivity,
-        Proactivity, Personalization) on SWE-Bench-Verified. Click model names above to toggle their visibility.
-        PPP (Ours) shows balanced high performance across all three dimensions, while ablations reveal the importance
+        Proactivity, Personalization) on SWE-Bench-Verified (func-Loc with vague initial instruction). Click model names above to toggle their visibility.
+        PPP (Ours) shows balanced high performance across all three dimensions, while ablations (w/o Proact. and w/o Pers.) reveal the importance
         of each reward component.
       </figcaption>
     </figure>
