@@ -66,6 +66,17 @@
     color: #ddd;
   }
 
+  /* Text selection styling for blog - always readable regardless of global theme */
+  .blog-tufte-light ::selection {
+    background-color: rgba(251, 191, 36, 0.5); /* Semi-transparent amber */
+    color: inherit; /* Keep original text color */
+  }
+
+  .blog-tufte-light ::-moz-selection {
+    background-color: rgba(251, 191, 36, 0.5);
+    color: inherit;
+  }
+
   /* Mobile behavior for sidenotes - Tufte style */
   @media (max-width: 1280px) {
     /* Hide checkbox and label on desktop */

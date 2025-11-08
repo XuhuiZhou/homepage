@@ -164,34 +164,32 @@ const InteractionDynamicsChart = () => {
         .style('font-size', '13px')
         .text('Training Step')
 
-      // Add legend (only for the first chart)
-      if (xOffset === 0) {
-        const legend = g.append('g').attr('transform', `translate(10, 20)`)
+      // Add legend
+      const legend = g.append('g').attr('transform', `translate(10, 20)`)
 
-        const legendData = [
-          { label: 'Low Effort', color: colors.low },
-          { label: 'Medium Effort', color: colors.medium },
-          { label: 'High Effort', color: colors.high }
-        ]
+      const legendData = [
+        { label: 'Low Effort', color: colors.low },
+        { label: 'Medium Effort', color: colors.medium },
+        { label: 'High Effort', color: colors.high }
+      ]
 
-        legendData.forEach((item, i) => {
-          const row = legend.append('g').attr('transform', `translate(0, ${i * 20})`)
+      legendData.forEach((item, i) => {
+        const row = legend.append('g').attr('transform', `translate(0, ${i * 20})`)
 
-          row
-            .append('rect')
-            .attr('width', 12)
-            .attr('height', 12)
-            .attr('fill', item.color)
-            .attr('opacity', 0.8)
+        row
+          .append('rect')
+          .attr('width', 12)
+          .attr('height', 12)
+          .attr('fill', item.color)
+          .attr('opacity', 0.8)
 
-          row
-            .append('text')
-            .attr('x', 18)
-            .attr('y', 10)
-            .style('font-size', '11px')
-            .text(item.label)
-        })
-      }
+        row
+          .append('text')
+          .attr('x', 18)
+          .attr('y', 10)
+          .style('font-size', '11px')
+          .text(item.label)
+      })
     }
 
     // Create PPP chart (left)
