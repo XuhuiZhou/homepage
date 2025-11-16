@@ -34,23 +34,22 @@ export const metadata = {
 </div> */}
 
 The past year has seen remarkable progress in AI agents, from coding assistants to research tools, these systems demonstrate increasingly sophisticated capabilities on standardized benchmarks. 
-Yet the dream of one person commanding dozens of AI &ldquo;interns&rdquo; for 10× productivity still feels like a mirage.
-In reality, users can get stuck in endless loops, pushing really hard to get the AI agent to do something, but ended up with little progress.
-Benchmark wins don't seem to translate to real-world gains directly.<Cite id="failureofbenchmarks">For some examples, see [Becker et al., 2025](https://metr.org/blog/2025-07-10-early-2025-ai-experienced-os-dev-study/) and our work [Chen et al., 2025](https://arxiv.org/abs/2510.09801)</Cite>
+Yet the dream of one person commanding dozens of AI &ldquo;interns&rdquo; for 10× productivity still remains elusive.
+In reality, a user might wait for an agent to generate thousands of lines of code, only to discover that it misunderstood the task or produced an overly complex, unusable implementation. This often triggers a long cycle of rewrites, prompt tweaks, and “try again” attempts, but alas, all in vain.
+What's worse, impressive benchmark scores don't seem to prevent these failures.<Cite id="failureofbenchmarks">For some examples, see [Becker et al., 2025](https://metr.org/blog/2025-07-10-early-2025-ai-experienced-os-dev-study/) and our work [Chen et al., 2025](https://arxiv.org/abs/2510.09801)</Cite>
 What's missing?
 
 The dominant paradigm in training and evaluating AI agents centers on task success, overlooking the *fundamental goal of supporting real-world users*.
 This post outlines our efforts to rethink that paradigm for more user-effective AI agents.
 
-## What does &ldquo;user-effective&rdquo; mean?
+## The PPP principles: defining user-effectiveness
 
-There are many ways to define what makes an AI agent *user-effective*. But intuitively, we can agree on some fundamental principles, what we call the *PPP Principles*.
-First, an AI agent must be able to actually do the task well when given a clear and correct instruction. That’s what most benchmarks today focus on. But beyond accuracy, user-effectiveness also means efficiency, i.e., how fast the agent can complete the task. This exactly pinpoints one of the foundations of user-effectiveness, the first P: *Productivity*.
+We characterize user-effectiveness through three core dimensions: the PPP Principles. The first P is *Productivity*. While existing benchmarks focus primarily on whether an agent can accurately follow instructions, we argue that speed is equally important. Thus, productivity encompasses both high accuracy and high efficiency.
 
 But wait, is this enough? Not every task is a simple one-off, and not every instruction is complete or correct. Often, users themselves aren’t entirely sure what they want, let alone how to describe it precisely. 
 In these cases, the agent needs to ask questions, clarify goals, and guide the user through the process of refining instructions. 
 That’s where the second P: *Proactivity* comes in. 
-Furthermore, a proactive agent doesn’t just seek missing information, it also helps users understand how to best work with the agent, what it produces, and how to use those results effectively. For instance, if the agent writes a Linux kernel memory management package, its job doesn’t end there, it should also help the user understand how to use it, handle edge cases, and recognize limitations. 
+Furthermore, a proactive agent doesn’t just seek missing information, it also helps users understand how to best work with the agent, what it produces, and how to use those results effectively. For instance, if the user want the agent to &ldquo;write a website?&rdquo, the agent should first ask what kind of website the user would like to build given the highly under-specified instruction. After finishing the task, the agent should help the user understand how to use it, handle edge cases, and recognize limitations. 
 This kind of proactivity not only improves outcomes but also builds trust between the user and the agent.
 
 Finally, every user has their *own* way of working with AI agents. Some prefer to give high-level language instructions; others like to co-create step by step. 
@@ -61,20 +60,30 @@ Even stylistic preferences, like a &ldquo;pythonic&rdquo; versus &ldquo;C-style&
   <RLCurvePlot />
 </Figure>
 
-Our research shows (through training experiments detailed in  <Ref sec="reinforcing-user-effective-ai-agents-with-ppp-inspired-rewards" />) that optimizing solely for Productivity may yield short-term gains in overall user effectiveness (across all three PPP dimensions). However, as optimization continues, it inevitably undermines the other two Ps: *Proactivity* and *Personalization* (see <Ref fig="rl-curves" />).
+Why not focus only on *Productivity*? Our research shows (through training experiments detailed in  <Ref sec="reinforcing-user-effective-ai-agents-with-ppp-inspired-rewards" />) that optimizing solely for Productivity may yield short-term gains in overall user effectiveness (across all three PPP dimensions). However, as optimization continues, it inevitably undermines the other two Ps: *Proactivity* and *Personalization* (see <Ref fig="rl-curves" />).
 
-Interestingly, the PPP principles align closely with recent research on Scaling Collaborative Effort,<Cite id="scalingcollaborativeeffort">In [Shen et al., 2025](https://arxiv.org/abs/2510.25744), authors introduce *collaborative effort scaling*,
+This need for a multi-dimensional framework is echoed in recent research on Scaling Collaborative Effort<Cite id="scalingcollaborativeeffort">In [Shen et al., 2025](https://arxiv.org/abs/2510.25744), authors introduce *collaborative effort scaling*,
 a framework that captures how an agent's utility
-grows with increasing user involvement</Cite> where authors argue that two additional metrics are needed to truly measure how well agents collaborate with humans:
+grows with increasing user involvement</Cite>. The authors argue that two additional metrics are needed to truly measure how well agents collaborate with humans:
 1. *User Effort* — how much cognitive and investigative work users invest in the collaboration process, which
 may involve actively building an understanding of the task or the agent’s reasoning process, or simply
 answering the agent’s clarification prompts;
-2. *Utility of Joint Actions* — how much the joint human and agent team can accomplish together, reminiscent
-of joint human-AI team performance studied in prior literature.<Cite id="bansal2021">In [Bansal et al., 2021](https://arxiv.org/abs/2102.03006), authors study the performance of joint human-AI teams and find that the utility of joint actions increases with increasing user involvement</Cite>
+2. *Utility of Joint Actions* — how much the joint human and agent team can accomplish together, reminiscent of joint human-AI team performance studied in prior literature.<Cite id="bansal2021">In [Bansal et al., 2021](https://arxiv.org/abs/2102.03006), authors study the performance of joint human-AI teams and find that the utility of joint actions increases with increasing user involvement</Cite>
 
-This perspective resonates deeply with our **PPP Principles**: Productivity captures the efficiency of joint outcomes, Proactivity shapes the interaction that drives user engagement, and Personalization determines how seamlessly the agent adapts to each user’s level of effort and collaboration style.
+This perspective resonates deeply with our PPP Principles: Productivity captures the efficiency of joint outcomes, Proactivity shapes the interaction that drives user engagement, and Personalization determines how seamlessly the agent adapts to each user’s level of effort and collaboration style.
 
-### Pioneering research on the proactive behavior of AI agents
+
+
+
+## Proactivity and Personalization
+{/* In reinforcement learning, tasks where an agent has full access to the current state of the environment are modeled as a *Markov Decision Process (MDP)*. For complex, fully-observable tasks, AI agents have already achieved superhuman performance (e.g., *AlphaGo*).<Cite id="alphago">The GOAT! [Silver et al., 2016](https://www.nature.com/articles/nature16961)</Cite>  */}
+We could consider current agentic benchmarks as *Partially Observable Markov Decision Processes (POMDPs)*,<Cite id="pomdp">For more details, see [Puterman, 1994](https://www.sciencedirect.com/science/article/pii/B9780125966701500098)</Cite> as the agent must reason under uncertainty about the environment's true state (e.g., *SWE-bench* and *BrowseComp*).<Cite id="browsecomp">[BrowseComp](https://browsecomp.github.io/) is a QA benchmark requiring agents to extensively explore the webdata</Cite> 
+However, many of these benchmarks capture only half of the real-world problem. When agents must collaborate with human users, a second, critical source of partial observability is the user's state. The agent's task is no longer just a POMDP over the environment, but one that must also account for the user. It must reason under uncertainty about the user's unobservable mental state.
+{/* Many works on *Theory of Mind (ToM)* explore precisely this issue, focusing on how agents can infer the unobservable mental states of others.<Cite id="tom">For a couple of examples, see [Zhang et al., 2025](https://arxiv.org/abs/2502.15676), [Zhu et al., 2021](https://proceedings.mlr.press/v139/zhu21d.html), and our work [Zhou et al., 2024](https://arxiv.org/abs/2310.11667)</Cite> */}
+We believe that building truly *user-effective* AI agents requires moving beyond solving just the *environmental* POMDP. Agents must also model the *human* POMDP, inferring the user’s *intent and goals*, *knowledge and belief states*, and *preferences and constraints* across long-horizon sessions.
+Below we introduce two of our research projects introducing simulated users into the development of AI agents. Starting with software engineering tasks, the first study examines the proactive behavior of AI agents, while the second explores both their proactivity and their ability to personalize to individual users.
+
+### Interactive Agents to Overcome Ambiguity
 In 2024, we initiated a project to investigate the question asking behavior of coding assistants.<Cite id="vijayvargiya2024">For more details, see [Vijayvargiya et al., 2025](https://arxiv.org/abs/2502.13069)</Cite>
 We found that most of the software engineering (SWE) agents are not good at asking questions. In fact, they barely ask any questions at all. 
 
@@ -88,15 +97,6 @@ As shown in <Ref fig="model-comparison" />, agents powered by leading agentic mo
 
 Through this study, we realized a fundamental gap in how today's AI agents are trained and evaluated, which is a missing piece that limits their real-world effectiveness. 
 And we are now *on a quest* to address that gap.
-
-
-## The theory of mind gap
-
-In reinforcement learning, tasks where an agent has full access to the current state of the environment are modeled as a *Markov Decision Process (MDP)*. For complex, fully-observable tasks, AI agents have already achieved superhuman performance (e.g., *AlphaGo*).<Cite id="alphago">The GOAT! [Silver et al., 2016](https://www.nature.com/articles/nature16961)</Cite> Current agentic benchmarks are *Partially Observable Markov Decision Processes (POMDPs)*,<Cite id="pomdp">For more details, see [Puterman, 1994](https://www.sciencedirect.com/science/article/pii/B9780125966701500098)</Cite> as the agent must reason under uncertainty about the environment's true state (e.g., *SWE-bench* and *BrowseComp*).<Cite id="browsecomp">[BrowseComp](https://browsecomp.github.io/) is a QA benchmark requiring agents to extensively explore the webdata</Cite> 
-
-However, in these &ldquo;task-POMDPs&rdquo;, the underlying state is *static*, e.g., the codebase stays the same unless the agent takes actions to modify it. The challenge is one of *exploration and inference*. This assumption of a static, environmental hidden state breaks down in the real world, where agents must collaborate with human users. This introduces a second, fundamentally different source of partial observability. The underlying process is not just a POMDP over the *task*, but one that must also account for the *user*. The agent must now reason under uncertainty about the user's *unobservable mental state*. This human-centric POMDP has long been studied in *human-AI interaction*. Many works on *Theory of Mind (ToM)* explore precisely this issue, focusing on how agents can infer the unobservable mental states of others.<Cite id="tom">For a couple of examples, see [Zhang et al., 2025](https://arxiv.org/abs/2502.15676), [Zhu et al., 2021](https://proceedings.mlr.press/v139/zhu21d.html), and our work [Zhou et al., 2024](https://arxiv.org/abs/2310.11667)</Cite>
-
-We hypothesize that building truly *user-effective* AI agents requires moving beyond solving just the *environmental* POMDP. Agents must also model the *human* POMDP, inferring the user’s *intent and goals*, *knowledge and belief states*, and *preferences and constraints* across long-horizon sessions.
 
 ### ToM-SWE: user mental modeling for software engineering agents
 ToM-SWE<Cite id="tomswe">For more details, see [Zhou et al., 2025](https://arxiv.org/abs/2510.21903)</Cite> serves as our very first attempt to model the user's mental state and continuously learn from the user's feedback in a complex and long-horizon setting. As shown in <Ref fig="tom-swe" />, we propose this dual-agent framework where the code agent and ToM agent could be powered by different LLMs and mangage different tasks.
@@ -131,6 +131,8 @@ To validate this in a real-world setting, we ran a three-week study where 17 dev
 <Figure id="cost-efficiency">
   <CostEfficiencyChart />
 </Figure>
+
+The success of ToM-SWE validates our hypothesis: modeling the &ldquo;human POMDP&rdquo; is a key driver for Proactivity and Personalization, and our benchmarks provide a way to evaluate it. A more fundamental challenge remains: how to scalably train agents to be Proactive and Personalized from the start?
 
 ## Reinforcing User-Effective AI Agents with PPP-Inspired Rewards
 

@@ -1,0 +1,281 @@
+/* Print styles for CV page only - optimized for academic CV format */
+
+@media print {
+  /* ========================================
+     FORCE LIGHT MODE & INK OPTIMIZATION
+     ======================================== */
+
+  /* Override dark mode styles completely */
+  *,
+  *::before,
+  *::after {
+    background: white !important;
+    color: black !important;
+    box-shadow: none !important;
+    text-shadow: none !important;
+  }
+
+  /* Force white background */
+  body {
+    background: white !important;
+  }
+
+  /* Remove all background colors to save ink */
+  * {
+    background: transparent !important;
+  }
+
+  body {
+    background: white !important;
+  }
+
+  /* ========================================
+     HIDE INTERACTIVE ELEMENTS
+     ======================================== */
+
+  header,
+  footer,
+  nav,
+  button {
+    display: none !important;
+  }
+
+  /* ========================================
+     PAGE SETUP
+     ======================================== */
+
+  @page {
+    size: letter; /* Use 'A4' for international standard */
+    margin: 0.6in 0.55in; /* Slightly tighter margins for more content */
+  }
+
+  /* Remove screen-optimized layout constraints */
+  body {
+    max-width: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+
+  .prose {
+    max-width: none !important;
+  }
+
+  /* ========================================
+     REM-BASED TYPOGRAPHY SYSTEM
+     Adjust root font-size to scale entire document
+     ======================================== */
+
+  html {
+    font-size: 10pt; /* Base size - adjust this to scale everything */
+  }
+
+  body {
+    font-family: Georgia, 'Times New Roman', serif;
+    line-height: 1.4; /* Tighter than screen for print */
+  }
+
+  /* Heading hierarchy with rem units */
+  .prose h1 {
+    font-size: 1.8rem;
+    margin-top: 0;
+    margin-bottom: 0.3rem;
+    font-weight: bold;
+    line-height: 1.2;
+  }
+
+  .prose h2 {
+    font-size: 1.3rem;
+    margin-top: 0.8rem;
+    margin-bottom: 0.4rem;
+    font-weight: bold;
+    line-height: 1.2;
+  }
+
+  .prose h3 {
+    font-size: 1.1rem;
+    margin-top: 0.6rem;
+    margin-bottom: 0.3rem;
+    font-weight: bold;
+    line-height: 1.2;
+  }
+
+  .prose h4 {
+    font-size: 1rem;
+    margin-top: 0.5rem;
+    margin-bottom: 0.2rem;
+    font-weight: bold;
+  }
+
+  /* Paragraph spacing */
+  .prose p {
+    margin-top: 0.4rem;
+    margin-bottom: 0.4rem;
+  }
+
+  /* List spacing - tighter for publications */
+  .prose ol,
+  .prose ul {
+    margin-top: 0.3rem;
+    margin-bottom: 0.3rem;
+  }
+
+  .prose li {
+    margin-top: 0.15rem;
+    margin-bottom: 0.15rem;
+    line-height: 1.35;
+  }
+
+  /* Horizontal rules */
+  hr {
+    border-color: white !important;
+    margin: 0.4rem 0 !important;
+    border-width: 0.5pt !important;
+  }
+
+  /* ========================================
+     PAGE BREAK CONTROL
+     ======================================== */
+
+  /* Keep headings with their content */
+  h1, h2, h3, h4 {
+    page-break-after: avoid;
+    page-break-inside: avoid;
+  }
+
+  /* Keep publication entries together */
+  ol li,
+  ul li {
+    page-break-inside: avoid;
+  }
+
+  /* Better orphan/widow control */
+  p {
+    orphans: 3;
+    widows: 3;
+  }
+
+  /* Keep paragraphs after headings together when possible */
+  h2 + p,
+  h3 + p {
+    page-break-before: avoid;
+  }
+
+  /* ========================================
+     LINK STYLING
+     Blue links without underline or URLs
+     ======================================== */
+
+  /* Make links blue to indicate they're clickable */
+  a {
+    color: #0066cc !important;
+    text-decoration: none !important;
+  }
+
+  /* Don't show any URLs in print */
+  a[href]:after {
+    content: '' !important;
+  }
+
+  /* ========================================
+     COLOR TO TYPOGRAPHY CONVERSION
+     ======================================== */
+
+  /* Spotlight/awards - use bold + underline */
+  .text-yellow-700,
+  .text-yellow-600 {
+    font-weight: 700 !important;
+    text-decoration: underline !important;
+    color: black !important;
+  }
+
+  /* Project website links - use bold italic */
+  .text-blue-600,
+  .text-blue-400 {
+    font-weight: 600 !important;
+    font-style: italic !important;
+    color: black !important;
+  }
+
+  /* De-emphasized text - use slightly lighter gray */
+  .text-zinc-600,
+  .text-zinc-400 {
+    color: #444 !important;
+  }
+
+  /* Italic text stays italic */
+  em, .italic {
+    font-style: italic !important;
+  }
+
+  /* Bold text stays bold */
+  strong, .font-bold {
+    font-weight: 600 !important;
+  }
+
+  /* ========================================
+     ACADEMIC CV SPECIFIC OPTIMIZATIONS
+     ======================================== */
+
+  /* Name (h1) - prominent but not too large */
+  .prose h1:first-of-type {
+    font-size: 2rem;
+    margin-bottom: 0.2rem;
+    text-align: left;
+  }
+
+  /* Last update line - smaller, subtle */
+  .prose h1 + p em {
+    font-size: 0.85rem;
+    color: #666 !important;
+  }
+
+  /* Contact section - could be two-column if needed */
+  /* This would require modifying the MDX, so leaving as single column for now */
+
+  /* Publication list - tighter spacing */
+  .prose ol > li {
+    margin-bottom: 0.25rem;
+    padding-left: 0;
+  }
+
+  /* Publication titles - keep with authors */
+  .prose ol > li > a {
+    display: inline;
+    page-break-after: avoid;
+  }
+
+  /* Equal contribution note */
+  .prose .text-sm {
+    font-size: 0.85rem;
+    margin-bottom: 0.3rem;
+  }
+
+  /* Section headers (## Education, ## Publications, etc.) */
+  .prose > h2 {
+    border-top: 1pt solid #ddd;
+    padding-top: 0.4rem;
+    margin-top: 0.8rem;
+  }
+
+  /* Year subsections in publications */
+  .prose h3 {
+    font-size: 1rem;
+    font-weight: 600;
+    margin-top: 0.5rem;
+  }
+
+  /* ========================================
+     FINALIZATION
+     ======================================== */
+
+  /* Ensure all styled elements print correctly */
+  * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  /* Remove any lingering padding from main container */
+  main {
+    padding: 0 !important;
+  }
+}
