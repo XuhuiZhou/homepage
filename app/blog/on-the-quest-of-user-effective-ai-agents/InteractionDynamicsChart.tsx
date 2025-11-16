@@ -1,10 +1,31 @@
 'use client'
 
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import * as d3 from 'd3'
+
+// Dialogue examples for each effort category
+const dialogueExamples = {
+  lowEffort: {
+    agent: "Which color would you like to use for your website?",
+    user: "Green",
+    description: "Quick, easy answer"
+  },
+  mediumEffort: {
+    agent: "Can you let me know what is the version of the xx package?",
+    user: "I don't know",
+    description: "User doesn't have the information"
+  },
+  highEffort: {
+    agent: "Can you point me which line of the function is causing the error and how to fix it?",
+    user: "[Takes 10+ minutes reading code and debugging...]",
+    description: "User spends significant time/effort"
+  }
+}
 
 const InteractionDynamicsChart = () => {
   const svgRef = useRef<SVGSVGElement>(null)
+  const [hoveredCategory, setHoveredCategory] = useState<string | null>(null)
+  const [tooltipPosition, setTooltipPosition] = useState({ x: 0, y: 0 })
 
   useEffect(() => {
     if (!svgRef.current) return
@@ -120,6 +141,37 @@ const InteractionDynamicsChart = () => {
         .attr('d', area)
         .attr('fill', (d: any) => colorMap[d.key])
         .attr('opacity', 0.8)
+        .style('cursor', 'pointer')
+        .on('mouseenter', function(event: any, d: any) {
+          // Highlight hovered area
+          d3.select(this).attr('opacity', 1).attr('stroke', '#333').attr('stroke-width', 2)
+
+          // Dim other areas
+          g.selectAll('.area')
+            .filter((data: any) => data.key !== d.key)
+            .attr('opacity', 0.3)
+
+          // Update tooltip state
+          setHoveredCategory(d.key)
+
+          // Get tooltip position relative to the chart
+          const [mouseX, mouseY] = d3.pointer(event, svgRef.current)
+          setTooltipPosition({ x: mouseX, y: mouseY })
+        })
+        .on('mousemove', function(event: any) {
+          // Update tooltip position as mouse moves
+          const [mouseX, mouseY] = d3.pointer(event, svgRef.current)
+          setTooltipPosition({ x: mouseX, y: mouseY })
+        })
+        .on('mouseleave', function(event: any, d: any) {
+          // Reset all areas to normal opacity
+          g.selectAll('.area')
+            .attr('opacity', 0.8)
+            .attr('stroke', 'none')
+
+          // Hide tooltip
+          setHoveredCategory(null)
+        })
 
       // Add gridlines
       g.append('g')
@@ -207,16 +259,58 @@ const InteractionDynamicsChart = () => {
     })
   }, [])
 
+  // Get dialogue example based on hovered category
+  const getDialogueExample = () => {
+    if (!hoveredCategory) return null
+
+    const categoryMap: Record<string, keyof typeof dialogueExamples> = {
+      lowEffort: 'lowEffort',
+      mediumEffort: 'mediumEffort',
+      highEffort: 'highEffort'
+    }
+
+    return dialogueExamples[categoryMap[hoveredCategory]]
+  }
+
+  const dialogue = getDialogueExample()
+
   return (
-    <figure className="not-prose my-8">
+    <figure className="not-prose my-8 relative">
       <svg ref={svgRef} width="100%" className="overflow-visible" />
+
+      {/* Tooltip */}
+      {hoveredCategory && dialogue && (
+        <div
+          className="absolute pointer-events-none z-10 bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-lg shadow-lg p-4 max-w-sm"
+          style={{
+            left: `${tooltipPosition.x + 10}px`,
+            top: `${tooltipPosition.y - 80}px`,
+            transform: 'translateY(-50%)'
+          }}
+        >
+          <div className="space-y-2">
+            <div className="flex items-start gap-2">
+              <span className="font-semibold text-blue-600 dark:text-blue-400 text-sm shrink-0">Agent:</span>
+              <p className="text-sm text-zinc-700 dark:text-zinc-300">{dialogue.agent}</p>
+            </div>
+            <div className="flex items-start gap-2">
+              <span className="font-semibold text-green-600 dark:text-green-400 text-sm shrink-0">User:</span>
+              <p className="text-sm text-zinc-700 dark:text-zinc-300 italic">{dialogue.user}</p>
+            </div>
+            <div className="text-xs text-zinc-500 dark:text-zinc-400 pt-1 border-t border-zinc-200 dark:border-zinc-600">
+              {dialogue.description}
+            </div>
+          </div>
+        </div>
+      )}
+
       <figcaption className="text-center mt-3 text-sm text-zinc-600">
         <strong>Figure 8:</strong> Average number of interactions between user and agent per session, comparing our
         method with a baseline trained without the <em>proactivity</em> reward (R<sub>Proact</sub>). We also report
         interaction quality: low-effort interactions are easy for the user to answer and directly address missing
         information; medium-effort interactions are those that the user cannot answer; high-effort interactions are
         cases where the agent asks questions that are difficult for the user to answer. For medium- and high-effort
-        interactions, fewer is better.
+        interactions, fewer is better. <em className="text-zinc-500">(Hover over areas to see dialogue examples)</em>
       </figcaption>
     </figure>
   )
