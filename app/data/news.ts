@@ -5,6 +5,10 @@ export type NewsItem = {
 
 export const NEWS_ITEMS: NewsItem[] = [
   {
+    date: '2026-04-09',
+    content: 'I am selected as a <a href="https://www.microsoft.com/en-us/research/academic-program/microsoft-research-fellowship/fellows/" target="_blank" rel="noopener noreferrer" class="font-medium text-zinc-900 underline decoration-zinc-300 underline-offset-2 dark:text-zinc-50 dark:decoration-zinc-700">Microsoft Research Fellow</a>!',
+  },
+  {
     date: '2025-03-06',
     content: 'Excited to give a guest lecture on "Safety, bias, ethics in LLMs" for <a href="https://www.linkedin.com/posts/ks-data_data-bias-speaker-poster-activity-7304910161058414594-KAJj" target="_blank" rel="noopener noreferrer" class="font-medium text-zinc-900 underline decoration-zinc-300 underline-offset-2 dark:text-zinc-50 dark:decoration-zinc-700">Data Bias and Fairness Series</a>',
   },
