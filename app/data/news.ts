@@ -5,6 +5,10 @@ export type NewsItem = {
 
 export const NEWS_ITEMS: NewsItem[] = [
   {
+    date: '2026-04-18',
+    content: 'Gave a talk on "User-Effective AI Agents" at <a href="https://scale.com/" target="_blank" rel="noopener noreferrer" class="font-medium text-zinc-900 underline decoration-zinc-300 underline-offset-2 dark:text-zinc-50 dark:decoration-zinc-700">Scale AI</a>. <a href="/user-effective-agents.html" target="_blank" rel="noopener noreferrer" class="font-medium text-zinc-900 underline decoration-zinc-300 underline-offset-2 dark:text-zinc-50 dark:decoration-zinc-700">[Slides]</a>',
+  },
+  {
     date: '2026-04-09',
     content: 'I am selected as a <a href="https://www.microsoft.com/en-us/research/academic-program/microsoft-research-fellowship/fellows/" target="_blank" rel="noopener noreferrer" class="font-medium text-zinc-900 underline decoration-zinc-300 underline-offset-2 dark:text-zinc-50 dark:decoration-zinc-700">Microsoft Research Fellow</a>!',
   },

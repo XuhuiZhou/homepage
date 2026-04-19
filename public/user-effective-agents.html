@@ -1,0 +1,2452 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>On the Quest of User-Effective AI Agents — Xuhui Zhou</title>
+
+    <!-- KaTeX for math rendering -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"
+        onload="renderMathInElement(document.body, {delimiters:[{left:'$$',right:'$$',display:true},{left:'$',right:'$',display:false}]});"></script>
+
+    <!-- CMU Brand Fonts: Source Serif Pro + Open Sans -->
+    <link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:ital,opsz,wght@0,8..60,300;0,8..60,400;0,8..60,600;0,8..60,700;0,8..60,900;1,8..60,400&family=Open+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        /* ===========================================
+           CSS CUSTOM PROPERTIES — CMU BRAND THEME
+           =========================================== */
+        :root {
+            /* CMU Core Colors */
+            --carnegie-red: #C41230;
+            --cmu-black: #000000;
+            --iron-gray: #6D6E71;
+            --steel-gray: #E0E0E0;
+            --white: #FFFFFF;
+
+            /* CMU Secondary — Tartan Palette */
+            --blue-thread: #043673;
+            --highlands-blue: #007BC0;
+            --gold-thread: #FDB515;
+            --green-thread: #009647;
+            --teal-thread: #008F91;
+
+            /* CMU Secondary — Campus Palette */
+            --weaver-blue: #182C4B;
+            --hornbostel-teal: #1F4C4C;
+            --skibo-red: #941120;
+
+            /* CMU Campus Palette */
+            --kittanning-beige: #E4DAC4;
+            --machinery-tan: #BCB49E;
+
+            /* Semantic aliases — CMU LIGHT */
+            --bg-primary: #FAFAF8;
+            --bg-slide: #FFFFFF;
+            --bg-card: #F5F3EE;
+            --text-primary: #1A1A1A;
+            --text-secondary: #555555;
+            --accent: var(--carnegie-red);
+
+            /* Typography — MUST use clamp() */
+            --font-display: 'Source Serif 4', 'Times New Roman', serif;
+            --font-body: 'Open Sans', 'Helvetica', sans-serif;
+            --title-size: clamp(2rem, 5.5vw, 4.5rem);
+            --h2-size: clamp(1.4rem, 3.5vw, 2.8rem);
+            --h3-size: clamp(1rem, 2.2vw, 1.6rem);
+            --body-size: clamp(0.8rem, 1.4vw, 1.15rem);
+            --small-size: clamp(0.65rem, 1vw, 0.875rem);
+            --stat-size: clamp(2.5rem, 7vw, 6rem);
+
+            /* Spacing */
+            --slide-padding: clamp(1.5rem, 4vw, 4rem);
+            --content-gap: clamp(1rem, 2vw, 2rem);
+            --element-gap: clamp(0.25rem, 1vw, 1rem);
+
+            /* Animation */
+            --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+            --duration-normal: 0.6s;
+        }
+
+        /* ===========================================
+           VIEWPORT FITTING: MANDATORY BASE STYLES
+           =========================================== */
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        html, body {
+            height: 100%;
+            overflow-x: hidden;
+        }
+        html {
+            scroll-snap-type: y mandatory;
+            scroll-behavior: smooth;
+        }
+        .slide {
+            width: 100vw;
+            height: 100vh;
+            height: 100dvh;
+            overflow: hidden;
+            scroll-snap-align: start;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
+        .slide-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            max-height: 100%;
+            overflow: hidden;
+            padding: var(--slide-padding);
+        }
+        .card, .container, .content-box {
+            max-width: min(90vw, 1000px);
+            max-height: min(80vh, 700px);
+        }
+        .feature-list, .bullet-list { gap: clamp(0.4rem, 1vh, 1rem); }
+        .feature-list li, .bullet-list li { font-size: var(--body-size); line-height: 1.4; }
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(min(100%, 250px), 1fr));
+            gap: clamp(0.5rem, 1.5vw, 1rem);
+        }
+        img, .image-container {
+            max-width: 100%;
+            max-height: min(50vh, 400px);
+            object-fit: contain;
+        }
+
+        /* Short viewports */
+        @media (max-height: 700px) {
+            :root {
+                --slide-padding: clamp(0.75rem, 3vw, 2rem);
+                --content-gap: clamp(0.4rem, 1.5vw, 1rem);
+                --title-size: clamp(1.25rem, 4.5vw, 2.5rem);
+                --h2-size: clamp(1rem, 3vw, 1.75rem);
+            }
+        }
+        @media (max-height: 600px) {
+            :root {
+                --slide-padding: clamp(0.5rem, 2.5vw, 1.5rem);
+                --content-gap: clamp(0.3rem, 1vw, 0.75rem);
+                --title-size: clamp(1.1rem, 4vw, 2rem);
+                --body-size: clamp(0.7rem, 1.2vw, 0.95rem);
+            }
+            .nav-dots, .keyboard-hint, .decorative { display: none; }
+        }
+        @media (max-height: 500px) {
+            :root {
+                --slide-padding: clamp(0.4rem, 2vw, 1rem);
+                --title-size: clamp(1rem, 3.5vw, 1.5rem);
+                --h2-size: clamp(0.9rem, 2.5vw, 1.25rem);
+                --body-size: clamp(0.65rem, 1vw, 0.85rem);
+            }
+        }
+        @media (max-width: 600px) {
+            :root { --title-size: clamp(1.25rem, 7vw, 2.5rem); }
+            .grid { grid-template-columns: 1fr; }
+        }
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after {
+                animation-duration: 0.01ms !important;
+                transition-duration: 0.2s !important;
+            }
+            html { scroll-behavior: auto; }
+        }
+
+        /* ===========================================
+           GLOBAL STYLES
+           =========================================== */
+        body {
+            background: var(--bg-primary);
+            font-family: var(--font-body);
+            color: var(--text-primary);
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* ===========================================
+           ANIMATIONS
+           =========================================== */
+        .reveal {
+            opacity: 0;
+            transform: translateY(25px);
+            transition: opacity var(--duration-normal) var(--ease-out-expo),
+                        transform var(--duration-normal) var(--ease-out-expo);
+        }
+        .slide.visible .reveal {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        .reveal:nth-child(1) { transition-delay: 0.1s; }
+        .reveal:nth-child(2) { transition-delay: 0.2s; }
+        .reveal:nth-child(3) { transition-delay: 0.3s; }
+        .reveal:nth-child(4) { transition-delay: 0.4s; }
+        .reveal:nth-child(5) { transition-delay: 0.5s; }
+        .reveal:nth-child(6) { transition-delay: 0.6s; }
+
+        /* ===========================================
+           PROGRESS BAR
+           =========================================== */
+        .progress-bar {
+            position: fixed;
+            top: 0; left: 0;
+            height: 3px;
+            background: var(--carnegie-red);
+            z-index: 9999;
+            transition: width 0.3s ease;
+        }
+
+        /* ===========================================
+           NAV DOTS
+           =========================================== */
+        .nav-dots {
+            position: fixed;
+            right: clamp(12px, 1.5vw, 24px);
+            top: 50%;
+            transform: translateY(-50%);
+            display: flex;
+            flex-direction: column;
+            gap: clamp(6px, 0.8vh, 10px);
+            z-index: 100;
+        }
+        .nav-dot {
+            width: 8px; height: 8px;
+            border-radius: 50%;
+            background: rgba(0,0,0,0.15);
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            padding: 0;
+        }
+        .nav-dot.active {
+            background: var(--carnegie-red);
+            transform: scale(1.3);
+        }
+        .nav-dot:hover { background: rgba(0,0,0,0.35); }
+
+        /* ===========================================
+           CMU ACCENT BAR — top of every slide
+           =========================================== */
+        .slide::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 3px;
+            background: var(--carnegie-red);
+            z-index: 2;
+        }
+
+        /* ===========================================
+           SLIDE: TITLE
+           =========================================== */
+        .title-slide {
+            background: var(--bg-primary);
+            flex-direction: row;
+        }
+        .title-slide .slide-content {
+            display: none; /* replaced by two-column layout */
+        }
+        .title-left {
+            flex: 0 0 58%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            padding: var(--slide-padding);
+            padding-right: clamp(24px, 3vw, 48px);
+        }
+        .title-right {
+            flex: 0 0 42%;
+            position: relative;
+            overflow: hidden;
+        }
+        .title-right::before {
+            content: '';
+            position: absolute;
+            left: 0; top: 10%; height: 80%;
+            width: 2px;
+            background: var(--carnegie-red);
+            z-index: 1;
+        }
+        .title-image {
+            width: 100%;
+            height: 100%;
+            background-size: cover;
+            background-position: center;
+            border-radius: 0;
+        }
+        @media (max-width: 768px) {
+            .title-slide { flex-direction: column; }
+            .title-left { flex: 1; text-align: center; align-items: center; }
+            .title-right { flex: 0 0 30%; width: 100%; }
+        }
+        .title-logo {
+            max-height: clamp(48px, 8vh, 80px);
+            width: auto;
+            margin-bottom: clamp(16px, 3vh, 32px);
+            border-radius: 6px;
+        }
+        .title-eyebrow {
+            font-family: var(--font-body);
+            font-size: var(--small-size);
+            font-weight: 600;
+            letter-spacing: 0.25em;
+            text-transform: uppercase;
+            color: var(--carnegie-red);
+            margin-bottom: clamp(12px, 2vh, 24px);
+        }
+        .title-main {
+            font-family: var(--font-display);
+            font-size: var(--title-size);
+            font-weight: 700;
+            color: var(--text-primary);
+            line-height: 1.08;
+        }
+        .title-main em {
+            font-style: italic;
+            color: var(--carnegie-red);
+        }
+        .title-sub {
+            font-family: var(--font-body);
+            font-size: clamp(0.9rem, 1.8vw, 1.3rem);
+            color: var(--text-secondary);
+            margin-top: clamp(16px, 2.5vh, 32px);
+            font-weight: 300;
+            letter-spacing: 0.04em;
+        }
+        .title-meta {
+            margin-top: clamp(24px, 4vh, 48px);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: clamp(4px, 0.8vh, 10px);
+        }
+        .title-meta .name {
+            font-family: var(--font-display);
+            font-size: clamp(1rem, 1.8vw, 1.4rem);
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+        .title-meta .affil {
+            font-size: var(--small-size);
+            color: var(--iron-gray);
+            font-weight: 400;
+        }
+        .title-meta .venue {
+            font-size: var(--small-size);
+            color: var(--text-secondary);
+            margin-top: clamp(4px, 0.5vh, 8px);
+            padding: clamp(4px, 0.6vh, 8px) clamp(12px, 1.5vw, 20px);
+            border: 1px solid rgba(0,0,0,0.12);
+            border-radius: 4px;
+        }
+
+        /* ===========================================
+           SLIDE: STANDARD CONTENT
+           =========================================== */
+        .content-slide {
+            background: var(--bg-slide);
+        }
+        .content-slide .slide-content {
+            padding-top: clamp(2rem, 5vh, 4rem);
+        }
+        .slide-number {
+            font-family: var(--font-display);
+            font-size: var(--small-size);
+            color: var(--iron-gray);
+            font-weight: 700;
+            margin-bottom: clamp(4px, 0.8vh, 12px);
+            letter-spacing: 0.05em;
+        }
+        .slide-title {
+            font-family: var(--font-display);
+            font-size: var(--h2-size);
+            font-weight: 700;
+            color: var(--text-primary);
+            line-height: 1.15;
+            margin-bottom: clamp(16px, 2.5vh, 32px);
+        }
+        .slide-title .accent { color: var(--carnegie-red); }
+        .slide-body {
+            font-size: var(--body-size);
+            color: var(--text-secondary);
+            line-height: 1.6;
+            max-width: 800px;
+        }
+
+        /* Bullet lists */
+        .bullets {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: clamp(8px, 1.2vh, 16px);
+        }
+        .bullets li {
+            font-size: var(--body-size);
+            color: var(--text-secondary);
+            line-height: 1.5;
+            padding-left: clamp(16px, 2vw, 24px);
+            position: relative;
+        }
+        .bullets li::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: clamp(6px, 0.8vh, 10px);
+            width: 6px; height: 6px;
+            background: var(--carnegie-red);
+            border-radius: 1px;
+        }
+        .bullets li strong {
+            color: var(--text-primary);
+            font-weight: 600;
+        }
+
+        /* ===========================================
+           SLIDE: TWO COLUMN
+           =========================================== */
+        .two-col {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: clamp(24px, 3vw, 48px);
+            align-items: start;
+        }
+        @media (max-width: 768px) {
+            .two-col { grid-template-columns: 1fr; }
+        }
+
+        /* ===========================================
+           STAT CALLOUT
+           =========================================== */
+        .stat-block {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            padding: clamp(16px, 2vh, 32px);
+        }
+        .stat-number {
+            font-family: var(--font-display);
+            font-size: var(--stat-size);
+            font-weight: 900;
+            color: var(--carnegie-red);
+            line-height: 1;
+        }
+        .stat-label {
+            font-size: var(--body-size);
+            color: var(--text-secondary);
+            margin-top: clamp(4px, 0.8vh, 12px);
+            font-weight: 400;
+        }
+
+        /* ===========================================
+           PAPER CARD
+           =========================================== */
+        .paper-card {
+            background: var(--bg-card);
+            border: 1px solid rgba(0,0,0,0.06);
+            border-radius: clamp(8px, 1vw, 12px);
+            padding: clamp(16px, 2.5vh, 28px) clamp(16px, 2vw, 28px);
+            border-left: 3px solid var(--carnegie-red);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+        }
+        .paper-card .paper-venue {
+            font-size: var(--small-size);
+            color: var(--carnegie-red);
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            margin-bottom: clamp(4px, 0.5vh, 8px);
+        }
+        .paper-card .paper-title {
+            font-family: var(--font-display);
+            font-size: var(--h3-size);
+            font-weight: 600;
+            color: var(--text-primary);
+            line-height: 1.25;
+        }
+        .paper-card .paper-desc {
+            font-size: var(--body-size);
+            color: var(--text-secondary);
+            margin-top: clamp(8px, 1vh, 14px);
+            line-height: 1.5;
+        }
+
+        /* ===========================================
+           FRAMEWORK PILL
+           =========================================== */
+        .ppp-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: clamp(12px, 1.5vw, 24px);
+            margin-top: clamp(16px, 2.5vh, 32px);
+        }
+        @media (max-width: 600px) {
+            .ppp-grid { grid-template-columns: 1fr; }
+        }
+        .ppp-pill {
+            background: var(--bg-card);
+            border: 1px solid rgba(0,0,0,0.08);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+            border-radius: clamp(8px, 1vw, 12px);
+            padding: clamp(16px, 2.5vh, 28px) clamp(12px, 1.5vw, 20px);
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+        .ppp-pill::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 3px;
+        }
+        .ppp-pill:nth-child(1)::before { background: var(--carnegie-red); }
+        .ppp-pill:nth-child(2)::before { background: var(--blue-thread); }
+        .ppp-pill:nth-child(3)::before { background: var(--gold-thread); }
+        .ppp-pill .ppp-icon {
+            font-size: clamp(1.5rem, 3vw, 2.5rem);
+            margin-bottom: clamp(6px, 1vh, 12px);
+        }
+        .ppp-pill .ppp-label {
+            font-family: var(--font-display);
+            font-size: var(--h3-size);
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+        .ppp-pill .ppp-desc {
+            font-size: var(--small-size);
+            color: var(--text-secondary);
+            margin-top: clamp(4px, 0.6vh, 8px);
+            line-height: 1.4;
+        }
+
+        /* ===========================================
+           HIGHLIGHT BOX
+           =========================================== */
+        .highlight-box {
+            background: rgba(228,218,196,0.3);
+            border: 1px solid rgba(228,218,196,0.6);
+            border-left: 3px solid var(--carnegie-red);
+            border-radius: clamp(6px, 0.8vw, 10px);
+            padding: clamp(12px, 1.5vh, 20px) clamp(16px, 2vw, 24px);
+            margin-top: clamp(12px, 1.5vh, 20px);
+        }
+        .highlight-box p {
+            font-size: var(--body-size);
+            color: var(--text-primary);
+            line-height: 1.5;
+        }
+        .highlight-box .hl-stat {
+            font-family: var(--font-display);
+            font-weight: 700;
+            color: var(--carnegie-red);
+            font-size: clamp(1.2rem, 2.5vw, 2rem);
+        }
+
+        /* ===========================================
+           QUOTE SLIDE
+           =========================================== */
+        .quote-text {
+            font-family: var(--font-display);
+            font-size: clamp(1.2rem, 2.8vw, 2.2rem);
+            font-weight: 400;
+            font-style: italic;
+            color: var(--text-primary);
+            line-height: 1.4;
+            max-width: 800px;
+            position: relative;
+            padding-left: clamp(20px, 3vw, 40px);
+            border-left: 3px solid var(--carnegie-red);
+        }
+
+        /* ===========================================
+           CLOSING SLIDE
+           =========================================== */
+        .closing-slide {
+            background: var(--bg-primary);
+            text-align: center;
+        }
+        .closing-slide .slide-content {
+            align-items: center;
+        }
+        .link-list {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: clamp(6px, 1vh, 12px);
+            margin-top: clamp(12px, 2vh, 24px);
+        }
+        .link-list li {
+            font-size: var(--small-size);
+            color: var(--text-secondary);
+        }
+        .link-list li strong {
+            color: var(--blue-thread);
+            font-weight: 600;
+        }
+
+        /* ===========================================
+           TABLE (for comparison)
+           =========================================== */
+        .comparison-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: var(--body-size);
+            margin-top: clamp(12px, 1.5vh, 20px);
+        }
+        .comparison-table th {
+            font-family: var(--font-body);
+            font-weight: 600;
+            color: var(--text-secondary);
+            text-align: left;
+            padding: clamp(6px, 1vh, 12px) clamp(8px, 1vw, 16px);
+            border-bottom: 2px solid rgba(0,0,0,0.1);
+            font-size: var(--small-size);
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+        }
+        .comparison-table td {
+            padding: clamp(6px, 1vh, 10px) clamp(8px, 1vw, 16px);
+            border-bottom: 1px solid rgba(0,0,0,0.06);
+            color: var(--text-secondary);
+        }
+        .comparison-table td:first-child { color: var(--text-primary); font-weight: 500; }
+        .comparison-table .highlight-row td { color: var(--carnegie-red); font-weight: 600; }
+
+        /* ===========================================
+           FRAGMENT (step-through) ANIMATIONS
+           =========================================== */
+        .fragment {
+            opacity: 0;
+            transform: translateY(18px);
+            transition: opacity 0.5s var(--ease-out-expo),
+                        transform 0.5s var(--ease-out-expo);
+        }
+        .fragment.shown {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* ===========================================
+           CHART STYLES
+           =========================================== */
+        .chart-container {
+            width: 100%;
+            max-width: min(85vw, 750px);
+            margin: clamp(8px, 1.5vh, 16px) auto 0;
+        }
+        .chart-container svg {
+            width: 100%;
+            height: auto;
+            overflow: visible;
+        }
+        /* Horizontal bar chart */
+        .hbar-chart {
+            display: flex;
+            flex-direction: column;
+            gap: clamp(8px, 1.2vh, 14px);
+            margin-top: clamp(10px, 1.5vh, 18px);
+        }
+        .hbar-row {
+            display: grid;
+            grid-template-columns: clamp(80px, 12vw, 140px) 1fr clamp(40px, 5vw, 60px);
+            align-items: center;
+            gap: clamp(6px, 1vw, 12px);
+        }
+        .hbar-label {
+            font-size: var(--small-size);
+            color: var(--text-secondary);
+            text-align: right;
+            font-weight: 500;
+        }
+        .hbar-track {
+            height: clamp(18px, 2.5vh, 28px);
+            background: rgba(0,0,0,0.06);
+            border-radius: 4px;
+            overflow: hidden;
+            position: relative;
+        }
+        .hbar-fill {
+            height: 100%;
+            border-radius: 4px;
+            transition: width 1s var(--ease-out-expo);
+        }
+        .hbar-value {
+            font-size: var(--small-size);
+            color: var(--text-primary);
+            font-weight: 600;
+            font-family: var(--font-display);
+        }
+        /* Grouped vertical bars */
+        .vbar-group {
+            display: flex;
+            gap: clamp(12px, 2vw, 28px);
+            justify-content: center;
+            align-items: flex-end;
+            margin-top: clamp(10px, 1.5vh, 18px);
+            height: clamp(160px, 25vh, 260px);
+        }
+        .vbar-cluster {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: clamp(4px, 0.6vh, 8px);
+        }
+        .vbar-bars {
+            display: flex;
+            align-items: flex-end;
+            gap: clamp(3px, 0.4vw, 6px);
+            height: clamp(120px, 20vh, 200px);
+        }
+        .vbar {
+            width: clamp(24px, 3.5vw, 44px);
+            border-radius: 4px 4px 0 0;
+            position: relative;
+            transition: height 1s var(--ease-out-expo);
+            min-height: 2px;
+        }
+        .vbar-val {
+            position: absolute;
+            top: -20px; left: 50%;
+            transform: translateX(-50%);
+            font-size: clamp(8px, 0.9vw, 12px);
+            font-weight: 600;
+            white-space: nowrap;
+        }
+        .vbar-cluster-label {
+            font-size: var(--small-size);
+            color: var(--text-secondary);
+            text-align: center;
+            font-weight: 500;
+        }
+        /* Chart legend */
+        .chart-legend {
+            display: flex;
+            justify-content: center;
+            gap: clamp(12px, 2vw, 24px);
+            margin-top: clamp(8px, 1.2vh, 14px);
+            flex-wrap: wrap;
+        }
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: clamp(4px, 0.5vw, 8px);
+            font-size: var(--small-size);
+            color: var(--text-secondary);
+        }
+        .legend-dot {
+            width: clamp(8px, 1vw, 12px);
+            height: clamp(8px, 1vw, 12px);
+            border-radius: 2px;
+            flex-shrink: 0;
+        }
+        /* Chart caption */
+        .chart-caption {
+            font-size: clamp(0.6rem, 0.85vw, 0.75rem);
+            color: var(--iron-gray);
+            text-align: center;
+            margin-top: clamp(6px, 1vh, 10px);
+            font-style: italic;
+        }
+
+        /* ===========================================
+           SWE-BENCH DIAGRAM
+           =========================================== */
+        .swe-diagram {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: clamp(8px, 1.2vw, 18px);
+            margin-top: clamp(10px, 1.5vh, 20px);
+            width: 100%;
+            max-width: min(95vw, 950px);
+        }
+        .swe-panel {
+            flex: 1;
+            min-width: 0;
+            opacity: 0;
+            transform: translateY(20px);
+            animation: swePanelIn 0.6s var(--ease-out-expo) forwards;
+        }
+        .swe-arrow {
+            font-size: clamp(18px, 2.5vw, 28px);
+            color: var(--iron-gray);
+            flex-shrink: 0;
+            opacity: 0;
+            animation: swePanelIn 0.4s var(--ease-out-expo) forwards;
+        }
+        @keyframes swePanelIn {
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .swe-input .swe-panel-inner {
+            border: 1px solid rgba(0,0,0,0.08);
+            box-shadow: 0 2px 12px rgba(0,0,0,0.05);
+        }
+        @media (max-width: 700px) {
+            .swe-diagram { flex-direction: column; }
+            .swe-arrow { transform: rotate(90deg); }
+        }
+
+        /* ===========================================
+           INLINE EDITING
+           =========================================== */
+        .edit-hotzone {
+            position: fixed; top: 0; left: 0;
+            width: 80px; height: 80px;
+            z-index: 10000;
+            cursor: pointer;
+        }
+        .edit-toggle {
+            position: fixed;
+            top: clamp(12px, 1.5vh, 20px);
+            left: clamp(12px, 1.5vw, 20px);
+            background: var(--carnegie-red);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            padding: 6px 12px;
+            font-size: 13px;
+            font-family: var(--font-body);
+            cursor: pointer;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+            z-index: 10001;
+        }
+        .edit-toggle.show,
+        .edit-toggle.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+        [contenteditable="true"] {
+            outline: 2px dashed var(--carnegie-red);
+            background: rgba(196,18,48,0.04);
+            outline-offset: 4px;
+            border-radius: 4px;
+        }
+        .save-indicator {
+            position: fixed;
+            bottom: 20px; right: 20px;
+            background: var(--green-thread);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-size: 13px;
+            font-family: var(--font-body);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            z-index: 10001;
+        }
+        .save-indicator.show { opacity: 1; }
+    </style>
+</head>
+<body>
+
+<!-- Progress bar -->
+<div class="progress-bar" id="progressBar"></div>
+
+<!-- Nav dots -->
+<nav class="nav-dots" id="navDots"></nav>
+
+<!-- Inline editing controls -->
+<div class="edit-hotzone" id="editHotzone"></div>
+<button class="edit-toggle" id="editToggle">Edit Mode</button>
+<div class="save-indicator" id="saveIndicator">Saved</div>
+
+<!-- ===========================================
+     SLIDE 1: TITLE
+     =========================================== -->
+<section class="slide title-slide">
+    <div class="title-left">
+        <img src="cmu-logo.png" alt="Carnegie Mellon University" class="title-logo reveal">
+        <div class="title-eyebrow reveal">Scale AI &middot; ML Research Discussion</div>
+        <h1 class="title-main reveal">On the Quest of <em>User-Effective</em> AI Agents</h1>
+        <p class="title-sub reveal">Productivity &bull; Proactivity &bull; Personalization</p>
+        <div class="title-meta reveal">
+            <span class="name">Xuhui Zhou</span>
+            <span class="affil">Carnegie Mellon University &middot; Language Technologies Institute</span>
+            <span class="venue">April 8, 2026</span>
+        </div>
+    </div>
+    <div class="title-right">
+        <div class="title-image" style="background-image: url('hero-image.jpg')"></div>
+    </div>
+</section>
+
+<!-- ===========================================
+     SLIDE 2: THE PROBLEM
+     =========================================== -->
+<section class="slide content-slide">
+    <div class="slide-content">
+        <span class="slide-number reveal">01</span>
+        <h2 class="slide-title reveal">AI agents are increasingly capable&mdash;<br>but they <span class="accent">disappoint</span> real users</h2>
+        <ul class="bullets" id="slide01-bullets">
+            <li class="fragment"><strong>Misunderstanding ambiguity</strong> &mdash; making unwarranted assumptions instead of asking clarifying questions</li>
+            <li class="fragment"><strong>Ignoring preferences</strong> &mdash; one-size-fits-all execution that doesn't adapt to individual user styles</li>
+            <li class="fragment"><strong>Failing to collaborate</strong> &mdash; executing commands in isolation rather than engaging in iterative dialogue</li>
+            <li class="fragment"><strong>Creating safety risks</strong> &mdash; tool misuse and wasted resources from underspecified instructions</li>
+        </ul>
+        <div class="highlight-box fragment">
+            <p>Current benchmarks evaluate <strong>task success</strong>, but real users care about the <em>experience</em> of working with an agent.</p>
+        </div>
+    </div>
+</section>
+
+<!-- ===========================================
+     SLIDE 3: OUR VISION — PPP FRAMEWORK
+     =========================================== -->
+<section class="slide content-slide">
+    <div class="slide-content">
+        <span class="slide-number reveal">02</span>
+        <h2 class="slide-title reveal">Our Vision: The <span class="accent">PPP</span> Framework</h2>
+        <p class="slide-body reveal">We argue that effective real-world agents require optimizing three dimensions beyond task success:</p>
+        <div class="ppp-grid">
+            <div class="ppp-pill fragment">
+                <div class="ppp-icon">&#9881;</div>
+                <div class="ppp-label">Productivity</div>
+                <div class="ppp-desc">Complete tasks successfully and efficiently</div>
+            </div>
+            <div class="ppp-pill fragment">
+                <div class="ppp-icon">&#10067;</div>
+                <div class="ppp-label">Proactivity</div>
+                <div class="ppp-desc">Ask essential clarifying questions when instructions are underspecified</div>
+            </div>
+            <div class="ppp-pill fragment">
+                <div class="ppp-icon">&#9998;</div>
+                <div class="ppp-label">Personalization</div>
+                <div class="ppp-desc">Adapt to diverse user preferences and working styles</div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ===========================================
+     SLIDE 4: RESEARCH ARC OVERVIEW
+     =========================================== -->
+<section class="slide content-slide">
+    <div class="slide-content">
+        <span class="slide-number reveal">03</span>
+        <h2 class="slide-title reveal">A Research Arc Toward <span class="accent">User-Effective</span> Agents</h2>
+        <div style="display: flex; flex-direction: column; gap: clamp(10px, 1.5vh, 18px);">
+            <div class="paper-card fragment">
+                <div class="paper-venue">ICLR 2026</div>
+                <div class="paper-title">Ambig-SWE: Can agents detect ambiguity and ask the right questions?</div>
+            </div>
+            <div class="paper-card fragment">
+                <div class="paper-venue">arXiv 2025</div>
+                <div class="paper-title">PPP: Training agents to be productive, proactive, and personalized</div>
+            </div>
+            <div class="paper-card fragment">
+                <div class="paper-venue">arXiv 2025</div>
+                <div class="paper-title">TOM-SWE: Persistent user mental modeling for coding agents</div>
+            </div>
+            <div class="paper-card fragment">
+                <div class="paper-venue">arXiv 2026</div>
+                <div class="paper-title">Sim2Real: Do LLM user simulators actually resemble real users?</div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ===========================================
+     AMBIG-SWE: TRANSITION SLIDE
+     =========================================== -->
+<section class="slide content-slide" style="background:var(--bg-primary);">
+    <div class="slide-content" style="align-items:center;justify-content:center;text-align:center;">
+        <span class="slide-number reveal">04</span>
+        <div class="quote-text reveal" style="max-width:min(80vw,700px);border-left:none;text-align:center;padding-left:0;">
+            Agents are powerful &mdash; but what happens when the user&rsquo;s instructions are <em>incomplete</em>? Can agents learn to ask?
+        </div>
+    </div>
+</section>
+
+<!-- ===========================================
+     AMBIG-SWE: PAPER TITLE CARD
+     =========================================== -->
+<section class="slide content-slide" style="background:var(--bg-primary);">
+    <div class="slide-content" style="align-items:center;justify-content:center;text-align:center;">
+        <span class="slide-number reveal">05</span>
+        <div class="paper-card reveal" style="max-width:min(85vw,700px);border-left-width:4px;text-align:left;">
+            <div class="paper-venue">ICLR 2026</div>
+            <div class="paper-title" style="font-size:var(--h2-size);">Ambig-SWE: Interactive Agents to Overcome Underspecificity in Software Engineering</div>
+            <div class="paper-desc" style="margin-top:clamp(10px,1.5vh,18px);">Sanidhya Vijayvargiya, <strong>Xuhui Zhou</strong>, Akhila Yerukola, Maarten Sap, Graham Neubig</div>
+        </div>
+    </div>
+</section>
+
+<!-- ===========================================
+     SLIDE: SWE-BENCH ANIMATED DIAGRAM
+     =========================================== -->
+<section class="slide content-slide">
+    <div class="slide-content" style="align-items:center;">
+        <span class="slide-number reveal">06</span>
+        <h2 class="slide-title reveal" style="text-align:center;">How <span class="accent">SWE-Bench</span> Works</h2>
+
+        <!-- SWE-Bench pipeline diagram -->
+        <div class="swe-diagram reveal">
+            <!-- ISSUE + CODEBASE panel -->
+            <div class="swe-panel swe-input" style="animation-delay:0.3s;">
+                <div class="swe-panel-inner" style="background:var(--bg-card);border-radius:clamp(8px,1vw,14px);padding:clamp(12px,1.8vh,22px) clamp(10px,1.5vw,18px);">
+                    <div style="display:flex;align-items:center;gap:6px;margin-bottom:clamp(6px,1vh,10px);">
+                        <span style="font-size:clamp(10px,1.2vw,14px);">&#9673;</span>
+                        <span style="font-family:var(--font-display);font-weight:700;font-size:var(--h3-size);color:var(--text-primary);">Issue</span>
+                    </div>
+                    <p style="font-size:var(--small-size);color:var(--carnegie-red);font-style:italic;line-height:1.4;margin-bottom:clamp(8px,1.2vh,14px);">data leak in GBDT due to warm start (non-histogram-based&hellip;)</p>
+                    <div style="display:flex;align-items:center;gap:6px;margin-bottom:clamp(4px,0.6vh,8px);">
+                        <span style="font-size:clamp(10px,1.2vw,14px);">&#9675;</span>
+                        <span style="font-family:var(--font-display);font-weight:700;font-size:var(--body-size);color:var(--text-primary);">Codebase</span>
+                    </div>
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:clamp(2px,0.4vh,4px) clamp(8px,1vw,14px);font-size:clamp(9px,0.9vw,12px);color:var(--text-secondary);font-family:monospace;">
+                        <span>&#128193; sklearn/</span><span>&#128196; reqs.txt</span>
+                        <span>&#128193; examples/</span><span>&#128196; setup.cfg</span>
+                        <span>&#128196; README.rst</span><span>&#128196; setup.py</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ARROW 1 -->
+            <div class="swe-arrow" style="animation-delay:0.6s;">&rarr;</div>
+
+            <!-- LLM panel -->
+            <div class="swe-panel swe-llm" style="animation-delay:0.9s;">
+                <div style="background:var(--blue-thread);color:white;border-radius:clamp(6px,0.8vw,10px);padding:clamp(6px,1vh,12px) clamp(12px,1.5vw,20px);font-family:var(--font-display);font-weight:700;font-size:var(--h3-size);text-align:center;margin-bottom:clamp(6px,1vh,10px);">
+                    &#129302; Language Model
+                </div>
+                <div style="font-size:var(--body-size);color:var(--text-secondary);text-align:center;margin-bottom:clamp(4px,0.6vh,8px);">&darr;</div>
+                <div style="background:var(--bg-card);border:1px solid var(--blue-thread);border-radius:clamp(6px,0.8vw,10px);padding:clamp(8px,1.2vh,16px) clamp(10px,1.2vw,16px);">
+                    <div style="display:flex;align-items:center;gap:6px;margin-bottom:clamp(4px,0.6vh,8px);">
+                        <span style="font-size:clamp(10px,1.2vw,14px);">&#128260;</span>
+                        <span style="font-family:var(--font-display);font-weight:700;font-size:var(--body-size);color:var(--text-primary);">Generated PR</span>
+                        <span style="margin-left:auto;font-size:clamp(9px,0.8vw,11px);"><span style="color:var(--green-thread);">+20</span> <span style="color:var(--carnegie-red);">&minus;12</span></span>
+                    </div>
+                    <div style="font-size:clamp(9px,0.9vw,12px);color:var(--text-secondary);font-family:monospace;display:flex;flex-direction:column;gap:2px;">
+                        <span>&#128196; gradient_boosting.py <span style="color:var(--green-thread);">&#10010;</span></span>
+                        <span>&#128196; helper.py <span style="color:var(--gold-thread);">&#9674;</span></span>
+                        <span>&#128193; utils <span style="color:var(--carnegie-red);">&#10134;</span></span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ARROW 2 -->
+            <div class="swe-arrow" style="animation-delay:1.2s;">&rarr;</div>
+
+            <!-- UNIT TESTS panel -->
+            <div class="swe-panel swe-tests" style="animation-delay:1.5s;">
+                <div style="font-family:var(--font-display);font-weight:700;font-size:var(--h3-size);color:var(--text-primary);margin-bottom:clamp(6px,1vh,10px);">&#128203; Unit Tests</div>
+                <table style="width:100%;font-size:clamp(9px,0.9vw,12px);border-collapse:collapse;font-family:monospace;">
+                    <tr style="border-bottom:1px solid rgba(0,0,0,0.1);">
+                        <th style="padding:3px 6px;color:var(--text-secondary);font-weight:600;text-align:center;">Pre</th>
+                        <th style="padding:3px 6px;color:var(--text-secondary);font-weight:600;text-align:center;">Post</th>
+                        <th style="padding:3px 6px;color:var(--text-secondary);font-weight:600;text-align:left;">Test</th>
+                    </tr>
+                    <tr><td style="text-align:center;color:var(--carnegie-red);">&#10008;</td><td style="text-align:center;color:var(--green-thread);">&#10004;</td><td style="padding:2px 6px;">join_struct_col</td></tr>
+                    <tr><td style="text-align:center;color:var(--carnegie-red);">&#10008;</td><td style="text-align:center;color:var(--green-thread);">&#10004;</td><td style="padding:2px 6px;">vstack_struct</td></tr>
+                    <tr><td style="text-align:center;color:var(--carnegie-red);">&#10008;</td><td style="text-align:center;color:var(--green-thread);">&#10004;</td><td style="padding:2px 6px;">dstack_struct</td></tr>
+                    <tr><td style="text-align:center;color:var(--green-thread);">&#10004;</td><td style="text-align:center;color:var(--green-thread);">&#10004;</td><td style="padding:2px 6px;">matrix_transform</td></tr>
+                    <tr><td style="text-align:center;color:var(--green-thread);">&#10004;</td><td style="text-align:center;color:var(--green-thread);">&#10004;</td><td style="padding:2px 6px;">euclidean_diff</td></tr>
+                </table>
+            </div>
+        </div>
+
+        <p class="slide-body reveal" style="text-align:center;margin-top:clamp(12px,2vh,20px);max-width:700px;">Given a GitHub issue + codebase, the agent generates a PR. Success = failing tests now pass, passing tests still pass.</p>
+        <div class="highlight-box fragment" style="max-width:600px;margin:clamp(8px,1.2vh,14px) auto 0;">
+            <p style="text-align:center;"><strong>Key assumption:</strong> the GitHub issue is <em>complete and well-specified</em>.</p>
+        </div>
+    </div>
+</section>
+
+<!-- ===========================================
+     SLIDE 5: AMBIG-SWE — CRAFTING THE BENCHMARK
+     =========================================== -->
+<section class="slide content-slide">
+    <div class="slide-content">
+        <span class="slide-number reveal">07</span>
+        <h2 class="slide-title reveal">But Real Users Write <span class="accent">Vague</span> Instructions</h2>
+        <div class="two-col">
+            <div>
+                <p class="slide-body reveal">We craft <strong>Ambig-SWE</strong> from SWE-Bench Verified:</p>
+                <ul class="bullets">
+                    <li class="fragment">Start from 500 curated, well-specified GitHub issues</li>
+                    <li class="fragment">Use GPT-4o to summarize each into a <strong>vague version</strong> &mdash; preserve the domain but strip the detail</li>
+                    <li class="fragment">Creates controlled <strong>information asymmetry</strong>: user holds the full issue, agent sees only the summary</li>
+                </ul>
+            </div>
+            <div>
+                <div class="paper-card fragment" style="margin-bottom:clamp(8px,1.2vh,14px);">
+                    <div class="paper-venue">Well-specified (SWE-Bench)</div>
+                    <div class="paper-desc" style="font-family:monospace;font-size:var(--small-size);line-height:1.4;">"data leak in GBDT due to warm start: when using warm_start=True with GradientBoostingClassifier, training data from previous fit calls leaks into new trees via residuals stored in&hellip;"</div>
+                </div>
+                <div class="paper-card fragment" style="border-left-color:var(--gold-thread);">
+                    <div class="paper-venue" style="color:var(--gold-thread);">Underspecified (Ambig-SWE)</div>
+                    <div class="paper-desc" style="font-family:monospace;font-size:var(--small-size);line-height:1.4;">"There's a data leak issue with warm start in the gradient boosting module."</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ===========================================
+     SLIDE 6: AMBIG-SWE — EVALUATION FRAMEWORK
+     =========================================== -->
+<section class="slide content-slide">
+    <div class="slide-content">
+        <span class="slide-number reveal">08</span>
+        <h2 class="slide-title reveal">Three Questions About <span class="accent">Agent Proactivity</span></h2>
+        <div class="ppp-grid">
+            <div class="ppp-pill fragment">
+                <div class="ppp-icon">&#128269;</div>
+                <div class="ppp-label">Detect</div>
+                <div class="ppp-desc">Can agents distinguish well-specified from underspecified instructions?</div>
+            </div>
+            <div class="ppp-pill fragment">
+                <div class="ppp-icon">&#10067;</div>
+                <div class="ppp-label">Ask</div>
+                <div class="ppp-desc">When agents ask, do they extract useful information from the user?</div>
+            </div>
+            <div class="ppp-pill fragment">
+                <div class="ppp-icon">&#9889;</div>
+                <div class="ppp-label">Leverage</div>
+                <div class="ppp-desc">Does the interaction actually improve task outcomes?</div>
+            </div>
+        </div>
+        <div style="display:flex;justify-content:center;gap:clamp(12px,2vw,28px);margin-top:clamp(14px,2vh,24px);flex-wrap:wrap;">
+            <div class="paper-card fragment" style="flex:1;min-width:150px;max-width:240px;text-align:center;border-left-color:var(--green-thread);">
+                <div class="paper-venue" style="color:var(--green-thread);">Full</div>
+                <div class="paper-desc" style="font-size:var(--small-size);">Agent sees complete issue<br>(upper bound)</div>
+            </div>
+            <div class="paper-card fragment" style="flex:1;min-width:150px;max-width:240px;text-align:center;border-left-color:var(--carnegie-red);">
+                <div class="paper-venue" style="color:var(--carnegie-red);">Hidden</div>
+                <div class="paper-desc" style="font-size:var(--small-size);">Agent sees vague summary only<br>(lower bound)</div>
+            </div>
+            <div class="paper-card fragment" style="flex:1;min-width:150px;max-width:240px;text-align:center;border-left-color:var(--blue-thread);">
+                <div class="paper-venue" style="color:var(--blue-thread);">Interactive</div>
+                <div class="paper-desc" style="font-size:var(--small-size);">Vague summary + can ask user<br>(the treatment)</div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ===========================================
+     SLIDE 7: AMBIG-SWE — RESULTS
+     =========================================== -->
+<section class="slide content-slide">
+    <div class="slide-content">
+        <span class="slide-number reveal">09</span>
+        <h2 class="slide-title reveal">Interaction Helps Massively &mdash; But Agents <span class="accent">Never Ask</span></h2>
+        <div class="two-col">
+            <div>
+                <div class="stat-block fragment">
+                    <div class="stat-number">+74%</div>
+                    <div class="stat-label">improvement with interaction<br>on underspecified tasks</div>
+                </div>
+                <p class="slide-body fragment" style="text-align:center;margin-top:clamp(8px,1vh,14px);">Interaction recovers 80% of full-specification performance through clarification alone.</p>
+            </div>
+            <div>
+                <p class="slide-body fragment" style="margin-bottom:clamp(6px,1vh,10px);font-weight:600;color:var(--text-primary);">But: FNR (failure to detect ambiguity)</p>
+                <div class="hbar-chart">
+                    <div class="hbar-row fragment">
+                        <span class="hbar-label">Haiku 3.5</span>
+                        <div class="hbar-track"><div class="hbar-fill" style="width:97%;background:var(--carnegie-red);"></div></div>
+                        <span class="hbar-value" style="color:var(--carnegie-red);">0.97</span>
+                    </div>
+                    <div class="hbar-row fragment">
+                        <span class="hbar-label">Sonnet 3.5</span>
+                        <div class="hbar-track"><div class="hbar-fill" style="width:81%;background:#EF4444;"></div></div>
+                        <span class="hbar-value" style="color:#EF4444;">0.81</span>
+                    </div>
+                    <div class="hbar-row fragment">
+                        <span class="hbar-label">Llama 70B</span>
+                        <div class="hbar-track"><div class="hbar-fill" style="width:57%;background:var(--gold-thread);"></div></div>
+                        <span class="hbar-value" style="color:var(--gold-thread);">0.57</span>
+                    </div>
+                    <div class="hbar-row fragment">
+                        <span class="hbar-label">Deepseek-v2</span>
+                        <div class="hbar-track"><div class="hbar-fill" style="width:31%;background:var(--green-thread);"></div></div>
+                        <span class="hbar-value" style="color:var(--green-thread);">0.31</span>
+                    </div>
+                </div>
+                <div class="chart-caption fragment">Agentic-tuned models almost never flag ambiguity. Non-agentic models ask &mdash; but with high false-positive rates.</div>
+            </div>
+        </div>
+        <p class="slide-body fragment" style="text-align:center;margin-top:clamp(10px,1.5vh,16px);color:var(--text-primary);font-weight:500;">The value of interaction is clear. The open question: how do we get agents to ask the <em>right</em> questions at the <em>right</em> time?</p>
+    </div>
+</section>
+
+<!-- ===========================================
+     PPP: TRANSITION SLIDE
+     =========================================== -->
+<section class="slide content-slide" style="background:var(--bg-primary);">
+    <div class="slide-content" style="align-items:center;justify-content:center;text-align:center;">
+        <span class="slide-number reveal">10</span>
+        <div class="quote-text reveal" style="max-width:min(80vw,700px);border-left:none;text-align:center;padding-left:0;">
+            Interaction is valuable, but agents never initiate it. How do we <em>train</em> agents to ask the right questions at the right time?
+        </div>
+    </div>
+</section>
+
+<!-- ===========================================
+     PPP: PAPER TITLE CARD
+     =========================================== -->
+<section class="slide content-slide" style="background:var(--bg-primary);">
+    <div class="slide-content" style="align-items:center;justify-content:center;text-align:center;">
+        <span class="slide-number reveal">11</span>
+        <div class="paper-card reveal" style="max-width:min(85vw,700px);border-left-width:4px;text-align:left;">
+            <div class="paper-venue">arXiv 2025</div>
+            <div class="paper-title" style="font-size:var(--h2-size);">PPP: Training Proactive and Personalized LLM Agents</div>
+            <div class="paper-desc" style="margin-top:clamp(10px,1.5vh,18px);">Weiwei Sun, <strong>Xuhui Zhou</strong>, Weihua Du, Xingyao Wang, Sean Welleck, Graham Neubig, Maarten Sap, Yiming Yang</div>
+        </div>
+    </div>
+</section>
+
+<!-- ===========================================
+     PPP SLIDE 1: WHY TASK SUCCESS ALONE FAILS
+     RL curves + UserVille intro
+     =========================================== -->
+<section class="slide content-slide">
+    <div class="slide-content">
+        <span class="slide-number reveal">12</span>
+        <h2 class="slide-title reveal">Why Task Success Alone <span class="accent">Fails</span></h2>
+        <div class="two-col">
+            <div>
+                <p class="slide-body fragment">Training only for task success <strong>actively degrades</strong> proactivity and personalization:</p>
+                <!-- RL Training Curves as static SVG -->
+                <div class="chart-container fragment" style="max-width:100%;">
+                    <svg viewBox="0 0 440 150" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto;">
+                        <!-- Panel 1: Productivity -->
+                        <g transform="translate(10,15)">
+                            <text x="60" y="0" text-anchor="middle" fill="var(--text-primary)" font-size="9" font-weight="600" font-family="Open Sans">Productivity</text>
+                            <rect x="0" y="5" width="120" height="80" fill="none" stroke="rgba(0,0,0,0.06)" rx="2"/>
+                            <!-- Both lines converge ~57 -->
+                            <polyline points="5,70 15,45 30,40 50,37 70,35 90,33 115,31" fill="none" stroke="var(--carnegie-red)" stroke-width="2"/>
+                            <polyline points="5,68 15,43 30,38 50,35 70,33 90,32 115,31" fill="none" stroke="var(--blue-thread)" stroke-width="2" stroke-dasharray="4,3"/>
+                            <text x="60" y="98" text-anchor="middle" fill="var(--iron-gray)" font-size="7" font-family="Open Sans">~same</text>
+                        </g>
+                        <!-- Panel 2: Proactivity -->
+                        <g transform="translate(155,15)">
+                            <text x="60" y="0" text-anchor="middle" fill="var(--text-primary)" font-size="9" font-weight="600" font-family="Open Sans">Proactivity</text>
+                            <rect x="0" y="5" width="120" height="80" fill="none" stroke="rgba(0,0,0,0.06)" rx="2"/>
+                            <!-- PPP rises to 76, baseline drops to 42 -->
+                            <polyline points="5,60 15,42 30,24 50,19 70,16 90,14 115,12" fill="none" stroke="var(--carnegie-red)" stroke-width="2"/>
+                            <polyline points="5,60 15,56 30,38 50,30 70,32 90,38 115,62" fill="none" stroke="var(--blue-thread)" stroke-width="2" stroke-dasharray="4,3"/>
+                            <text x="60" y="98" text-anchor="middle" fill="var(--carnegie-red)" font-size="7" font-weight="700" font-family="Open Sans">diverges!</text>
+                        </g>
+                        <!-- Panel 3: Personalization -->
+                        <g transform="translate(300,15)">
+                            <text x="60" y="0" text-anchor="middle" fill="var(--text-primary)" font-size="9" font-weight="600" font-family="Open Sans">Personalization</text>
+                            <rect x="0" y="5" width="120" height="80" fill="none" stroke="rgba(0,0,0,0.06)" rx="2"/>
+                            <!-- PPP rises to 89, baseline drops to 57 -->
+                            <polyline points="5,55 15,35 30,18 50,12 70,10 90,9 115,9" fill="none" stroke="var(--carnegie-red)" stroke-width="2"/>
+                            <polyline points="5,55 15,28 30,35 50,33 70,35 90,40 115,50" fill="none" stroke="var(--blue-thread)" stroke-width="2" stroke-dasharray="4,3"/>
+                            <text x="60" y="98" text-anchor="middle" fill="var(--carnegie-red)" font-size="7" font-weight="700" font-family="Open Sans">diverges!</text>
+                        </g>
+                        <!-- Legend -->
+                        <line x1="110" y1="140" x2="130" y2="140" stroke="var(--carnegie-red)" stroke-width="2"/>
+                        <text x="135" y="143" fill="var(--text-secondary)" font-size="8" font-family="Open Sans">PPP (Ours)</text>
+                        <line x1="230" y1="140" x2="250" y2="140" stroke="var(--blue-thread)" stroke-width="2" stroke-dasharray="4,3"/>
+                        <text x="255" y="143" fill="var(--text-secondary)" font-size="8" font-family="Open Sans">Task Success Only</text>
+                    </svg>
+                </div>
+            </div>
+            <div>
+                <p class="slide-body fragment" style="font-weight:600;color:var(--text-primary);margin-bottom:clamp(8px,1vh,14px);">Solution: multi-objective RL</p>
+                <ul class="bullets">
+                    <li class="fragment"><strong>UserVille</strong> &mdash; interactive environment with LLM user simulators, configurable preferences</li>
+                    <li class="fragment"><strong>Three rewards</strong> &mdash; R<sub>prod</sub> (task success) + R<sub>proact</sub> (ask useful questions) + R<sub>pers</sub> (match user style)</li>
+                    <li class="fragment">Joint optimization prevents any dimension from being sacrificed</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ===========================================
+     PPP SLIDE 1b: HOW WE TRAIN — DETAILS
+     =========================================== -->
+<section class="slide content-slide">
+    <div class="slide-content">
+        <span class="slide-number reveal">13</span>
+        <h2 class="slide-title reveal">How PPP <span class="accent">Training</span> Works</h2>
+        <div class="two-col">
+            <!-- LEFT: Visual pipeline -->
+            <div>
+                <!-- Episode flow diagram -->
+                <div class="fragment" style="margin-bottom:clamp(10px,1.5vh,16px);">
+                    <svg viewBox="0 0 340 210" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto;">
+                        <!-- Vague prompt box -->
+                        <rect x="0" y="0" width="100" height="36" rx="6" fill="var(--bg-card)" stroke="var(--gold-thread)" stroke-width="1.5"/>
+                        <text x="50" y="14" text-anchor="middle" fill="var(--gold-thread)" font-size="8" font-weight="600" font-family="Open Sans">VAGUE PROMPT</text>
+                        <text x="50" y="27" text-anchor="middle" fill="var(--text-secondary)" font-size="7" font-family="monospace">"fix the leak bug"</text>
+                        <!-- Arrow to agent -->
+                        <line x1="100" y1="18" x2="130" y2="18" stroke="var(--iron-gray)" stroke-width="1" marker-end="url(#arrowhead)"/>
+                        <!-- Agent box -->
+                        <rect x="130" y="0" width="80" height="36" rx="6" fill="var(--bg-card)" stroke="var(--blue-thread)" stroke-width="1.5"/>
+                        <text x="170" y="14" text-anchor="middle" fill="var(--blue-thread)" font-size="8" font-weight="600" font-family="Open Sans">AGENT</text>
+                        <text x="170" y="27" text-anchor="middle" fill="var(--text-secondary)" font-size="7" font-family="Open Sans">&#960;&#952;</text>
+                        <!-- Arrow down to trajectory -->
+                        <line x1="170" y1="36" x2="170" y2="52" stroke="var(--iron-gray)" stroke-width="1" marker-end="url(#arrowhead)"/>
+                        <!-- User sim box (right) -->
+                        <rect x="240" y="0" width="96" height="36" rx="6" fill="var(--bg-card)" stroke="var(--green-thread)" stroke-width="1.5"/>
+                        <text x="288" y="14" text-anchor="middle" fill="var(--green-thread)" font-size="8" font-weight="600" font-family="Open Sans">USER SIM</text>
+                        <text x="288" y="27" text-anchor="middle" fill="var(--text-secondary)" font-size="7" font-family="Open Sans">holds full spec</text>
+                        <!-- Bidirectional arrow agent <-> user -->
+                        <line x1="210" y1="14" x2="240" y2="14" stroke="var(--iron-gray)" stroke-width="1" marker-end="url(#arrowhead)"/>
+                        <text x="225" y="10" text-anchor="middle" fill="var(--iron-gray)" font-size="6" font-family="Open Sans">ask_user</text>
+                        <!-- Trajectory box -->
+                        <rect x="80" y="55" width="180" height="30" rx="4" fill="var(--bg-card)" stroke="rgba(0,0,0,0.1)" stroke-width="1"/>
+                        <text x="170" y="67" text-anchor="middle" fill="var(--text-secondary)" font-size="7" font-family="monospace">&#964; = (a&#8321;,o&#8321;, ... , a&#8348;,o&#8348;)</text>
+                        <text x="170" y="79" text-anchor="middle" fill="var(--iron-gray)" font-size="6" font-family="Open Sans">tool calls + ask_user calls + observations</text>
+                        <!-- Arrow down to rewards -->
+                        <line x1="170" y1="85" x2="170" y2="100" stroke="var(--iron-gray)" stroke-width="1" marker-end="url(#arrowhead)"/>
+                        <!-- Three reward boxes -->
+                        <rect x="10" y="103" width="95" height="40" rx="5" fill="rgba(196,18,48,0.06)" stroke="var(--carnegie-red)" stroke-width="1"/>
+                        <text x="57" y="117" text-anchor="middle" fill="var(--carnegie-red)" font-size="9" font-weight="700" font-family="Open Sans">R_prod</text>
+                        <text x="57" y="133" text-anchor="middle" fill="var(--text-secondary)" font-size="6.5" font-family="Open Sans">pass tests?</text>
+                        <rect x="122" y="103" width="95" height="40" rx="5" fill="rgba(4,54,115,0.06)" stroke="var(--blue-thread)" stroke-width="1"/>
+                        <text x="169" y="117" text-anchor="middle" fill="var(--blue-thread)" font-size="9" font-weight="700" font-family="Open Sans">R_proact</text>
+                        <text x="169" y="133" text-anchor="middle" fill="var(--text-secondary)" font-size="6.5" font-family="Open Sans">low-effort Q's?</text>
+                        <rect x="234" y="103" width="95" height="40" rx="5" fill="rgba(253,181,21,0.08)" stroke="var(--gold-thread)" stroke-width="1"/>
+                        <text x="281" y="117" text-anchor="middle" fill="var(--gold-thread)" font-size="9" font-weight="700" font-family="Open Sans">R_pers</text>
+                        <text x="281" y="133" text-anchor="middle" fill="var(--text-secondary)" font-size="6.5" font-family="Open Sans">match user style?</text>
+                        <!-- Sum arrow -->
+                        <line x1="170" y1="143" x2="170" y2="160" stroke="var(--iron-gray)" stroke-width="1" marker-end="url(#arrowhead)"/>
+                        <!-- Total reward -->
+                        <rect x="65" y="162" width="210" height="28" rx="5" fill="var(--bg-card)" stroke="var(--text-primary)" stroke-width="1.5"/>
+                        <text x="170" y="180" text-anchor="middle" fill="var(--text-primary)" font-size="9" font-weight="700" font-family="Open Sans">R(&#964;) = R_prod + R_proact + R_pers</text>
+                        <!-- Arrowhead marker -->
+                        <defs><marker id="arrowhead" markerWidth="6" markerHeight="4" refX="6" refY="2" orient="auto"><polygon points="0 0, 6 2, 0 4" fill="var(--iron-gray)"/></marker></defs>
+                    </svg>
+                </div>
+            </div>
+            <!-- RIGHT: Math + key details -->
+            <div>
+                <p class="slide-body fragment" style="font-weight:600;color:var(--text-primary);margin-bottom:clamp(6px,1vh,10px);">GRPO with token-level credit</p>
+                <!-- Advantage formula -->
+                <div class="paper-card fragment" style="padding:clamp(8px,1.2vh,14px) clamp(10px,1.2vw,16px);font-size:var(--small-size);margin-bottom:clamp(6px,1vh,10px);">
+                    <p style="color:var(--text-secondary);margin-bottom:4px;">Sample $G$ rollouts per prompt, group-relative advantage:</p>
+                    <p style="color:var(--text-primary);margin-top:6px;">$$\hat{A}_{i,t} = \frac{\operatorname{clip}(R_i, 0, 1) - \operatorname{mean}(\{R_j\})}{\operatorname{std}(\{R_j\})}$$</p>
+                </div>
+                <!-- Clipped objective -->
+                <div class="paper-card fragment" style="padding:clamp(8px,1.2vh,14px) clamp(10px,1.2vw,16px);font-size:var(--small-size);margin-bottom:clamp(6px,1vh,10px);">
+                    <p style="color:var(--text-secondary);margin-bottom:4px;">Clipped PPO-style objective:</p>
+                    <p style="color:var(--text-primary);margin-top:6px;">$$\mathcal{J} = \sum_{i,t} \min\!\Big\{r_{i,t}(\theta)\,\hat{A}_{i,t},\;\operatorname{clip}\!\big(r_{i,t}(\theta), 1{-}\epsilon, 1{+}\epsilon\big)\,\hat{A}_{i,t}\Big\}$$</p>
+                </div>
+                <!-- Key design choices -->
+                <ul class="bullets">
+                    <li class="fragment"><strong>$R_{\text{proact}}$</strong> &mdash; rewards low-effort Q's (e.g. "which color?"); penalizes high-effort ones</li>
+                    <li class="fragment"><strong>$R_{\text{pers}}$</strong> &mdash; user sim scores alignment with stated preference (language, format, style)</li>
+                    <li class="fragment"><strong>Training</strong> &mdash; SWE-Gym tasks in UserVille; precise prompts &rarr; vague; diverse user profiles (brevity, language, expertise); base model: Seed-OSS-36B-Inst</li>
+                    <li class="fragment"><strong>Eval</strong> &mdash; SWE-Bench-Verified (Func-Loc) + BrowseComp+; 8 unseen user preferences for generalization</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ===========================================
+     PPP SLIDE 2: RADAR CHART — THREE DIMENSIONS
+     =========================================== -->
+<section class="slide content-slide">
+    <div class="slide-content" style="align-items:center;">
+        <span class="slide-number reveal">14</span>
+        <h2 class="slide-title reveal" style="text-align:center;">PPP Across <span class="accent">Three Dimensions</span></h2>
+        <div class="two-col" style="align-items:center;">
+            <div class="chart-container reveal" style="max-width:100%;">
+                <svg viewBox="0 0 360 300" xmlns="http://www.w3.org/2000/svg">
+                    <g transform="translate(180,150)">
+                        <circle r="24" fill="none" stroke="rgba(0,0,0,0.08)" stroke-width="1"/>
+                        <circle r="48" fill="none" stroke="rgba(0,0,0,0.08)" stroke-width="1"/>
+                        <circle r="72" fill="none" stroke="rgba(0,0,0,0.08)" stroke-width="1"/>
+                        <circle r="96" fill="none" stroke="rgba(0,0,0,0.08)" stroke-width="1"/>
+                        <circle r="120" fill="none" stroke="rgba(0,0,0,0.1)" stroke-width="1"/>
+                        <text x="4" y="-46" fill="#6D6E71" font-size="9" font-family="Open Sans">40</text>
+                        <text x="4" y="-94" fill="#6D6E71" font-size="9" font-family="Open Sans">80</text>
+                        <line x1="0" y1="0" x2="0" y2="-120" stroke="rgba(0,0,0,0.12)" stroke-width="1"/>
+                        <line x1="0" y1="0" x2="103.9" y2="60" stroke="rgba(0,0,0,0.12)" stroke-width="1"/>
+                        <line x1="0" y1="0" x2="-103.9" y2="60" stroke="rgba(0,0,0,0.12)" stroke-width="1"/>
+                        <text x="0" y="-128" text-anchor="middle" fill="var(--text-primary)" font-size="11" font-weight="600" font-family="Open Sans">Productivity</text>
+                        <text x="115" y="76" text-anchor="middle" fill="var(--text-primary)" font-size="11" font-weight="600" font-family="Open Sans">Proactivity</text>
+                        <text x="-115" y="76" text-anchor="middle" fill="var(--text-primary)" font-size="11" font-weight="600" font-family="Open Sans">Personalization</text>
+                        <!-- GPT-5 -->
+                        <polygon points="0,-67 38,22 -13.5,7.8" fill="rgba(156,163,175,0.12)" stroke="#9CA3AF" stroke-width="2"/>
+                        <circle cx="0" cy="-67" r="3.5" fill="#9CA3AF"/><circle cx="38" cy="22" r="3.5" fill="#9CA3AF"/><circle cx="-13.5" cy="7.8" r="3.5" fill="#9CA3AF"/>
+                        <!-- PPP (Ours) -->
+                        <polygon points="0,-67.5 78.5,45.3 -92.8,53.6" fill="rgba(196,18,48,0.15)" stroke="var(--carnegie-red)" stroke-width="2.5"/>
+                        <circle cx="0" cy="-67.5" r="4" fill="var(--carnegie-red)"/><circle cx="78.5" cy="45.3" r="4" fill="var(--carnegie-red)"/><circle cx="-92.8" cy="53.6" r="4" fill="var(--carnegie-red)"/>
+                    </g>
+                </svg>
+            </div>
+            <div>
+                <div class="chart-legend reveal" style="flex-direction:column;align-items:flex-start;">
+                    <div class="legend-item"><div class="legend-dot" style="background:#9CA3AF;"></div>GPT-5</div>
+                    <div class="legend-item"><div class="legend-dot" style="background:var(--carnegie-red);"></div>PPP (Ours, 36B open-source)</div>
+                </div>
+                <table class="comparison-table fragment" style="margin-top:clamp(10px,1.5vh,16px);max-width:300px;">
+                    <tr><th></th><th>GPT-5</th><th>PPP</th><th>&Delta;</th></tr>
+                    <tr><td>Productivity</td><td>55.8</td><td>56.3</td><td style="color:var(--iron-gray);">+0.4</td></tr>
+                    <tr><td>Proactivity</td><td>36.6</td><td>75.6</td><td style="color:var(--carnegie-red);font-weight:700;">+38.9</td></tr>
+                    <tr><td>Personalization</td><td>13.0</td><td>89.3</td><td style="color:var(--carnegie-red);font-weight:700;">+76.3</td></tr>
+                </table>
+                <div class="highlight-box fragment" style="margin-top:clamp(8px,1.2vh,14px);">
+                    <p><strong class="hl-stat">+21.6</strong> average over GPT-5 on SWE-Func-Loc</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ===========================================
+     PPP SLIDE 3: TRAINED INTERACTION + QUESTION QUALITY
+     Combined results
+     =========================================== -->
+<section class="slide content-slide">
+    <div class="slide-content">
+        <span class="slide-number reveal">15</span>
+        <h2 class="slide-title reveal">Trained Interaction is the Key to <span class="accent">Real-World Utility</span></h2>
+        <div class="two-col">
+            <div>
+                <p class="slide-body fragment" style="font-weight:600;color:var(--text-primary);margin-bottom:clamp(6px,1vh,10px);">F1 on SWE-Func-Loc</p>
+                <div class="vbar-group fragment" style="height:clamp(100px,18vh,170px);">
+                    <div class="vbar-cluster">
+                        <div class="vbar-bars">
+                            <div class="vbar" style="height:clamp(78px,66%,132px);background:#90EE90;"><span class="vbar-val" style="color:#555;">58.5</span></div>
+                            <div class="vbar" style="height:clamp(86px,72%,144px);background:var(--green-thread);"><span class="vbar-val" style="color:#555;">64.2</span></div>
+                        </div>
+                        <span class="vbar-cluster-label">Precise<br>No Int.</span>
+                    </div>
+                    <div class="vbar-cluster">
+                        <div class="vbar-bars">
+                            <div class="vbar" style="height:clamp(49px,41%,82px);background:#ADD8E6;"><span class="vbar-val" style="color:#555;">36.5</span></div>
+                            <div class="vbar" style="height:clamp(59px,49%,98px);background:var(--highlands-blue);"><span class="vbar-val" style="color:#555;">44.0</span></div>
+                        </div>
+                        <span class="vbar-cluster-label">Vague<br>No Int.</span>
+                    </div>
+                    <div class="vbar-cluster">
+                        <div class="vbar-bars">
+                            <div class="vbar" style="height:clamp(48px,40%,80px);background:#FFD580;"><span class="vbar-val" style="color:#555;">36.0</span></div>
+                            <div class="vbar" style="height:clamp(77px,65%,130px);background:var(--gold-thread);"><span class="vbar-val" style="color:#555;">57.7</span></div>
+                        </div>
+                        <span class="vbar-cluster-label">Vague<br>+ Int.</span>
+                    </div>
+                </div>
+                <div class="chart-legend fragment" style="margin-top:clamp(4px,0.6vh,8px);">
+                    <div class="legend-item"><div class="legend-dot" style="background:#ADD8E6;"></div>Baseline</div>
+                    <div class="legend-item"><div class="legend-dot" style="background:var(--gold-thread);"></div>+ PPP RL</div>
+                </div>
+                <p class="chart-caption fragment">Vague + Interaction + RL (<strong>57.7</strong>) recovers to near precise baseline (<strong>58.5</strong>)</p>
+            </div>
+            <div>
+                <p class="slide-body fragment" style="font-weight:600;color:var(--text-primary);margin-bottom:clamp(4px,0.6vh,8px);">Interaction quality over training</p>
+                <!-- Two stacked area charts side by side -->
+                <div class="chart-container fragment" style="max-width:100%;">
+                    <svg viewBox="0 0 420 200" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto;">
+                        <!-- LEFT: PPP (Ours) -->
+                        <g transform="translate(15,20)">
+                            <text x="85" y="-5" text-anchor="middle" fill="var(--text-primary)" font-size="9" font-weight="600" font-family="Open Sans">PPP (Ours)</text>
+                            <!-- Axes -->
+                            <line x1="0" y1="0" x2="0" y2="130" stroke="rgba(0,0,0,0.15)" stroke-width="1"/>
+                            <line x1="0" y1="130" x2="170" y2="130" stroke="rgba(0,0,0,0.15)" stroke-width="1"/>
+                            <!-- Y gridlines -->
+                            <line x1="0" y1="65" x2="170" y2="65" stroke="rgba(0,0,0,0.06)" stroke-width="0.5"/>
+                            <text x="-4" y="133" text-anchor="end" fill="var(--iron-gray)" font-size="7" font-family="Open Sans">0</text>
+                            <text x="-4" y="68" text-anchor="end" fill="var(--iron-gray)" font-size="7" font-family="Open Sans">1</text>
+                            <text x="-4" y="3" text-anchor="end" fill="var(--iron-gray)" font-size="7" font-family="Open Sans">2</text>
+                            <!-- X labels -->
+                            <text x="0" y="143" text-anchor="middle" fill="var(--iron-gray)" font-size="7" font-family="Open Sans">0</text>
+                            <text x="85" y="143" text-anchor="middle" fill="var(--iron-gray)" font-size="7" font-family="Open Sans">100</text>
+                            <text x="170" y="143" text-anchor="middle" fill="var(--iron-gray)" font-size="7" font-family="Open Sans">200</text>
+                            <text x="85" y="155" text-anchor="middle" fill="var(--iron-gray)" font-size="7" font-family="Open Sans">Training Step</text>
+                            <!-- High effort area (bottom, red, stays flat ~0.02) -->
+                            <polygon points="0,130 17,129 34,129 51,129 68,129 85,129 102,129 119,129 136,129 153,129 170,129 170,130 0,130" fill="#DC143C" opacity="0.6"/>
+                            <!-- Medium effort area (middle, gold, rise then fall) -->
+                            <polygon points="0,129 17,121 34,112 51,105 68,100 85,103 102,110 119,120 136,126 153,127 170,127 170,129 153,129 136,129 119,129 102,129 85,129 68,129 51,129 34,129 17,129 0,129" fill="#FDB515" opacity="0.5"/>
+                            <!-- Low effort area (top, orange, steady rise) -->
+                            <polygon points="0,100 17,90 34,72 51,60 68,50 85,42 102,38 119,36 136,34 153,33 170,33 170,127 153,127 136,126 119,120 102,110 85,103 68,100 51,105 34,112 17,121 0,129" fill="#FFA500" opacity="0.5"/>
+                            <!-- Legend -->
+                            <rect x="8" y="8" width="8" height="8" fill="#FFA500" opacity="0.6"/><text x="20" y="15" fill="var(--text-secondary)" font-size="6.5" font-family="Open Sans">Low Effort</text>
+                            <rect x="8" y="20" width="8" height="8" fill="#FDB515" opacity="0.6"/><text x="20" y="27" fill="var(--text-secondary)" font-size="6.5" font-family="Open Sans">Medium Effort</text>
+                            <rect x="8" y="32" width="8" height="8" fill="#DC143C" opacity="0.6"/><text x="20" y="39" fill="var(--text-secondary)" font-size="6.5" font-family="Open Sans">High Effort</text>
+                        </g>
+                        <!-- RIGHT: Baseline (No R_proact) -->
+                        <g transform="translate(225,20)">
+                            <text x="85" y="-5" text-anchor="middle" fill="var(--text-primary)" font-size="9" font-weight="600" font-family="Open Sans">No $R_{\text{proact}}$</text>
+                            <!-- Axes -->
+                            <line x1="0" y1="0" x2="0" y2="130" stroke="rgba(0,0,0,0.15)" stroke-width="1"/>
+                            <line x1="0" y1="130" x2="170" y2="130" stroke="rgba(0,0,0,0.15)" stroke-width="1"/>
+                            <line x1="0" y1="65" x2="170" y2="65" stroke="rgba(0,0,0,0.06)" stroke-width="0.5"/>
+                            <text x="-4" y="133" text-anchor="end" fill="var(--iron-gray)" font-size="7" font-family="Open Sans">0</text>
+                            <text x="-4" y="68" text-anchor="end" fill="var(--iron-gray)" font-size="7" font-family="Open Sans">1</text>
+                            <text x="-4" y="3" text-anchor="end" fill="var(--iron-gray)" font-size="7" font-family="Open Sans">2</text>
+                            <text x="0" y="143" text-anchor="middle" fill="var(--iron-gray)" font-size="7" font-family="Open Sans">0</text>
+                            <text x="85" y="143" text-anchor="middle" fill="var(--iron-gray)" font-size="7" font-family="Open Sans">100</text>
+                            <text x="170" y="143" text-anchor="middle" fill="var(--iron-gray)" font-size="7" font-family="Open Sans">200</text>
+                            <text x="85" y="155" text-anchor="middle" fill="var(--iron-gray)" font-size="7" font-family="Open Sans">Training Step</text>
+                            <!-- High effort area (grows from ~0.05 to ~0.2) -->
+                            <polygon points="0,130 17,128 34,127 51,126 68,124 85,122 102,120 119,118 136,116 153,113 170,110 170,130 0,130" fill="#DC143C" opacity="0.6"/>
+                            <!-- Medium effort area (grows from ~0.2 to ~0.5) -->
+                            <polygon points="0,117 17,112 34,108 51,103 68,98 85,92 102,86 119,80 136,74 153,68 170,62 170,110 153,113 136,116 119,118 102,120 85,122 68,124 51,126 34,127 17,128 0,130" fill="#4169E1" opacity="0.5"/>
+                            <!-- Low effort area (grows from ~0.5 to ~1.2) -->
+                            <polygon points="0,98 17,88 34,78 51,68 68,58 85,50 102,42 119,36 136,30 153,24 170,18 170,62 153,68 136,74 119,80 102,86 85,92 68,98 51,103 34,108 17,112 0,117" fill="#87CEEB" opacity="0.5"/>
+                            <!-- Legend -->
+                            <rect x="8" y="8" width="8" height="8" fill="#87CEEB" opacity="0.6"/><text x="20" y="15" fill="var(--text-secondary)" font-size="6.5" font-family="Open Sans">Low Effort</text>
+                            <rect x="8" y="20" width="8" height="8" fill="#4169E1" opacity="0.6"/><text x="20" y="27" fill="var(--text-secondary)" font-size="6.5" font-family="Open Sans">Medium Effort</text>
+                            <rect x="8" y="32" width="8" height="8" fill="#DC143C" opacity="0.6"/><text x="20" y="39" fill="var(--text-secondary)" font-size="6.5" font-family="Open Sans">High Effort</text>
+                        </g>
+                    </svg>
+                </div>
+                <p class="chart-caption fragment">PPP: low-effort Q's rise, medium rise-then-fall (learns to ask <em>better</em>). Baseline: all categories explode (gets &ldquo;lazy&rdquo;, offloads work to user).</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ===========================================
+     TOM-SWE: TRANSITION SLIDE
+     =========================================== -->
+<section class="slide content-slide" style="background:var(--bg-primary);">
+    <div class="slide-content" style="align-items:center;justify-content:center;text-align:center;">
+        <span class="slide-number reveal">16</span>
+        <div class="quote-text reveal" style="max-width:min(80vw,700px);border-left:none;text-align:center;padding-left:0;">
+            PPP makes agents smart collaborators within a session. But when the conversation ends, the agent forgets everything. Can agents <em>remember</em> who they serve?
+        </div>
+    </div>
+</section>
+
+<!-- ===========================================
+     TOM-SWE: PAPER TITLE CARD
+     =========================================== -->
+<section class="slide content-slide" style="background:var(--bg-primary);">
+    <div class="slide-content" style="align-items:center;justify-content:center;text-align:center;">
+        <span class="slide-number reveal">17</span>
+        <div class="paper-card reveal" style="max-width:min(85vw,700px);border-left-width:4px;text-align:left;">
+            <div class="paper-venue">arXiv 2025</div>
+            <div class="paper-title" style="font-size:var(--h2-size);">TOM-SWE: User Mental Modeling for Software Engineering Agents</div>
+            <div class="paper-desc" style="margin-top:clamp(10px,1.5vh,18px);"><strong>Xuhui Zhou</strong>, Valerie Chen, Zora Zhiruo Wang, Graham Neubig, Maarten Sap, Xingyao Wang</div>
+        </div>
+    </div>
+</section>
+
+<!-- ===========================================
+     TOM-SWE: ARCHITECTURE WITH DIAGRAM
+     =========================================== -->
+<section class="slide content-slide">
+    <div class="slide-content">
+        <span class="slide-number reveal">18</span>
+        <h2 class="slide-title reveal">A <span class="accent">Dual-Agent</span> Architecture</h2>
+        <!-- Architecture diagram -->
+        <div class="reveal" style="margin:clamp(8px,1.5vh,16px) auto;max-width:min(90vw,800px);">
+            <img src="tom-swe-diagram.png" alt="TOM-SWE Architecture" style="width:100%;height:auto;border-radius:clamp(6px,0.8vw,10px);border:1px solid rgba(0,0,0,0.08);box-shadow:0 2px 12px rgba(0,0,0,0.05);background:#fff;padding:clamp(8px,1vh,14px);">
+        </div>
+        <div class="two-col" style="margin-top:clamp(8px,1.2vh,14px);">
+            <div>
+                <ul class="bullets">
+                    <li class="fragment"><strong>SWE Agent</strong> handles code generation &amp; execution (the standard coding agent)</li>
+                    <li class="fragment"><strong>ToM Agent</strong> (lightweight LLM) infers user goals, constraints, and preferences</li>
+                </ul>
+            </div>
+            <div>
+                <ul class="bullets">
+                    <li class="fragment"><strong>Hierarchical Memory</strong> persists the user model across sessions &mdash; the agent <em>remembers</em> you</li>
+                    <li class="fragment"><strong>Key insight:</strong> agents need a model of <em>who</em> they work for, not just <em>what</em> they work on</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ===========================================
+     TOM-SWE: STATEFUL SWE BENCHMARK (figure)
+     =========================================== -->
+<section class="slide content-slide">
+    <div class="slide-content" style="align-items:center;">
+        <span class="slide-number reveal">19</span>
+        <h2 class="slide-title reveal" style="text-align:center;">Introducing the <span class="accent">Stateful SWE</span> Benchmark</h2>
+        <div class="reveal" style="margin:clamp(8px,1.5vh,16px) auto;max-width:min(90vw,850px);">
+            <img src="stateful-swe-bench.png" alt="Stateful SWE Benchmark Overview" style="width:100%;height:auto;border-radius:clamp(6px,0.8vw,10px);border:1px solid rgba(0,0,0,0.08);box-shadow:0 2px 12px rgba(0,0,0,0.05);background:#fff;padding:clamp(8px,1vh,14px);">
+        </div>
+        <div style="display:flex;justify-content:center;gap:clamp(12px,2vw,28px);margin-top:clamp(8px,1.2vh,14px);flex-wrap:wrap;">
+            <div class="paper-card fragment" style="flex:1;min-width:140px;max-width:220px;text-align:center;border-left-color:var(--green-thread);">
+                <div class="paper-venue" style="color:var(--green-thread);">Step 1</div>
+                <div class="paper-desc" style="font-size:var(--small-size);">Collect <strong>453</strong> real human-agent sessions</div>
+            </div>
+            <div class="paper-card fragment" style="flex:1;min-width:140px;max-width:220px;text-align:center;border-left-color:var(--blue-thread);">
+                <div class="paper-venue" style="color:var(--blue-thread);">Step 2</div>
+                <div class="paper-desc" style="font-size:var(--small-size);">Create <strong>15</strong> developer profiles from 75 preferences</div>
+            </div>
+            <div class="paper-card fragment" style="flex:1;min-width:140px;max-width:220px;text-align:center;border-left-color:var(--carnegie-red);">
+                <div class="paper-venue" style="color:var(--carnegie-red);">Step 3</div>
+                <div class="paper-desc" style="font-size:var(--small-size);">Pair issues + profiles with <strong>1.5M token</strong> histories</div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ===========================================
+     TOM-SWE: RESULTS
+     =========================================== -->
+<section class="slide content-slide">
+    <div class="slide-content">
+        <span class="slide-number reveal">20</span>
+        <h2 class="slide-title reveal">Stateful SWE Benchmark <span class="accent">Results</span></h2>
+        <p class="slide-body reveal">Success rate (%) &mdash; ToM-enhanced agents consistently outperform across all models:</p>
+        <div class="vbar-group reveal" style="height:clamp(140px,24vh,230px);margin-top:clamp(8px,1.2vh,14px);">
+            <div class="vbar-cluster">
+                <div class="vbar-bars">
+                    <div class="vbar" style="height:clamp(30px,24%,52px);background:#9CA3AF;"><span class="vbar-val" style="color:#555;">18.1</span></div>
+                    <div class="vbar" style="height:clamp(63px,50%,108px);background:var(--blue-thread);"><span class="vbar-val" style="color:#555;">38.4</span></div>
+                    <div class="vbar" style="height:clamp(98px,78%,168px);background:var(--gold-thread);"><span class="vbar-val" style="color:#555;">59.7</span></div>
+                </div>
+                <span class="vbar-cluster-label">Claude 4</span>
+            </div>
+            <div class="vbar-cluster">
+                <div class="vbar-bars">
+                    <div class="vbar" style="height:clamp(31px,25%,54px);background:#9CA3AF;"><span class="vbar-val" style="color:#555;">18.7</span></div>
+                    <div class="vbar" style="height:clamp(24px,19%,40px);background:var(--blue-thread);"><span class="vbar-val" style="color:#555;">14.4</span></div>
+                    <div class="vbar" style="height:clamp(76px,61%,132px);background:var(--gold-thread);"><span class="vbar-val" style="color:#555;">46.5</span></div>
+                </div>
+                <span class="vbar-cluster-label">Claude 3.7</span>
+            </div>
+            <div class="vbar-cluster">
+                <div class="vbar-bars">
+                    <div class="vbar" style="height:clamp(23px,19%,40px);background:#9CA3AF;"><span class="vbar-val" style="color:#555;">14.2</span></div>
+                    <div class="vbar" style="height:clamp(28px,22%,48px);background:var(--blue-thread);"><span class="vbar-val" style="color:#555;">16.9</span></div>
+                    <div class="vbar" style="height:clamp(73px,58%,126px);background:var(--gold-thread);"><span class="vbar-val" style="color:#555;">44.3</span></div>
+                </div>
+                <span class="vbar-cluster-label">Qwen3</span>
+            </div>
+        </div>
+        <div class="chart-legend reveal" style="margin-top:clamp(4px,0.6vh,8px);">
+            <div class="legend-item"><div class="legend-dot" style="background:#9CA3AF;"></div>CodeActAgent</div>
+            <div class="legend-item"><div class="legend-dot" style="background:var(--blue-thread);"></div>RAGCodeActAgent</div>
+            <div class="legend-item"><div class="legend-dot" style="background:var(--gold-thread);"></div>TomCodeActAgent (Ours)</div>
+        </div>
+        <div class="highlight-box fragment" style="margin-top:clamp(8px,1.2vh,14px);">
+            <p>Claude 4 + ToM: <strong>59.7%</strong> vs. 18.1% &mdash; a <strong class="hl-stat">3.3x</strong> improvement. Real-world validation: <strong>86% useful</strong> in 3-week study (17 devs, 209 sessions).</p>
+        </div>
+    </div>
+</section>
+
+<!-- ===========================================
+     TOM-SWE: COST + REAL-WORLD VALIDATION
+     =========================================== -->
+<section class="slide content-slide">
+    <div class="slide-content">
+        <span class="slide-number reveal">21</span>
+        <h2 class="slide-title reveal">Cheap, Effective, and <span class="accent">Validated</span> in Practice</h2>
+        <div class="two-col">
+            <div>
+                <p class="slide-body fragment" style="font-weight:600;color:var(--text-primary);margin-bottom:clamp(8px,1vh,12px);">Cost vs. resolved rate</p>
+                <div class="chart-container fragment" style="max-width:100%;">
+                    <svg viewBox="0 0 320 220" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto;">
+                        <g transform="translate(40,10)">
+                            <line x1="0" y1="180" x2="260" y2="180" stroke="rgba(0,0,0,0.15)" stroke-width="1"/>
+                            <line x1="0" y1="0" x2="0" y2="180" stroke="rgba(0,0,0,0.15)" stroke-width="1"/>
+                            <line x1="0" y1="128" x2="260" y2="128" stroke="rgba(0,0,0,0.05)" stroke-width="0.5"/>
+                            <line x1="0" y1="77" x2="260" y2="77" stroke="rgba(0,0,0,0.05)" stroke-width="0.5"/>
+                            <line x1="0" y1="26" x2="260" y2="26" stroke="rgba(0,0,0,0.05)" stroke-width="0.5"/>
+                            <text x="-5" y="183" text-anchor="end" fill="var(--iron-gray)" font-size="8" font-family="Open Sans">0%</text>
+                            <text x="-5" y="131" text-anchor="end" fill="var(--iron-gray)" font-size="8" font-family="Open Sans">20%</text>
+                            <text x="-5" y="80" text-anchor="end" fill="var(--iron-gray)" font-size="8" font-family="Open Sans">40%</text>
+                            <text x="-5" y="29" text-anchor="end" fill="var(--iron-gray)" font-size="8" font-family="Open Sans">60%</text>
+                            <text x="0" y="195" text-anchor="middle" fill="var(--iron-gray)" font-size="8">$0</text>
+                            <text x="130" y="195" text-anchor="middle" fill="var(--iron-gray)" font-size="8">$0.10</text>
+                            <text x="260" y="195" text-anchor="middle" fill="var(--iron-gray)" font-size="8">$0.20</text>
+                            <text x="130" y="210" text-anchor="middle" fill="var(--iron-gray)" font-size="8">Avg. cost per session</text>
+                            <line x1="26" y1="82" x2="169" y2="36" stroke="var(--gold-thread)" stroke-width="1.5" stroke-dasharray="4,3" opacity="0.5"/>
+                            <circle cx="1" cy="134" r="6" fill="#9CA3AF" opacity="0.8"/>
+                            <text x="10" y="130" fill="#555" font-size="7">w/o ToM</text>
+                            <circle cx="26" cy="82" r="6" fill="#EC4899" opacity="0.8"/>
+                            <text x="35" y="88" fill="#555" font-size="7">nano</text>
+                            <circle cx="117" cy="72" r="6" fill="#EC4899" opacity="0.8"/>
+                            <text x="126" y="78" fill="#555" font-size="7">mini</text>
+                            <circle cx="169" cy="36" r="6" fill="#EC4899" opacity="0.8"/>
+                            <text x="150" y="30" fill="#555" font-size="7">GPT-5</text>
+                            <circle cx="234" cy="57" r="6" fill="var(--teal-thread)" opacity="0.8"/>
+                            <text x="210" y="68" fill="#555" font-size="7">3.7</text>
+                            <circle cx="221" cy="28" r="7" fill="var(--teal-thread)" stroke="var(--carnegie-red)" stroke-width="2"/>
+                            <text x="200" y="20" fill="var(--carnegie-red)" font-size="8" font-weight="700">Claude 4</text>
+                        </g>
+                    </svg>
+                </div>
+                <div class="chart-legend fragment" style="margin-top:clamp(2px,0.4vh,6px);">
+                    <div class="legend-item"><div class="legend-dot" style="background:#9CA3AF;"></div>w/o ToM</div>
+                    <div class="legend-item"><div class="legend-dot" style="background:#EC4899;"></div>GPT-5</div>
+                    <div class="legend-item"><div class="legend-dot" style="background:var(--teal-thread);"></div>Claude</div>
+                </div>
+            </div>
+            <div>
+                <div class="stat-block fragment">
+                    <div class="stat-number">$0.17</div>
+                    <div class="stat-label">per session &mdash; only <strong>16%</strong> of SWE avg ($1.08)</div>
+                </div>
+                <div style="margin-top:clamp(12px,2vh,20px);">
+                    <p class="slide-body fragment" style="font-weight:600;color:var(--text-primary);margin-bottom:clamp(6px,1vh,10px);">3-week real-world deployment:</p>
+                    <ul class="bullets">
+                        <li class="fragment"><strong>17 professional developers</strong> using ToM-enhanced CLI daily</li>
+                        <li class="fragment"><strong>209 coding sessions</strong> on real tasks</li>
+                        <li class="fragment"><strong>86% acceptance rate</strong> of ToM agent suggestions</li>
+                    </ul>
+                </div>
+                <div class="highlight-box fragment" style="margin-top:clamp(8px,1.2vh,14px);">
+                    <p>User modeling is a distinct, efficient capability &mdash; even <strong>small LLMs</strong> dramatically boost performance as ToM agents.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ===========================================
+     SIM2REAL: TRANSITION SLIDE
+     =========================================== -->
+<section class="slide content-slide" style="background:var(--bg-primary);">
+    <div class="slide-content" style="align-items:center;justify-content:center;text-align:center;">
+        <span class="slide-number reveal">22</span>
+        <div class="quote-text reveal" style="max-width:min(80vw,700px);border-left:none;text-align:center;padding-left:0;">
+            PPP and TOM-SWE both train and validate with LLM user simulators. But what if those simulators are <em>lying</em> to us?
+        </div>
+    </div>
+</section>
+
+<!-- ===========================================
+     SIM2REAL: PAPER TITLE CARD
+     =========================================== -->
+<section class="slide content-slide" style="background:var(--bg-primary);">
+    <div class="slide-content" style="align-items:center;justify-content:center;text-align:center;">
+        <span class="slide-number reveal">23</span>
+        <div class="paper-card reveal" style="max-width:min(85vw,700px);border-left-width:4px;text-align:left;">
+            <div class="paper-venue">arXiv 2026</div>
+            <div class="paper-title" style="font-size:var(--h2-size);">Mind the Sim2Real Gap in User Simulation for Agentic Tasks</div>
+            <div class="paper-desc" style="margin-top:clamp(10px,1.5vh,18px);"><strong>Xuhui Zhou*</strong>, Weiwei Sun*, Qianou Ma, Yiqing Xie, Jiarui Liu, Weihua Du, Sean Welleck, Yiming Yang, Graham Neubig, Sherry Tongshuang Wu, Maarten Sap</div>
+        </div>
+    </div>
+</section>
+
+<!-- ===========================================
+     SIM2REAL: TAU-BENCH + STUDY DESIGN
+     =========================================== -->
+<section class="slide content-slide">
+    <div class="slide-content">
+        <span class="slide-number reveal">24</span>
+        <h2 class="slide-title reveal">The Experiment: <span class="accent">&tau;-bench</span> with Real Humans</h2>
+        <div class="two-col">
+            <div>
+                <p class="slide-body fragment" style="font-weight:600;color:var(--text-primary);margin-bottom:clamp(6px,1vh,10px);">Why &tau;-bench?</p>
+                <ul class="bullets">
+                    <li class="fragment">Full interactive loop: LLM user simulator + tool-augmented agent + automatic reward</li>
+                    <li class="fragment">Customer service across <strong>airline</strong> (bookings, cancellations) and <strong>retail</strong> (returns, orders)</li>
+                    <li class="fragment">Enables <strong>controlled comparison</strong>: swap LLM simulator with real humans, keep agent &amp; reward fixed</li>
+                </ul>
+            </div>
+            <div>
+                <p class="slide-body fragment" style="font-weight:600;color:var(--text-primary);margin-bottom:clamp(6px,1vh,10px);">Human annotation</p>
+                <ul class="bullets">
+                    <li class="fragment"><strong>451 participants</strong> (ages 18&ndash;80, recruited via Prolific) across <strong>165 tasks</strong></li>
+                    <li class="fragment">Role-play as customers, interact with the <strong>same agent</strong> used in &tau;-bench</li>
+                    <li class="fragment"><strong>3 independent batches</strong> on same tasks &rarr; measure human&ndash;human agreement as ceiling</li>
+                    <li class="fragment">Post-task survey: 5-way task success + <strong>8 quality dimensions</strong> (efficiency, human-likeness, reuse, etc.)</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ===========================================
+     SIM2REAL: TAXONOMY OF GAPS (Figure 2)
+     =========================================== -->
+<section class="slide content-slide">
+    <div class="slide-content" style="align-items:center;">
+        <span class="slide-number reveal">25</span>
+        <h2 class="slide-title reveal">A Taxonomy of <span class="accent">Sim2Real Gaps</span></h2>
+        <div class="reveal" style="margin:clamp(4px,0.8vh,10px) auto;max-width:min(92vw,880px);">
+            <img src="sim2real-fig2.png" alt="Taxonomy of Sim2Real Gaps" style="width:100%;height:auto;border-radius:clamp(6px,0.8vw,10px);border:1px solid rgba(0,0,0,0.08);box-shadow:0 2px 12px rgba(0,0,0,0.05);background:#fff;padding:clamp(6px,0.8vh,10px);">
+        </div>
+        <div style="display:flex;justify-content:center;gap:clamp(10px,1.5vw,20px);margin-top:clamp(4px,0.8vh,8px);flex-wrap:wrap;">
+            <div class="paper-card fragment" style="flex:1;min-width:140px;max-width:220px;text-align:center;border-left-color:var(--carnegie-red);padding:clamp(4px,0.7vh,10px) clamp(6px,0.8vw,12px);">
+                <div class="paper-venue" style="color:var(--carnegie-red);">Behavioral Gap</div>
+                <div class="paper-desc" style="font-size:var(--small-size);">D1 Communication &middot; D2 Information &middot; D3 Clarification &middot; D4 Error Reaction</div>
+            </div>
+            <div class="paper-card fragment" style="flex:1;min-width:140px;max-width:220px;text-align:center;border-left-color:var(--blue-thread);padding:clamp(4px,0.7vh,10px) clamp(6px,0.8vw,12px);">
+                <div class="paper-venue" style="color:var(--blue-thread);">Evaluative Gap</div>
+                <div class="paper-desc" style="font-size:var(--small-size);">Success criteria alignment + quality dimension scores across 8 axes</div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ===========================================
+     SIM2REAL: USI METRIC DEFINITION
+     =========================================== -->
+<section class="slide content-slide">
+    <div class="slide-content">
+        <span class="slide-number reveal">26</span>
+        <h2 class="slide-title reveal">Measuring the Gap: <span class="accent">User-Sim Index</span></h2>
+        <div class="two-col">
+            <div>
+                <p class="slide-body fragment">We aggregate behavioral and evaluative dimensions into a single 0&ndash;100 score:</p>
+                <div class="paper-card fragment" style="margin-top:clamp(8px,1.2vh,14px);padding:clamp(8px,1.2vh,14px) clamp(10px,1.2vw,16px);">
+                    <p style="color:var(--text-primary);margin-top:6px;">$$\text{USI} = \frac{1}{6}\big(\text{D1} + \text{D2} + \text{D3} + \text{D4} + (1{-}\text{ECE}){\times}100 + \text{Eval}\big)$$</p>
+                </div>
+                <ul class="bullets" style="margin-top:clamp(8px,1.2vh,14px);">
+                    <li class="fragment"><strong>D1&ndash;D4</strong>: S&oslash;rensen&ndash;Dice coefficients per behavioral dimension (higher = closer to human)</li>
+                    <li class="fragment"><strong>ECE</strong>: outcome calibration error (lower = better)</li>
+                    <li class="fragment"><strong>Eval</strong>: $(1{-}\text{MAE}){\times}100$ evaluative alignment</li>
+                </ul>
+            </div>
+            <div>
+                <p class="slide-body fragment" style="font-weight:600;color:var(--text-primary);margin-bottom:clamp(6px,1vh,10px);">31 LLM simulators benchmarked</p>
+                <ul class="bullets">
+                    <li class="fragment"><strong>18 proprietary</strong> &mdash; GPT, Claude, Gemini families</li>
+                    <li class="fragment"><strong>9 open-source</strong> &mdash; DeepSeek, Llama, Qwen</li>
+                    <li class="fragment"><strong>4 specialized</strong> &mdash; CoSER, UserLM, HumanLike, HumanLM (fine-tuned for user simulation)</li>
+                </ul>
+                <div class="highlight-box fragment" style="margin-top:clamp(8px,1.2vh,14px);">
+                    <p>Human inter-annotator USI: <strong>92.9</strong>. Best LLM simulator: <strong>76.0</strong>. A <strong>16.9-point gap</strong> that no model closes.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ===========================================
+     SIM2REAL: KEY FINDINGS — "EASY MODE"
+     =========================================== -->
+<section class="slide content-slide">
+    <div class="slide-content">
+        <span class="slide-number reveal">27</span>
+        <h2 class="slide-title reveal">The <span class="accent">&ldquo;Easy Mode&rdquo;</span> Problem</h2>
+        <div class="two-col">
+            <div>
+                <div class="reveal" style="max-width:100%;">
+                    <img src="sim2real-fig1.png" alt="USI vs Chatbot Arena" style="width:100%;height:auto;border-radius:clamp(6px,0.8vw,10px);border:1px solid rgba(0,0,0,0.08);box-shadow:0 2px 12px rgba(0,0,0,0.05);background:#fff;padding:clamp(6px,0.8vh,10px);">
+                </div>
+                <p class="chart-caption reveal">USI vs. Chatbot Arena Elo. Only GPT family shows correlation ($r{=}0.91$). Claude &amp; Gemini: no significant relationship.</p>
+            </div>
+            <div>
+                <ul class="bullets">
+                    <li class="fragment"><strong>Too cooperative</strong> &mdash; GPT-4o: 49% polite vs. 29% for humans; 1% short turns vs. 15.3%</li>
+                    <li class="fragment"><strong>Front-load information</strong> &mdash; simulators volunteer all details upfront; real users say &ldquo;Hi, help with a return under Sarah&rdquo;</li>
+                    <li class="fragment"><strong>Never frustrated</strong> &mdash; humans: &ldquo;you already asked me that&rdquo;; simulators quietly pivot</li>
+                    <li class="fragment"><strong>Inflates success</strong> &mdash; top LLM simulators: <strong>77.8%</strong> agent success vs. <strong>63.6%</strong> human baseline</li>
+                </ul>
+            </div>
+        </div>
+        <div class="highlight-box fragment" style="margin-top:clamp(6px,1vh,10px);">
+            <p>GPT-5.1 as evaluator overestimates human-likeness by <strong>55%</strong> and overall quality by <strong>18%</strong>. Rule-based rewards are <strong>orthogonal</strong> to human-perceived quality across all 8 dimensions.</p>
+        </div>
+    </div>
+</section>
+
+<!-- ===========================================
+     SIM2REAL: IMPLICATIONS FOR BENCHMARKS
+     =========================================== -->
+<section class="slide content-slide">
+    <div class="slide-content">
+        <span class="slide-number reveal">28</span>
+        <h2 class="slide-title reveal">Implications for <span class="accent">Benchmark Design</span></h2>
+        <div style="display:flex;gap:clamp(10px,1.5vw,20px);flex-wrap:wrap;margin-top:clamp(10px,1.5vh,18px);">
+            <div class="paper-card fragment" style="flex:1;min-width:200px;border-left-color:var(--carnegie-red);">
+                <div class="paper-venue" style="color:var(--carnegie-red);">Human-in-the-Loop</div>
+                <div class="paper-desc">LLM simulators are useful for scale, but final benchmarks <strong>must</strong> include real human participants. USI quantifies how much to trust simulator results.</div>
+            </div>
+            <div class="paper-card fragment" style="flex:1;min-width:200px;border-left-color:var(--blue-thread);">
+                <div class="paper-venue" style="color:var(--blue-thread);">Diversity-Aware Simulation</div>
+                <div class="paper-desc">Current simulators suffer <strong>mode collapse</strong>. Calibrate against real human behavioral distributions, not just average accuracy.</div>
+            </div>
+            <div class="paper-card fragment" style="flex:1;min-width:200px;border-left-color:var(--gold-thread);">
+                <div class="paper-venue" style="color:var(--gold-thread);">Report the Gap</div>
+                <div class="paper-desc">A model scoring <strong>78%</strong> with LLM users but <strong>64%</strong> with real users tells a very different story. Report sim-human gaps alongside scores.</div>
+            </div>
+        </div>
+        <div class="highlight-box fragment" style="margin-top:clamp(12px,1.8vh,20px);">
+            <p>USI provides a principled way to <strong>audit any simulator-based benchmark</strong> &mdash; directly relevant to Scale AI&rsquo;s evaluation infrastructure.</p>
+        </div>
+    </div>
+</section>
+
+<!-- ===========================================
+     SLIDE: PUTTING IT TOGETHER
+     =========================================== -->
+<section class="slide content-slide">
+    <div class="slide-content" style="align-items: center; text-align: center;">
+        <span class="slide-number reveal">29</span>
+        <h2 class="slide-title reveal">The Full Picture</h2>
+        <table class="comparison-table reveal" style="max-width: 850px; margin: 0 auto;">
+            <thead>
+                <tr>
+                    <th>Work</th>
+                    <th>Question</th>
+                    <th>Key Result</th>
+                    <th>Scale</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>Ambig-SWE</td>
+                    <td>Can agents ask?</td>
+                    <td style="color:var(--carnegie-red);font-weight:600;">+74% with interaction</td>
+                    <td>SWE-Bench Verified</td>
+                </tr>
+                <tr>
+                    <td>PPP</td>
+                    <td>Can we train for it?</td>
+                    <td style="color:var(--carnegie-red);font-weight:600;">+21.6 F1 over GPT-5</td>
+                    <td>Multi-objective RL</td>
+                </tr>
+                <tr>
+                    <td>TOM-SWE</td>
+                    <td>Can agents remember?</td>
+                    <td style="color:var(--carnegie-red);font-weight:600;">59.7% vs 18.1% (3.3x)</td>
+                    <td>453 sessions, 17 devs</td>
+                </tr>
+                <tr>
+                    <td>Sim2Real</td>
+                    <td>Are evals valid?</td>
+                    <td style="color:var(--carnegie-red);font-weight:600;">LLMs = "easy mode"</td>
+                    <td>451 humans, 31 LLMs</td>
+                </tr>
+            </tbody>
+        </table>
+        <div class="highlight-box reveal" style="max-width: 700px; margin-top: clamp(16px, 2.5vh, 28px);">
+            <p>A progression from <strong>benchmarking the problem</strong> &rarr; <strong>training for it</strong> &rarr; <strong>persistent modeling</strong> &rarr; <strong>validating evaluation</strong></p>
+        </div>
+    </div>
+</section>
+
+<!-- ===========================================
+     SLIDE 13: IMPLICATIONS
+     =========================================== -->
+<section class="slide content-slide">
+    <div class="slide-content">
+        <span class="slide-number reveal">30</span>
+        <h2 class="slide-title reveal">Design Implications for <span class="accent">Real-World</span> Agents</h2>
+        <ul class="bullets">
+            <li class="fragment"><strong>Interaction is a feature, not a failure</strong> &mdash; agents that ask questions outperform those that guess</li>
+            <li class="fragment"><strong>User modeling must be persistent</strong> &mdash; one-shot personalization isn't enough; agents need memory</li>
+            <li class="fragment"><strong>Multi-objective training is essential</strong> &mdash; optimizing only for task success misses the user experience</li>
+            <li class="fragment"><strong>Validate with real humans</strong> &mdash; LLM simulators are useful but systematically overestimate agent quality</li>
+        </ul>
+    </div>
+</section>
+
+<!-- ===========================================
+     SLIDE 14: FUTURE DIRECTIONS
+     =========================================== -->
+<section class="slide content-slide">
+    <div class="slide-content">
+        <span class="slide-number reveal">31</span>
+        <h2 class="slide-title reveal">Open Questions &amp; <span class="accent">Future Work</span></h2>
+        <ul class="bullets">
+            <li class="fragment"><strong>Scaling user modeling</strong> &mdash; can ToM approaches work across tasks, tools, and domains?</li>
+            <li class="fragment"><strong>Better user simulators</strong> &mdash; closing the Sim2Real gap through calibrated, diverse simulators</li>
+            <li class="fragment"><strong>Safety + user-effectiveness</strong> &mdash; how do we balance proactivity with appropriate caution?</li>
+            <li class="fragment"><strong>Enterprise deployment</strong> &mdash; user-effective agents in legal, enterprise, and ambiguous domains</li>
+        </ul>
+        <div class="highlight-box fragment">
+            <p>Particularly relevant for Scale AI: agents that navigate ambiguity in enterprise contexts need exactly these capabilities.</p>
+        </div>
+    </div>
+</section>
+
+<!-- ===========================================
+     SLIDE 15: THANK YOU / Q&A
+     =========================================== -->
+<section class="slide closing-slide">
+    <div class="slide-content">
+        <h2 class="slide-title reveal" style="text-align: center;">Thank You</h2>
+        <p class="slide-body reveal" style="text-align: center; max-width: 600px; margin: 0 auto;">
+            Looking forward to your questions and discussion!
+        </p>
+        <ul class="link-list reveal">
+            <li><strong>Ambig-SWE</strong> &mdash; arxiv.org/abs/2502.13069</li>
+            <li><strong>PPP</strong> &mdash; arxiv.org/abs/2511.02208</li>
+            <li><strong>TOM-SWE</strong> &mdash; arxiv.org/abs/2510.21903</li>
+            <li><strong>Sim2Real</strong> &mdash; arxiv.org/abs/2603.11245</li>
+        </ul>
+        <div class="title-meta reveal" style="margin-top: clamp(20px, 3vh, 36px);">
+            <span class="name">Xuhui Zhou</span>
+            <span class="affil">xuhuiz@cs.cmu.edu &middot; Carnegie Mellon University</span>
+        </div>
+    </div>
+</section>
+
+<script>
+/* ===========================================
+   SLIDE PRESENTATION CONTROLLER
+   =========================================== */
+class SlidePresentation {
+    constructor() {
+        this.slides = document.querySelectorAll('.slide');
+        this.currentSlide = 0;
+        this.isScrolling = false;
+        this.setupIntersectionObserver();
+        this.setupKeyboardNav();
+        this.setupTouchNav();
+        this.setupWheelNav();
+        this.setupProgressBar();
+        this.setupNavDots();
+        this.restoreFromStorage();
+    }
+
+    setupIntersectionObserver() {
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('visible');
+                    const idx = Array.from(this.slides).indexOf(entry.target);
+                    if (idx !== -1) {
+                        this.currentSlide = idx;
+                        this.updateProgressBar();
+                        this.updateNavDots();
+                    }
+                }
+            });
+        }, { threshold: 0.5 });
+        this.slides.forEach(slide => observer.observe(slide));
+    }
+
+    setupKeyboardNav() {
+        this._keyHandler = (e) => {
+            if (e.target.getAttribute('contenteditable') === 'true') return;
+            if (e.key === 'ArrowDown' || e.key === 'ArrowRight' || e.key === ' ' || e.key === 'PageDown') {
+                e.preventDefault();
+                this.goToSlide(this.currentSlide + 1);
+            } else if (e.key === 'ArrowUp' || e.key === 'ArrowLeft' || e.key === 'PageUp') {
+                e.preventDefault();
+                this.goToSlide(this.currentSlide - 1);
+            } else if (e.key === 'Home') {
+                e.preventDefault();
+                this.goToSlide(0);
+            } else if (e.key === 'End') {
+                e.preventDefault();
+                this.goToSlide(this.slides.length - 1);
+            }
+        };
+        document.addEventListener('keydown', this._keyHandler);
+    }
+
+    setupTouchNav() {
+        let startY = 0;
+        document.addEventListener('touchstart', (e) => { startY = e.touches[0].clientY; });
+        document.addEventListener('touchend', (e) => {
+            const diff = startY - e.changedTouches[0].clientY;
+            if (Math.abs(diff) > 50) {
+                diff > 0 ? this.goToSlide(this.currentSlide + 1) : this.goToSlide(this.currentSlide - 1);
+            }
+        });
+    }
+
+    setupWheelNav() {
+        let lastWheel = 0;
+        document.addEventListener('wheel', (e) => {
+            const now = Date.now();
+            if (now - lastWheel < 800) return;
+            if (Math.abs(e.deltaY) > 30) {
+                lastWheel = now;
+                e.deltaY > 0 ? this.goToSlide(this.currentSlide + 1) : this.goToSlide(this.currentSlide - 1);
+            }
+        }, { passive: true });
+    }
+
+    goToSlide(index) {
+        if (index < 0 || index >= this.slides.length) return;
+        this.currentSlide = index;
+        this.slides[index].scrollIntoView({ behavior: 'smooth' });
+        // Immediately mark slide as visible so .reveal elements appear
+        this.slides[index].classList.add('visible');
+        this.updateProgressBar();
+        this.updateNavDots();
+    }
+
+    setupProgressBar() {
+        this.progressBar = document.getElementById('progressBar');
+        this.updateProgressBar();
+    }
+
+    updateProgressBar() {
+        if (!this.progressBar) return;
+        const pct = ((this.currentSlide + 1) / this.slides.length) * 100;
+        this.progressBar.style.width = pct + '%';
+    }
+
+    setupNavDots() {
+        const nav = document.getElementById('navDots');
+        if (!nav) return;
+        this.slides.forEach((_, i) => {
+            const dot = document.createElement('button');
+            dot.classList.add('nav-dot');
+            dot.setAttribute('aria-label', `Go to slide ${i + 1}`);
+            if (i === 0) dot.classList.add('active');
+            dot.addEventListener('click', () => this.goToSlide(i));
+            nav.appendChild(dot);
+        });
+        this.dots = nav.querySelectorAll('.nav-dot');
+    }
+
+    updateNavDots() {
+        if (!this.dots) return;
+        this.dots.forEach((d, i) => d.classList.toggle('active', i === this.currentSlide));
+    }
+
+    restoreFromStorage() {
+        const saved = localStorage.getItem('user-effective-agents-edits');
+        if (saved) {
+            try {
+                const edits = JSON.parse(saved);
+                const editables = document.querySelectorAll('[data-edit-id]');
+                editables.forEach(el => {
+                    if (edits[el.dataset.editId]) el.innerHTML = edits[el.dataset.editId];
+                });
+            } catch (e) {}
+        }
+    }
+}
+
+/* ===========================================
+   INLINE EDITING
+   =========================================== */
+class InlineEditor {
+    constructor() {
+        this.isActive = false;
+        this.toggle = document.getElementById('editToggle');
+        this.hotzone = document.getElementById('editHotzone');
+        this.indicator = document.getElementById('saveIndicator');
+        this.setupControls();
+    }
+
+    setupControls() {
+        let hideTimeout = null;
+
+        this.toggle.addEventListener('click', () => this.toggleEditMode());
+
+        this.hotzone.addEventListener('mouseenter', () => {
+            clearTimeout(hideTimeout);
+            this.toggle.classList.add('show');
+        });
+        this.hotzone.addEventListener('mouseleave', () => {
+            hideTimeout = setTimeout(() => {
+                if (!this.isActive) this.toggle.classList.remove('show');
+            }, 400);
+        });
+        this.toggle.addEventListener('mouseenter', () => clearTimeout(hideTimeout));
+        this.toggle.addEventListener('mouseleave', () => {
+            hideTimeout = setTimeout(() => {
+                if (!this.isActive) this.toggle.classList.remove('show');
+            }, 400);
+        });
+        this.hotzone.addEventListener('click', () => this.toggleEditMode());
+
+        document.addEventListener('keydown', (e) => {
+            if ((e.key === 'e' || e.key === 'E') && !e.target.getAttribute('contenteditable')) {
+                this.toggleEditMode();
+            }
+            if (e.ctrlKey && e.key === 's' && this.isActive) {
+                e.preventDefault();
+                this.save();
+            }
+        });
+    }
+
+    toggleEditMode() {
+        this.isActive = !this.isActive;
+        this.toggle.classList.toggle('active', this.isActive);
+        this.toggle.textContent = this.isActive ? 'Exit Edit' : 'Edit Mode';
+
+        const targets = document.querySelectorAll('.slide-title, .title-main, .title-sub, .quote-text, .slide-body, .bullets li, .ppp-label, .ppp-desc, .paper-title, .highlight-box p, .stat-label, .hl-stat');
+        targets.forEach((el, i) => {
+            el.contentEditable = this.isActive;
+            if (!el.dataset.editId) el.dataset.editId = 'e' + i;
+        });
+
+        if (!this.isActive) this.save();
+    }
+
+    save() {
+        const edits = {};
+        document.querySelectorAll('[data-edit-id]').forEach(el => {
+            edits[el.dataset.editId] = el.innerHTML;
+        });
+        localStorage.setItem('user-effective-agents-edits', JSON.stringify(edits));
+        this.indicator.classList.add('show');
+        setTimeout(() => this.indicator.classList.remove('show'), 1500);
+    }
+}
+
+/* ===========================================
+   FRAGMENT CONTROLLER
+   Step-through bullet points on slides with .fragment elements.
+   Arrow right / space / click advances one fragment at a time;
+   once all fragments are shown, the next press advances the slide.
+   Arrow left rewinds fragments before going to the previous slide.
+   =========================================== */
+class FragmentController {
+    constructor(presentation) {
+        this.pres = presentation;
+        this.override();
+    }
+
+    getFragments(slideIdx) {
+        const slide = this.pres.slides[slideIdx];
+        if (!slide) return [];
+        return Array.from(slide.querySelectorAll('.fragment'));
+    }
+
+    shownCount(slideIdx) {
+        return this.getFragments(slideIdx).filter(f => f.classList.contains('shown')).length;
+    }
+
+    revealNext(slideIdx) {
+        const frags = this.getFragments(slideIdx);
+        const next = frags.find(f => !f.classList.contains('shown'));
+        if (next) { next.classList.add('shown'); return true; }
+        return false;
+    }
+
+    hideLastShown(slideIdx) {
+        const frags = this.getFragments(slideIdx);
+        const shown = frags.filter(f => f.classList.contains('shown'));
+        if (shown.length > 0) { shown[shown.length - 1].classList.remove('shown'); return true; }
+        return false;
+    }
+
+    showAll(slideIdx) {
+        this.getFragments(slideIdx).forEach(f => f.classList.add('shown'));
+    }
+
+    override() {
+        const origKeydown = (e) => {
+            if (e.target.getAttribute('contenteditable') === 'true') return;
+
+            const cur = this.pres.currentSlide;
+
+            if (e.key === 'ArrowDown' || e.key === 'ArrowRight' || e.key === ' ' || e.key === 'PageDown') {
+                e.preventDefault();
+                if (!this.revealNext(cur)) {
+                    this.pres.goToSlide(cur + 1);
+                    // Reset fragments on newly entered slide (they'll step through)
+                }
+            } else if (e.key === 'ArrowUp' || e.key === 'ArrowLeft' || e.key === 'PageUp') {
+                e.preventDefault();
+                if (!this.hideLastShown(cur)) {
+                    const prev = cur - 1;
+                    if (prev >= 0) {
+                        this.showAll(prev);
+                        this.pres.goToSlide(prev);
+                    }
+                }
+            } else if (e.key === 'Home') {
+                e.preventDefault();
+                this.pres.goToSlide(0);
+            } else if (e.key === 'End') {
+                e.preventDefault();
+                this.showAll(this.pres.slides.length - 1);
+                this.pres.goToSlide(this.pres.slides.length - 1);
+            }
+        };
+
+        // Remove original keyboard handler by replacing it
+        document.removeEventListener('keydown', this.pres._keyHandler);
+        document.addEventListener('keydown', origKeydown);
+    }
+}
+
+/* ===========================================
+   PRESENTER MODE
+   Cmd+P: open presenter view
+   Cmd+F: toggle fullscreen (audience)
+
+   Architecture:
+   - Audience window: normal presentation, listens for sync messages
+   - Presenter window: opens with ?mode=presenter, builds its own
+     UI with iframes, never instantiates SlidePresentation
+   - ?mode=slide&n=X: renders a single slide for iframe embedding
+   =========================================== */
+
+const _params = new URLSearchParams(location.search);
+const _mode = _params.get('mode');
+
+if (_mode === 'slide') {
+    // ── IFRAME SINGLE-SLIDE MODE ──
+    // Show only slide N, reveal all fragments, hide chrome
+    const _n = parseInt(_params.get('n') || '0');
+    document.addEventListener('DOMContentLoaded', () => {
+        document.querySelectorAll('.slide').forEach((s, i) => {
+            s.style.display = i === _n ? '' : 'none';
+            if (i === _n) {
+                s.classList.add('visible');
+                s.querySelectorAll('.fragment').forEach(f => f.classList.add('shown'));
+                s.querySelectorAll('.reveal').forEach(r => { r.style.opacity='1'; r.style.transform='none'; });
+            }
+        });
+        document.querySelectorAll('.nav-dots,.progress-bar,.edit-hotzone,.edit-toggle,.save-indicator').forEach(
+            el => el.style.display = 'none'
+        );
+        document.documentElement.style.scrollSnapType = 'none';
+        document.body.style.overflow = 'hidden';
+    });
+
+} else if (_mode === 'presenter') {
+    // ── PRESENTER WINDOW ──
+    // Collect notes from DOM before replacing it
+    document.addEventListener('DOMContentLoaded', () => {
+        const slides = document.querySelectorAll('.slide');
+        const totalSlides = slides.length;
+        const allNotes = Array.from(slides).map(s => s.getAttribute('data-notes') || '');
+        let current = 0;
+
+        // Use localStorage for cross-window sync (works with file:// unlike BroadcastChannel)
+        function send(msg) { localStorage.setItem('slide-sync', JSON.stringify({...msg, _t: Date.now()})); }
+        const base = location.pathname;
+        const startTime = Date.now();
+
+        // Build presenter UI
+        document.head.insertAdjacentHTML('beforeend', '<style>*{margin:0;padding:0;box-sizing:border-box;}</style>');
+        document.body.innerHTML = `
+        <div style="display:grid;grid-template-columns:5fr 3fr;grid-template-rows:1fr auto;height:100vh;gap:6px;padding:6px;background:#111;color:#fff;font-family:system-ui,sans-serif;">
+            <div style="position:relative;background:#000;border-radius:6px;overflow:hidden;">
+                <iframe id="pCur" src="${base}?mode=slide&n=0" style="width:100%;height:100%;border:none;"></iframe>
+                <div style="position:absolute;bottom:6px;left:10px;font-size:11px;opacity:0.4;">CURRENT</div>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:6px;">
+                <div style="flex:0 0 40%;position:relative;background:#000;border-radius:6px;overflow:hidden;">
+                    <iframe id="pNext" src="${base}?mode=slide&n=1" style="width:100%;height:100%;border:none;"></iframe>
+                    <div style="position:absolute;bottom:6px;left:10px;font-size:11px;opacity:0.4;">NEXT</div>
+                </div>
+                <div style="flex:1;background:#1e1e1e;border-radius:6px;padding:14px;overflow-y:auto;">
+                    <div style="font-size:10px;text-transform:uppercase;letter-spacing:0.15em;color:#666;margin-bottom:8px;">Speaker Notes</div>
+                    <div id="pNotes" style="font-size:15px;line-height:1.7;color:#ccc;">No notes for this slide.</div>
+                </div>
+            </div>
+            <div style="grid-column:1/-1;display:flex;justify-content:space-between;align-items:center;padding:6px 14px;background:#1e1e1e;border-radius:6px;">
+                <div id="pCount" style="font-size:16px;font-weight:600;">1 / ${totalSlides}</div>
+                <div id="pTime" style="font-size:26px;font-weight:700;font-variant-numeric:tabular-nums;letter-spacing:0.02em;">00:00</div>
+                <div style="display:flex;gap:6px;">
+                    <button id="btnPrev" style="padding:5px 14px;border:1px solid #444;background:none;color:#fff;border-radius:4px;cursor:pointer;font-size:13px;">&#8592; Prev</button>
+                    <button id="btnNext" style="padding:5px 14px;border:1px solid #444;background:none;color:#fff;border-radius:4px;cursor:pointer;font-size:13px;">Next &#8594;</button>
+                </div>
+            </div>
+        </div>`;
+
+        const curFrame = document.getElementById('pCur');
+        const nextFrame = document.getElementById('pNext');
+
+        function updateView() {
+            curFrame.src = base + '?mode=slide&n=' + current;
+            nextFrame.src = base + '?mode=slide&n=' + Math.min(current + 1, totalSlides - 1);
+            document.getElementById('pCount').textContent = (current + 1) + ' / ' + totalSlides;
+            document.getElementById('pNotes').textContent = allNotes[current] || 'No notes for this slide.';
+        }
+
+        function forward() { send({ type: 'step', dir: 1 }); }
+        function backward() { send({ type: 'step', dir: -1 }); }
+
+        document.getElementById('btnPrev').onclick = backward;
+        document.getElementById('btnNext').onclick = forward;
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'PageDown') { e.preventDefault(); forward(); }
+            if (e.key === 'ArrowLeft' || e.key === 'PageUp') { e.preventDefault(); backward(); }
+        });
+
+        // Listen for state updates from audience
+        window.addEventListener('storage', (e) => {
+            if (e.key !== 'slide-sync') return;
+            try {
+                const msg = JSON.parse(e.newValue);
+                if (msg.type === 'state') {
+                    if (msg.slide !== current) {
+                        current = msg.slide;
+                        updateView();
+                    }
+                    const countEl = document.getElementById('pCount');
+                    if (countEl) {
+                        const fragInfo = msg.fragmentInfo || '';
+                        countEl.textContent = (current + 1) + ' / ' + totalSlides + (fragInfo ? '  ' + fragInfo : '');
+                    }
+                }
+            } catch(ex) {}
+        });
+
+        // Timer
+        setInterval(() => {
+            const s = Math.floor((Date.now() - startTime) / 1000);
+            document.getElementById('pTime').textContent =
+                String(Math.floor(s / 60)).padStart(2, '0') + ':' + String(s % 60).padStart(2, '0');
+        }, 1000);
+    });
+
+} else {
+    // ── NORMAL AUDIENCE MODE ──
+    // (presenter mode shortcuts + sync listener are set up after SlidePresentation)
+}
+
+// Only run SlidePresentation in normal and slide modes (not presenter)
+if (_mode !== 'presenter') {
+
+const presentation = new SlidePresentation();
+const editor = new InlineEditor();
+const fragments = new FragmentController(presentation);
+
+// Audience-side: listen for sync + keyboard shortcuts
+if (_mode !== 'slide') {
+    // Use localStorage for cross-window sync (works with file://)
+    function _send(msg) { localStorage.setItem('slide-sync', JSON.stringify({...msg, _t: Date.now()})); }
+
+    function _reportState() {
+        const cur = presentation.currentSlide;
+        const allFrags = fragments.getFragments(cur);
+        const shownFrags = allFrags.filter(f => f.classList.contains('shown')).length;
+        const fragInfo = allFrags.length > 0 ? `[${shownFrags}/${allFrags.length}]` : '';
+        _send({ type: 'state', slide: cur, fragmentInfo: fragInfo });
+    }
+
+    // After audience navigates (keyboard/touch/wheel), report state
+    const _origGoTo = presentation.goToSlide.bind(presentation);
+    presentation.goToSlide = (idx) => {
+        _origGoTo(idx);
+        _reportState();
+    };
+
+    // Listen for step commands from presenter via localStorage
+    window.addEventListener('storage', (e) => {
+        if (e.key !== 'slide-sync') return;
+        try {
+            const msg = JSON.parse(e.newValue);
+            if (msg.type === 'step') {
+                const cur = presentation.currentSlide;
+                if (msg.dir > 0) {
+                    if (!fragments.revealNext(cur)) {
+                        presentation.goToSlide(cur + 1);
+                    }
+                } else {
+                    if (!fragments.hideLastShown(cur)) {
+                        if (cur > 0) {
+                            fragments.showAll(cur - 1);
+                            presentation.goToSlide(cur - 1);
+                        }
+                    }
+                }
+                setTimeout(_reportState, 50);
+            }
+        } catch(ex) {}
+    });
+
+    // Cmd+P / Cmd+F shortcuts
+    document.addEventListener('keydown', (e) => {
+        if ((e.metaKey || e.ctrlKey) && e.key === 'p') {
+            e.preventDefault();
+            window.open(location.pathname + '?mode=presenter', 'presenter', 'width=1200,height=800');
+        }
+        if ((e.metaKey || e.ctrlKey) && e.key === 'f') {
+            e.preventDefault();
+            if (!document.fullscreenElement) document.documentElement.requestFullscreen();
+            else document.exitFullscreen();
+        }
+    });
+}
+
+} // end if _mode !== 'presenter'
+</script>
+
+</body>
+</html>
