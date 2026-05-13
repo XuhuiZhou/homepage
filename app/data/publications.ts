@@ -54,7 +54,7 @@ export const PUBLICATIONS: Publication[] = [
   {
     year: 2026,
     title: 'Imperfectly Cooperative Human-AI Interactions: Comparing the Impacts of Human and AI Attributes in Simulated and User Studies',
-    authors: ['Myrl G. Marmarelis Cohen', 'Mengyi Zheng', 'Niharika Bhandari', 'Hsuan-Tien Kao', 'Xuhui Zhou', 'Diem Nguyen', 'Lorenzo Cassani', 'Maarten Sap', 'Svitlana Volkova'],
+    authors: ['Myke C Cohen', 'Mingqian Zheng', 'Neel Bhandari', 'Hsien-Te Kao', 'Xuhui Zhou', 'Daniel Nguyen', 'Laura Cassani', 'Maarten Sap', 'Svitlana Volkova'],
     venue: 'ACL Findings 2026',
     abbr: 'ACL Findings',
     url: 'https://arxiv.org/abs/2604.15607',
@@ -73,7 +73,7 @@ export const PUBLICATIONS: Publication[] = [
   {
     year: 2026,
     title: 'PoliSim@CHI 2026: LLM Agent Simulation for Policy',
-    authors: ['Yuhan Li', 'Hanwen Deng', 'Xuhui Zhou', 'Kevin Klyman', 'Cheng Yu', 'Yu Shi', 'Nick Vincent', 'Amy X. Zhang', 'Maarten Sap', 'Sayash Kapoor Das'],
+    authors: ['Yuxuan Li', 'Wesley Hanwen Deng', 'Xuhui Zhou', 'Kevin Klyman', 'Chun Yu', 'Yuanchun Shi', 'Nicholas Vincent', 'Amy X. Zhang', 'Maarten Sap', 'Sauvik Das', 'Hirokazu Shirado'],
     venue: 'CHI EA 2026',
     abbr: 'CHI EA',
     url: 'https://dl.acm.org/doi/abs/10.1145/3772363.3778738',
