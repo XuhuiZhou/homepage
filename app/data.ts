@@ -77,6 +77,13 @@ export const WORK_EXPERIENCE: WorkExperience[] = [
 
 export const BLOG_POSTS: BlogPost[] = [
   {
+    title: 'RL from Xuhui\'s Perspective',
+    description: 'A deep dive into REINFORCE, PPO, GRPO, and REINFORCE++ — and the single theoretical idea that ties them all together.',
+    link: '/blog/rl-from-xuhuis-perspective',
+    uid: 'blog-3',
+    date: '2026-04-13',
+  },
+  {
     title: 'The Quest of User-Effective AI Agents',
     description: 'Exploring what makes AI agents truly effective for users, beyond benchmark performance.',
     link: '/blog/on-the-quest-of-user-effective-ai-agents',
