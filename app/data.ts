@@ -77,9 +77,9 @@ export const WORK_EXPERIENCE: WorkExperience[] = [
 
 export const BLOG_POSTS: BlogPost[] = [
   {
-    title: 'RL from Xuhui\'s Perspective',
-    description: 'A deep dive into REINFORCE, PPO, GRPO, and REINFORCE++ — and the single theoretical idea that ties them all together.',
-    link: '/blog/rl-from-xuhuis-perspective',
+    title: 'Thinking in RL',
+    description: 'An opinionated tour through the algorithm tree of modern LLM RL — PPO, GRPO, REINFORCE, REINFORCE++, DPO, and the theoretical ideas that tie them together.',
+    link: '/blog/thinking-in-rl',
     uid: 'blog-3',
     date: '2026-04-13',
   },

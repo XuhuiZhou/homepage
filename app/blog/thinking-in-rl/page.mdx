@@ -1,26 +1,26 @@
 import { AdvantageEstimationChart, MonteCarloChart, AlgorithmTreeChart, KLDirectionChart, PolicySharpeningChart } from './ChartComponents'
 
 export const metadata = {
-  title: 'RL from Xuhui\'s Perspective',
-  description: 'A deep dive into the RL algorithms powering modern LLM training — REINFORCE, PPO, GRPO, and REINFORCE++ — and the theoretical ideas that tie them together.',
+  title: 'Thinking in RL',
+  description: 'An opinionated tour through the algorithm tree of modern LLM RL — PPO, GRPO, REINFORCE, REINFORCE++, DPO, and the theoretical ideas that tie them together.',
   date: '2026-04-13',
   authors: [{ name: 'Xuhui Zhou' }],
   openGraph: {
-    title: 'RL from Xuhui\'s Perspective',
-    description: 'A deep dive into the RL algorithms powering modern LLM training — REINFORCE, PPO, GRPO, and REINFORCE++.',
+    title: 'Thinking in RL',
+    description: 'An opinionated tour through the algorithm tree of modern LLM RL — PPO, GRPO, REINFORCE, REINFORCE++, DPO.',
     type: 'article',
     publishedTime: '2026-04-13',
     authors: ['Xuhui Zhou'],
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'RL from Xuhui\'s Perspective',
-    description: 'A deep dive into the RL algorithms powering modern LLM training.',
+    title: 'Thinking in RL',
+    description: 'An opinionated tour through the algorithm tree of modern LLM RL.',
     creator: '@nlpxuhui',
   },
 }
 
-# RL from Xuhui's Perspective
+# Thinking in RL
 
 <div className="not-prose mb-8 border-b border-zinc-200 pb-6">
   <div className="text-sm text-zinc-500">
@@ -28,9 +28,9 @@ export const metadata = {
   </div>
 </div>
 
-RL is having a moment. The algorithms powering today's frontier models are being actively debated, reimagined, and simplified at a remarkable pace.
-There's no shortage of excellent material on this topic — and it never hurts to see the same ideas through a different lens.
-This is mine.
+RL is happening everywhere. The RL algorithms powering today's frontier models are being actively debated, reimagined, and simplified at a remarkable pace.
+The blog aims to summerize them in a relatively high level concept and tries to find synergies among the ``million" RL algorithms.
+Many of the high level thoughts and summerization and metaphors are totally from my own perspectives (so it's mostly about LLM), so they may or may not be absolutely true. Up for a discussion or debate anytime haha.
 
 If you want a more comprehensive treatment alongside this post, these are the resources I'd recommend:
 
@@ -77,7 +77,7 @@ Multiplying by $Q^{\pi}$ then says: scale that direction by how good the action 
 If $Q$ is high, push hard toward this action. If low, pull away.
 
 The problem is that we don't have $Q^{\pi}$ — we need to estimate it from rollouts.
-How we do that estimation is exactly what distinguishes the four algorithms.
+How we do that estimation is exactly what distinguishes the algorithms we'll cover.
 
 <Figure id="monte-carlo">
   <MonteCarloChart />
@@ -112,7 +112,7 @@ Any function of the state alone — not the action — can be subtracted from th
 ## Online Policy Gradient
 
 This is the blue branch from <Ref fig="algorithm-tree" /> — the most-used RL approach for LLM post-training as of early 2026.
-Every algorithm in this branch (REINFORCE, REINFORCE++, GRPO, PPO, and the many variants below them) shares the same gradient shape: score-function × advantage.
+Every algorithm in this branch (PPO, GRPO, REINFORCE, REINFORCE++, and the many variants below them) shares the same gradient shape: score-function × advantage.
 They differ only in how they estimate the advantage and how aggressively they regularize each step.
 We work from the most expensive (PPO, with a learned critic) down to the simplest (REINFORCE, no baseline at all), then close with the theory that ranks them.
 
@@ -170,7 +170,9 @@ The normalization by $\text{std}$ ensures the advantage scale is consistent acro
 
 GRPO's clipped objective also adds a token-level KL term against a reference policy $\pi_{\text{ref}}$ to prevent reward hacking:
 
-$$\mathcal{L}_{\text{GRPO}} = -\frac{1}{\sum_i |\tau_i|} \sum_{i=1}^{G} \sum_{t=1}^{|\tau_i|} \Bigl[\min\bigl(r_{i,t}(\theta)\hat{A}_i,\;\text{clip}(\ldots)\hat{A}_i\bigr) - \beta\,D_{\text{KL}}(\pi_\theta \| \pi_{\text{ref}})\Bigr]$$
+$$\mathcal{L}_{\text{GRPO}} = -\frac{1}{\sum_i |\tau_i|} \sum_{i=1}^{G} \sum_{t=1}^{|\tau_i|} \Bigl[\min\bigl(r_{i,t}(\theta)\hat{A}_i,\;\text{clip}(r_{i,t}(\theta), 1{-}\epsilon, 1{+}\epsilon)\hat{A}_i\bigr) - \beta\,D_{\text{KL}}(\pi_\theta \| \pi_{\text{ref}})\Bigr]$$
+
+where $r_{i,t}(\theta) = \frac{\pi_\theta(a_{i,t} \mid s_{i,t})}{\pi_{\text{old}}(a_{i,t} \mid s_{i,t})}$ is the per-token importance ratio for rollout $i$ — the GRPO-indexed counterpart of $r_t(\theta)$ from PPO.
 
 **The tradeoff**: No critic memory, but you now sample $G$ responses per prompt per step.
 If $G = 8$, rollout cost increases 8×.
@@ -189,11 +191,15 @@ No baseline, no critic, no clipping. Each token gets the same gradient weight (t
 This is **unbiased** — the sample gradient is an exact estimate of the true gradient in expectation.
 But it has very **high variance**: if all trajectories happen to score similarly (common early in training), the gradient is nearly zero and learning stalls.
 
-**REINFORCE++**<Cite id="reinforce-pp">[Hu et al., 2025](https://arxiv.org/abs/2501.12599) — REINFORCE++ is introduced as part of the TULU 3 / open-source RL work, demonstrating it matches PPO at lower cost.</Cite> adds one simple fix: subtract the *batch mean* as a baseline, and add token-level KL regularization:
+**REINFORCE++**<Cite id="reinforce-pp">[Hu et al., 2025](https://arxiv.org/abs/2501.12599) — REINFORCE++ is introduced as part of the TULU 3 / open-source RL work, demonstrating it matches PPO at lower cost.</Cite> makes two simple fixes: token-level KL regularization folded into the reward, and a batch-mean baseline.
 
-$$\hat{A}_i = R_i - \text{mean}(\{R_j\}_{j=1}^B)$$
+First, shape each rollout's reward with a token-level KL penalty against the reference:
 
 $$\tilde{R}_i = R_i - \beta \sum_t \log \frac{\pi_\theta(a_t^{(i)} \mid s_t^{(i)})}{\pi_{\text{ref}}(a_t^{(i)} \mid s_t^{(i)})}$$
+
+Then center across the batch using the mean of those shaped rewards:
+
+$$\hat{A}_i = \tilde{R}_i - \text{mean}(\{\tilde{R}_j\}_{j=1}^B)$$
 
 where $B$ is the full batch of *diverse* prompts (not the same prompt $G$ times, as in GRPO).
 
@@ -324,6 +330,10 @@ For $T$ rounds:
 4. SFT $\pi_\theta$ on $\mathcal{D}_t$ → new $\pi_\theta$.
 5. Repeat.
 
+The per-round objective is the plain SFT loss on the filtered set:
+
+$$\mathcal{L}_t(\theta) = -\mathbb{E}_{(x, y) \sim \mathcal{D}_t}\!\left[\log \pi_\theta(y \mid x)\right], \quad \mathcal{D}_t = \{(x, y) : y \sim \pi_{\theta_{t-1}}(\cdot \mid x),\; R(x, y) \geq \tau\}$$
+
 Each iteration is forward KL minimization to a self-curated target distribution biased toward high reward.
 The rejection-sampling filter is doing the work of the policy gradient — high-reward samples get all the gradient mass, low-reward samples get none.
 As $\pi_\theta$ improves, $\mathcal{D}_t$ improves, which improves $\pi_\theta$ further.
@@ -395,6 +405,34 @@ Just the clipped surrogate.
 You start from a random policy, there's no good behavior to anchor to, and drift is the goal.
 The frozen-SFT KL anchor is a contribution of LLM-RL, not PPO itself.)
 
+### Two kinds of mode-seeking
+
+A reasonable question after the KL-direction story: *is RL just a mode-seeking operation?* Two effects say yes, and they're worth separating.
+
+**Reason 1: the fixed point of reward maximization.**
+Forget the KL anchor for a moment.
+The bare objective $J(\theta) = \mathbb{E}_{\tau \sim \pi_\theta}[R(\tau)]$ has a degenerate optimum — a point mass on $\arg\max_a R(a)$.
+The policy that maximizes expected reward puts *all* its probability on the single best action (or one of them, if ties).
+This has nothing to do with KL.
+Maximizing an expectation over a bounded reward collapses the distribution onto the argmax.
+Pure RL, in this sense, is maximally mode-seeking: the fixed point is a delta function.
+The path during training doesn't have to be that, but the destination is.
+
+**Reason 2: the reverse-KL anchor.**
+Layered on top of Reason 1 in LLM-RL is the $-\beta \cdot D_{KL}(\pi_\theta \,\|\, \pi_{\text{ref}})$ term — the mode-seeking *direction* of KL, as we just saw.
+This doesn't *cause* mode-seeking (reward max already does that); it *constrains* where the collapse lands.
+Without the anchor, the policy is free to collapse anywhere — including onto out-of-distribution junk that happens to game the reward.
+With it, the policy can only collapse onto a subset of $\pi_{\text{ref}}$'s support.
+The anchor doesn't prevent mode-seeking; it just channels where the collapse goes.
+
+So the LLM-RL setup stacks two mode-seeking pressures: reward-max picks the high-reward mode, the reverse-KL anchor picks the modes inside $\pi_{\text{ref}}$'s support.
+
+The cases where RL is *not* mode-seeking are exactly the cases where one of these is broken.
+Maximum-entropy RL ($\max\,\mathbb{E}[R] + \beta\, H(\pi)$, as in soft actor-critic) replaces the argmax fixed point with a softmax over rewards — concentrated but not collapsed.
+Off-policy methods with a diverse behavior prior inherit some of that breadth.
+Explicit diversity rewards add a term that resists collapse.
+None of these are active in the standard RLHF or GRPO loop. That's why post-RL policies are notably sharp — the mode-seeking is intentional, on two axes at once, and nothing in the recipe pushes back.
+
 ### The unifying picture
 
 Pulling all four together:
@@ -421,6 +459,76 @@ That's why "SFT vs RL" is the wrong axis.
 The right axis is: *how much work are you willing to do to construct the target distribution, and what divergence are you willing to compute against it?*
 Everything else — the critic, the clip, the KL coefficient, the preference labelers, the rejection filter — is engineering in service of those two choices.
 
+## What's outside the tree
+
+The three branches above cover where the gradient flows, but several practical pieces of the pipeline sit alongside the tree rather than inside it. They're orthogonal to the algorithm choice — you can mix and match.
+
+### Reward modeling
+
+Online PG and DPO both assume a reward function $r(x, y)$ they can query.
+For verifiable tasks (math, code), $r$ is just a correctness check.
+For everything else — helpfulness, safety, style — $r$ has to be *learned*.
+
+The standard recipe: fit a Bradley-Terry reward model on human preference pairs.
+Take a frozen LLM, swap the language-modeling head for a scalar head, train it to score the preferred response higher than the rejected one.
+The resulting $r_\psi(x, y)$ becomes the reward used in PPO/GRPO rollouts.
+
+DPO's clever move, in retrospect, is that it skips this step entirely.
+The preferences *are* the reward signal; the policy and the implicit reward model collapse into one object — the trained policy $\pi_\theta$ itself.
+
+### Process reward models (PRMs)
+
+Outcome-level rewards say nothing about *which* token in a long reasoning chain mattered.
+PRMs are auxiliary models trained to score *partial* trajectories — given a prefix of reasoning, predict whether the chain will arrive at the correct answer.
+
+In training, the PRM gives per-step rewards rather than just a final outcome.
+This sharpens credit assignment: instead of pushing the same outcome signal back through every token, you can attribute gradient to the steps the PRM actually scored highly.
+Most recent reasoning recipes use PRMs in some form — either at training time, or at decoding time for best-of-$N$ sampling.<Cite id="prm">[Lightman et al., 2023](https://arxiv.org/abs/2305.20050) — the *Let's Verify Step by Step* paper, which introduced the now-standard process-reward setup for math reasoning.</Cite>
+
+### RLAIF
+
+*RL from AI feedback* — replace the human labelers with a strong LLM, and use it to label preference pairs or score rollouts.<Cite id="rlaif">[Lee et al., 2023](https://arxiv.org/abs/2309.00267) — the RLAIF paper, showing comparable downstream quality to RLHF on summarization and helpfulness.</Cite>
+Cheap and scalable, but the AI labeler's biases become the trained policy's biases.
+
+The practical compromise is hybrid: a small amount of human data to calibrate the AI judge, then a much larger amount of AI labels for scale.
+Most production preference-optimization pipelines today are some flavor of this.
+
+### Offline RL proper
+
+RL on a fixed, pre-collected dataset with no further exploration.
+Classical methods (CQL, IQL, BCQ) add conservatism penalties so the policy doesn't extrapolate into unsupported actions.
+
+For LLMs, this niche has mostly been eaten by DPO and its variants — the closed-form RL optimum *is* what offline RL was trying to approximate, and DPO gets there directly from preference pairs without the conservatism machinery.
+Pure offline RL on language data still shows up occasionally, but the preference-optimization branch is doing most of the work.
+
+---
+
+These pieces are orthogonal to the algorithm tree.
+You can run PPO with a learned reward model, a PRM for per-step signal, and RLAIF labels for scale.
+You can run GRPO with verifiable rewards and no reward model at all.
+You can do DPO on RLAIF-generated pairs.
+The tree tells you how the gradient flows. This list tells you where the reward comes from.
+
+## A note on RL's shrinking domain
+
+One thing worth saying out loud before closing.
+
+For the last decade, the pitch for deep RL was: some behaviors are too complex to write by hand, but you can learn them with gradient descent on a policy network.
+That argument made sense when "by hand" meant a human at a keyboard.
+It looks different now.
+
+A recent example: Codex iterated a closed-loop NumPy + OpenCV policy that plays VizDoom — a canonical pixels-in deep-RL benchmark — without training any neural network. A few hundred lines of Python image processing, edited a dozen times by the model in response to game outcomes. No PPO, no replay buffer, no reward shaping, no GPU.<Cite id="codex-vizdoom">[Jerry Tworek](https://x.com/millionint/status/2053310486335324620) quote-tweeting Jiayi Weng's VizDoom experiment, May 2026. Jerry called this "mostly a bearish take on RL," which is roughly right.</Cite>
+
+If an LLM can write the policy as code and improve it through edit loops, then "write the policy by hand" no longer means "a *human* writing the policy by hand."
+The set of problems where RL is the right tool is shrinking from this angle: pixel-in/action-out games, low-dimensional control, anything where a competent coder could plausibly construct the controller.
+
+What's left in RL's stronghold is exactly the domain this post is about.
+No one is going to write a chatbot's policy as a Python program.
+The action space (vocab × context) and the surface (everything from arithmetic to safety to empathy) put LLM policies several orders of magnitude past what code generation can substitute for.
+The reason RL stays load-bearing for frontier LLM training is precisely that the policy is too high-dimensional to be code-generated — which is the same property that made RL necessary in the first place.
+
+So the framing for everything above: this is the part of RL's domain that's still load-bearing. The pixel-game benchmarks may end up solved another way.
+
 ## Closing Thoughts
 
 All four algorithms are fundamentally solving the same problem: estimate the gradient of $J(\theta) = \mathbb{E}[R(\tau)]$.
@@ -435,8 +543,8 @@ Sometimes, the right theoretical framing reveals that a simple heuristic is actu
 
 <Citation
   author="Xuhui Zhou"
-  title="RL from Xuhui's Perspective"
+  title="Thinking in RL"
   year="2026"
-  url="https://xuhuizhou.com/blog/rl-from-xuhuis-perspective"
+  url="https://xuhuizhou.com/blog/thinking-in-rl"
   bibtexKey="zhou2026rl"
 />
