@@ -1,0 +1,550 @@
+import { AdvantageEstimationChart, MonteCarloChart, AlgorithmTreeChart, KLDirectionChart, PolicySharpeningChart } from './ChartComponents'
+
+export const metadata = {
+  title: 'Thinking in RL',
+  description: 'An opinionated tour through the algorithm tree of modern LLM RL — PPO, GRPO, REINFORCE, REINFORCE++, DPO, and the theoretical ideas that tie them together.',
+  date: '2026-04-13',
+  authors: [{ name: 'Xuhui Zhou' }],
+  openGraph: {
+    title: 'Thinking in RL',
+    description: 'An opinionated tour through the algorithm tree of modern LLM RL — PPO, GRPO, REINFORCE, REINFORCE++, DPO.',
+    type: 'article',
+    publishedTime: '2026-04-13',
+    authors: ['Xuhui Zhou'],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Thinking in RL',
+    description: 'An opinionated tour through the algorithm tree of modern LLM RL.',
+    creator: '@nlpxuhui',
+  },
+}
+
+# Thinking in RL
+
+<div className="not-prose mb-8 border-b border-zinc-200 pb-6">
+  <div className="text-sm text-zinc-500">
+    By Xuhui Zhou · Apr 13, 2026
+  </div>
+</div>
+
+RL is having a moment. The algorithms powering today's frontier models are being actively debated, reimagined, and simplified at a remarkable pace.
+There's no shortage of excellent material on this topic — and it never hurts to see the same ideas through a different lens.
+This is mine.
+
+If you want a more comprehensive treatment alongside this post, these are the resources I'd recommend:
+
+- [A (Long) Peek into Reinforcement Learning](https://lilianweng.github.io/posts/2018-02-19-rl-overview/) — Lilian Weng's blog post. One of the clearest RL overviews I know.
+- [DeepMind × UCL RL Lecture Series](https://www.youtube.com/watch?v=vmkRMvhCW5c&list=PLvOO0btloRnsiqM72G4Uid0UWljikENlU) — comprehensive lectures covering RL from the ground up.
+- [Stanford CS234: Reinforcement Learning](https://www.youtube.com/watch?v=46f2QTDB08Q&list=PLoROMvodv4rOY23Y0BoGoBGgQ1zmU_MT_&index=16) — the full course, including policy gradient lectures.
+
+Before diving in, here's the landscape of RL algorithms for LLM training as of early 2026.
+
+<Figure id="algorithm-tree">
+  <AlgorithmTreeChart />
+</Figure>
+
+## The RL Formulation for Language Models
+
+Before the algorithms, we need the setup. Generating text with a language model maps naturally to a Markov Decision Process (MDP):
+
+- **State** $s_t$: the full prefix up to position $t$ — prompt plus any tokens already generated
+- **Action** $a_t$: the next token chosen from the vocabulary
+- **Policy** $\pi_\theta(a_t \mid s_t)$: the language model parameterized by $\theta$
+- **Reward** $R(\tau)$: a scalar signal at the end of the episode — e.g., +1 if a math answer is correct, 0 otherwise
+- **Episode / trajectory**: a complete generation $\tau = (s_0, a_0, s_1, a_1, \ldots, s_T)$
+
+The training objective is to maximize the expected reward over trajectories drawn from the policy:
+
+$$J(\theta) = \mathbb{E}_{\tau \sim \pi_\theta}\bigl[R(\tau)\bigr]$$
+
+One crucial difference from classical RL: rewards in LLM training are almost always *sparse and outcome-level*.
+There is no per-token signal telling the model "this word was a good choice."
+A trajectory might be thousands of tokens long, and the model only learns after the final token whether it did well.
+This makes the credit assignment problem — figuring out which decisions actually caused the good or bad outcome — particularly hard.
+
+## The Policy Gradient Theorem
+
+The **Policy Gradient Theorem** is the mathematical backbone of every algorithm we'll discuss:
+
+$$\nabla_\theta J(\theta) = \mathbb{E}_{\tau \sim \pi_\theta}\left[\sum_{t=1}^{T} \nabla_\theta \log \pi_\theta(a_t \mid s_t) \cdot Q^{\pi}(s_t, a_t)\right]$$
+
+where $Q^{\pi}(s_t, a_t)$ is the **action-value function** — the expected total reward from taking action $a_t$ in state $s_t$ and following policy $\pi$ thereafter.<Cite id="pg-derivation">**Where does this come from?** We start from $J(\theta) = \mathbb{E}_\tau[R(\tau)]$ and take the gradient. The *log-derivative trick* ($\nabla p = p \cdot \nabla \log p$) gives $\nabla_\theta J = \mathbb{E}_\tau[\nabla_\theta \log p_\theta(\tau) \cdot R(\tau)]$. The trajectory log-prob expands as $\log p(s_0) + \sum_t \log \pi_\theta(a_t|s_t) + \sum_t \log p(s_{t+1}|s_t,a_t)$ — the initial state and transition terms don't depend on $\theta$ and vanish, leaving $\sum_t \nabla_\theta \log \pi_\theta(a_t|s_t)$. This gives REINFORCE: $\mathbb{E}_\tau[\sum_t \nabla_\theta \log \pi_\theta(a_t|s_t) \cdot R(\tau)]$. Finally, *causality*: $r_{t'}$ with $t' < t$ was collected before action $a_t$, so $\mathbb{E}[\nabla_\theta \log \pi_\theta(a_t|s_t) \cdot r_{t'}] = 0$ for past rewards. Dropping them replaces $R(\tau)$ with the return-to-go $R_t = \sum_{t' \geq t} r_{t'}$. Since $\mathbb{E}[R_t \mid s_t, a_t] = Q^\pi(s_t, a_t)$ by definition, $R_t$ is just a Monte Carlo sample of $Q^\pi$.</Cite>
+
+The term $\nabla_\theta \log \pi_\theta(a_t \mid s_t)$ is the **score function** (also called the log-likelihood gradient).
+It points in the direction that makes the chosen token $a_t$ more probable under the current policy.
+Multiplying by $Q^{\pi}$ then says: scale that direction by how good the action actually is.
+If $Q$ is high, push hard toward this action. If low, pull away.
+
+The problem is that we don't have $Q^{\pi}$ — we need to estimate it from rollouts.
+How we do that estimation is exactly what distinguishes the algorithms we'll cover.
+
+<Figure id="monte-carlo">
+  <MonteCarloChart />
+</Figure>
+
+$Q^{\pi}(s_t, a_t)$ is defined as the *expectation* of the return-to-go $R_t = \sum_{t' \geq t} r_{t'}$ — averaged over all possible ways the future could unfold from $(s_t, a_t)$ under policy $\pi$. In practice we can't compute this expectation directly. But if we run one rollout and observe its $R_t$, that single number is an unbiased (if noisy) estimate of $Q^{\pi}$. That's Monte Carlo estimation: use a sample mean to approximate an expectation.
+
+## The Advantage Function
+
+Rather than estimating $Q^{\pi}$ directly, it turns out we can do better by working with the **advantage function**:
+
+$$A^{\pi}(s_t, a_t) = Q^{\pi}(s_t, a_t) - V^{\pi}(s_t)$$
+
+where $V^{\pi}(s_t) = \mathbb{E}_{a \sim \pi}[Q^{\pi}(s_t, a)]$ is the **state value function** — how good state $s_t$ is on average, regardless of which action is taken.
+
+The advantage asks a sharper question: *is this particular action better or worse than what the policy would do on average in this state?*
+That's more informative than the raw $Q$ value, because $Q$ carries a lot of "how good is this state" signal mixed in.
+A trajectory with reward 0.8 might be unremarkable if the policy routinely achieves 0.9 from this prompt, or exceptional if the policy usually only manages 0.3.
+
+This substitution doesn't introduce any bias. Subtracting $V^{\pi}(s_t)$ from $Q^{\pi}(s_t, a_t)$ has zero effect on the expected gradient, because:
+
+$$\mathbb{E}_{a \sim \pi_\theta(\cdot \mid s)}\!\left[\nabla_\theta \log \pi_\theta(a \mid s)\right] = \nabla_\theta \sum_a \pi_\theta(a \mid s) = \nabla_\theta\, 1 = 0$$
+
+Any function of the state alone — not the action — can be subtracted from the gradient estimator without bias. This is the **zero-gradient property**, and it's the key insight we'll return to.
+
+<Figure id="advantage-estimation">
+  <AdvantageEstimationChart />
+</Figure>
+
+<Ref fig="advantage-estimation" /> shows concretely how the same 8 rollouts look under each algorithm. REINFORCE, with no baseline, sees all positive advantages (since rewards are non-negative). The other methods center the advantages around zero, producing a more informative training signal — some rollouts are pushed up, others pushed down.
+
+## Online Policy Gradient
+
+This is the blue branch from <Ref fig="algorithm-tree" /> — the most-used RL approach for LLM post-training as of early 2026.
+Every algorithm in this branch (PPO, GRPO, REINFORCE, REINFORCE++, and the many variants below them) shares the same gradient shape: score-function × advantage.
+They differ only in how they estimate the advantage and how aggressively they regularize each step.
+We work from the most expensive (PPO, with a learned critic) down to the simplest (REINFORCE, no baseline at all), then close with the theory that ranks them.
+
+### PPO: The Trusted Workhorse
+
+**Proximal Policy Optimization** was the algorithm behind early RLHF and remains the most thoroughly studied option.
+It makes two key innovations on top of basic policy gradient:
+
+#### A learned critic
+
+PPO trains a separate **value network** $V_\phi(s)$ to explicitly estimate $V^{\pi}$.
+In practice this is typically a copy of the policy LLM with a scalar head, updated at each training step to minimize:
+
+$$\mathcal{L}_{\text{critic}} = \mathbb{E}_t\!\left[\bigl(V_\phi(s_t) - \hat{V}_t^{\text{target}}\bigr)^2\right]$$
+
+With a good $V_\phi$, the advantage estimate $\hat{A}_t = R_t - V_\phi(s_t)$ is tight, giving low-variance gradients.
+
+#### Generalized Advantage Estimation
+
+Rather than the raw single-step residual, PPO uses **GAE**<Cite id="gae">[Schulman et al., 2015](https://arxiv.org/abs/1506.02438) — the GAE paper, which is often cited alongside PPO.</Cite> to reduce variance further:
+
+$$\hat{A}_t^{\text{GAE}} = \sum_{l=0}^{\infty} (\gamma\lambda)^l \delta_{t+l}, \quad \delta_t = r_t + \gamma V_\phi(s_{t+1}) - V_\phi(s_t)$$
+
+The parameter $\lambda \in [0,1]$ trades bias for variance: $\lambda=0$ gives the one-step TD estimate (low variance, some bias), $\lambda=1$ gives the full Monte Carlo return (unbiased, higher variance).
+
+#### Clipped objective
+
+PPO adds a constraint to prevent the policy update from being too large in any single step:
+
+$$\mathcal{L}_{\text{PPO}} = \mathbb{E}_t\!\left[\min\!\Bigl(r_t(\theta)\hat{A}_t,\;\text{clip}\bigl(r_t(\theta), 1{-}\epsilon, 1{+}\epsilon\bigr)\hat{A}_t\Bigr)\right]$$
+
+where $r_t(\theta) = \frac{\pi_\theta(a_t \mid s_t)}{\pi_{\text{old}}(a_t \mid s_t)}$ is the importance ratio.
+
+**The cost**: PPO requires maintaining and training a critic network that is often the same size as the policy.
+For a 70B-parameter LLM, that is a second 70B model in memory, plus all the optimizer states.
+This makes PPO expensive — which is why the community started looking for alternatives.
+
+### GRPO: Eliminating the Critic
+
+**Group Relative Policy Optimization**, introduced in DeepSeekMath and later central to DeepSeek-R1, makes one clean simplification: *estimate the baseline from the policy's own rollouts instead of a critic*.
+
+For each prompt $q$, GRPO samples a *group* of $G$ responses $\{\tau_1, \ldots, \tau_G\}$ from the current policy and uses their mean as the baseline:
+
+$$\hat{A}_i = \frac{R_i - \text{mean}(\{R_j\}_{j=1}^G)}{\text{std}(\{R_j\}_{j=1}^G)}$$
+
+No critic. No value network. The group mean is the baseline.
+
+Why is this valid? All $G$ outputs share the same prompt (state) $q$.
+Their average reward $\text{mean}(\{R_j\})$ is a function of the state alone — it doesn't depend on which specific action rollout $i$ took.
+By the zero-gradient property, subtracting it leaves the gradient unbiased.
+And because the group outputs all come from the same $q$, this mean is a direct Monte Carlo estimate of $V^{\pi}(q) = \mathbb{E}_{\tau \sim \pi}[R(\tau) \mid q]$.
+The more samples $G$, the better the estimate.
+
+The normalization by $\text{std}$ ensures the advantage scale is consistent across prompts with wildly different reward distributions — a prompt where all outputs score 0.5±0.01 shouldn't dominate over one where outputs span 0.0–1.0.
+
+GRPO's clipped objective also adds a token-level KL term against a reference policy $\pi_{\text{ref}}$ to prevent reward hacking:
+
+$$\mathcal{L}_{\text{GRPO}} = -\frac{1}{\sum_i |\tau_i|} \sum_{i=1}^{G} \sum_{t=1}^{|\tau_i|} \Bigl[\min\bigl(r_{i,t}(\theta)\hat{A}_i,\;\text{clip}(r_{i,t}(\theta), 1{-}\epsilon, 1{+}\epsilon)\hat{A}_i\bigr) - \beta\,D_{\text{KL}}(\pi_\theta \| \pi_{\text{ref}})\Bigr]$$
+
+where $r_{i,t}(\theta) = \frac{\pi_\theta(a_{i,t} \mid s_{i,t})}{\pi_{\text{old}}(a_{i,t} \mid s_{i,t})}$ is the per-token importance ratio for rollout $i$ — the GRPO-indexed counterpart of $r_t(\theta)$ from PPO.
+
+**The tradeoff**: No critic memory, but you now sample $G$ responses per prompt per step.
+If $G = 8$, rollout cost increases 8×.
+For most setups the memory saving (no second model) outweighs the extra rollout cost.
+
+### REINFORCE and REINFORCE++
+
+Both algorithms go even simpler — no critic *and* no group sampling.
+
+**REINFORCE** is the original policy gradient algorithm from Williams (1992).<Cite id="reinforce">[Williams, 1992](https://link.springer.com/article/10.1007/BF00992696) — the REINFORCE paper. Remarkably, the core algorithm is still in active use 30 years later.</Cite>
+Use the actual episode return as the $Q$ estimate:
+
+$$\nabla_\theta J(\theta) \approx \frac{1}{N}\sum_{i=1}^N \sum_t \nabla_\theta \log \pi_\theta(a_t^{(i)} \mid s_t^{(i)}) \cdot R^{(i)}$$
+
+No baseline, no critic, no clipping. Each token gets the same gradient weight (the full episode reward).
+This is **unbiased** — the sample gradient is an exact estimate of the true gradient in expectation.
+But it has very **high variance**: if all trajectories happen to score similarly (common early in training), the gradient is nearly zero and learning stalls.
+
+**REINFORCE++**<Cite id="reinforce-pp">[Hu et al., 2025](https://arxiv.org/abs/2501.12599) — REINFORCE++ is introduced as part of the TULU 3 / open-source RL work, demonstrating it matches PPO at lower cost.</Cite> makes two simple fixes: token-level KL regularization folded into the reward, and a batch-mean baseline.
+
+First, shape each rollout's reward with a token-level KL penalty against the reference:
+
+$$\tilde{R}_i = R_i - \beta \sum_t \log \frac{\pi_\theta(a_t^{(i)} \mid s_t^{(i)})}{\pi_{\text{ref}}(a_t^{(i)} \mid s_t^{(i)})}$$
+
+Then center across the batch using the mean of those shaped rewards:
+
+$$\hat{A}_i = \tilde{R}_i - \text{mean}(\{\tilde{R}_j\}_{j=1}^B)$$
+
+where $B$ is the full batch of *diverse* prompts (not the same prompt $G$ times, as in GRPO).
+
+The KL term at the token level penalizes the policy for drifting from the reference model token-by-token, not just at the sequence level.
+This is a finer-grained constraint that helps prevent the policy from collapsing onto degenerate solutions.
+
+### The Theoretical Justification: Why Any Baseline Works
+
+I claimed above that subtracting a state-dependent baseline leaves the gradient unbiased. Let me prove this carefully.
+
+**Theorem (Zero-Gradient Property):** For any function $b(s)$ that depends only on the state $s$ and not on the action $a$:
+
+$$\mathbb{E}_{a \sim \pi_\theta(\cdot \mid s)}\!\left[\nabla_\theta \log \pi_\theta(a \mid s) \cdot b(s)\right] = 0$$
+
+**Proof.** Since $b(s)$ does not depend on $a$, it factors out:
+
+$$b(s) \cdot \mathbb{E}_{a \sim \pi_\theta}\!\left[\nabla_\theta \log \pi_\theta(a \mid s)\right] = b(s) \cdot \mathbb{E}_{a \sim \pi_\theta}\!\left[\frac{\nabla_\theta \pi_\theta(a \mid s)}{\pi_\theta(a \mid s)}\right]$$
+
+$$= b(s) \cdot \nabla_\theta \sum_a \pi_\theta(a \mid s) = b(s) \cdot \nabla_\theta\, 1 = 0 \qquad \square$$
+
+This means we can subtract *any* state-dependent $b(s)$ from the reward without changing the gradient in expectation.
+The baseline only affects **variance**, never bias.
+The question is just: which baseline minimizes variance?
+
+It can be shown that the **optimal baseline** (the one that minimizes gradient variance) is approximately:
+
+$$b^*(s) \approx V^{\pi}(s) = \mathbb{E}_{\tau \sim \pi}[R(\tau) \mid s]$$
+
+This is exactly the state value function.
+The closer your baseline is to $V^{\pi}(s)$, the more variance you reduce.
+
+Now we can see how the four methods rank:
+
+**PPO** trains an explicit critic to estimate $V^{\pi}(s)$. In the limit of a well-trained critic, this is the optimal baseline. Best variance reduction, highest cost.
+
+**GRPO** uses the group mean $\frac{1}{G}\sum_{j=1}^G R_j$ as a Monte Carlo estimate of $V^{\pi}(s)$ — using the *same prompt*, so this is genuinely state-dependent. As $G \to \infty$, this converges to $V^{\pi}(s)$. Very good in practice for $G = 4$–$16$.
+
+**REINFORCE++** uses the batch mean $\frac{1}{B}\sum_{j=1}^B R_j$ across *different prompts*.
+This is technically not a function of the state — it mixes rewards from different states.
+The justification is that in expectation over batches, $\text{mean}(R_{\text{batch}}) \to \mathbb{E}[R]$, which is a constant (and constants are trivially state-independent baselines that satisfy the zero-gradient property).
+The approximation is tight when the batch is large and reward distributions are similar across prompts.
+
+**REINFORCE** uses $b = 0$.
+Zero is a valid constant baseline, but it provides no variance reduction at all.
+Every trajectory, regardless of how unremarkable it is, gets a positive gradient push.
+
+The hierarchy is: PPO ≥ GRPO ≥ REINFORCE++ ≥ REINFORCE in terms of variance reduction.
+But the memory cost goes in the opposite direction.
+
+### Putting It All Together
+
+Here is a summary of what each algorithm requires and what it achieves:
+
+| | Critic? | Baseline | Clipping | Variance |
+|:---|:---:|:---|:---:|:---:|
+| **REINFORCE** | No | None ($b=0$) | No | High |
+| **REINFORCE++** | No | Batch mean | No | Medium |
+| **GRPO** | No | Group mean + std-norm | Yes | Low–medium |
+| **PPO** | **Yes** | $V^{\pi}(s)$ via critic | Yes | Low |
+
+For most practical LLM training today, GRPO or REINFORCE++ are preferred over PPO precisely because they avoid the second model.
+For a 70B policy, a 70B critic adds ~140B parameters to keep in GPU memory, plus separate optimizer states.
+GRPO trades that memory cost for more rollouts per step, which is typically the better deal.
+
+## Preference Optimization
+
+The green branch from <Ref fig="algorithm-tree" /> takes a different route from Online Policy Gradient: skip the rollouts entirely.
+There's no critic, no policy-gradient sample, no separately-trained reward model — just a supervised loss over preference pairs $(y_w, y_l)$.
+What looks like SFT is actually solving the same KL-regularized RL objective the Online PG branch is iterating toward, but in closed form.
+
+### DPO: closed-form RL as a supervised loss
+
+Start with the KL-regularized RL objective — the same one Online PG implicitly maximizes when it adds the $\beta \cdot D_{KL}(\pi_\theta \,\|\, \pi_{\text{ref}})$ anchor:
+
+$$\max_\pi\ \mathbb{E}_{x \sim \mathcal{D},\, y \sim \pi(\cdot \mid x)}\!\big[r(x, y)\big] - \beta \cdot D_{KL}\big(\pi(\cdot \mid x) \,\|\, \pi_{\text{ref}}(\cdot \mid x)\big)$$
+
+This has a *closed-form* optimum:
+
+$$\pi^*(y \mid x) = \frac{1}{Z(x)}\, \pi_{\text{ref}}(y \mid x) \, \exp\!\Big(\tfrac{1}{\beta}\, r(x, y)\Big)$$
+
+Rearrange to express the reward as a function of $\pi^*$ and $\pi_{\text{ref}}$:
+
+$$r(x, y) = \beta \log \frac{\pi^*(y \mid x)}{\pi_{\text{ref}}(y \mid x)} + \beta \log Z(x)$$
+
+Plug into the Bradley-Terry preference model $P(y_w \succ y_l \mid x) = \sigma\!\big(r(x, y_w) - r(x, y_l)\big)$.
+The $\log Z(x)$ terms cancel because they don't depend on $y$.
+What's left is the DPO loss:<Cite id="dpo">[Rafailov et al., 2023](https://arxiv.org/abs/2305.18290) — *Direct Preference Optimization: Your Language Model is Secretly a Reward Model*. The full derivation is in §4.</Cite>
+
+$$\mathcal{L}_{\text{DPO}} = -\mathbb{E}_{(x, y_w, y_l)}\!\left[\log \sigma\!\left(\beta \log \frac{\pi_\theta(y_w \mid x)}{\pi_{\text{ref}}(y_w \mid x)} - \beta \log \frac{\pi_\theta(y_l \mid x)}{\pi_{\text{ref}}(y_l \mid x)}\right)\right]$$
+
+This is *literally* "KL-regularized RL, expressed as a supervised log-likelihood."
+The optimal policy of an Online PG run with reward $r$ and anchor $\pi_{\text{ref}}$ is exactly the policy that minimizes $\mathcal{L}_{\text{DPO}}$ on preference data labeled by that reward.
+DPO skips the rollouts and the policy gradient and goes straight to the supervised loss whose minimum *is* the RL optimum.
+
+So when you train with DPO you're not doing supervised learning *instead of* RL — you're doing the closed-form solution to the same KL-regularized RL objective the Online PG branch is iterating toward.
+
+**The cost**: DPO needs preference data $(x, y_w, y_l)$ with explicit pairwise labels, and the implicit reward is whatever the labelers agreed about, baked into the dataset.
+No reward model needs to be learned and no rollouts need to be sampled — but you've paid for the preferences upfront.
+
+### Variants
+
+The DPO variants in <Ref fig="algorithm-tree" /> all share DPO's structural choice (target = closed-form RL optimum, divergence = supervised log-likelihood) and tweak one of the moving parts:
+
+- **SimPO** (Meng et al. 2024) drops $\pi_{\text{ref}}$ from the loss entirely — uses average log-prob normalized by length as the implicit reward. Faster to train, no reference model in memory, slightly looser alignment with the original RL optimum.
+- **KTO** (Ethayarajh et al. 2024) replaces pairwise preferences with absolute "good" / "bad" labels per sample (binary classification framing). Easier label collection, comparable performance.
+- **IPO** (Azar et al. 2024) replaces the sigmoid in DPO with an MSE-style loss to address overfitting on near-deterministic preference data — essentially adds smoothing.
+- **ORPO** (Hong et al. 2024) folds an explicit SFT term into the DPO loss so you can collapse the SFT and preference-tuning stages into one pass.
+- **Online DPO** runs DPO on a stream of fresh preferences (sampled and labeled during training) instead of a fixed dataset, recovering some of the on-policy benefits.
+
+These all live on the same axis as Online PG; they just trade rollouts for preference data and a closed-form solution.
+
+## Self-Training
+
+The amber branch from <Ref fig="algorithm-tree" /> sits at the simplest end of the tree.
+There's no policy gradient, no KL term, no preference data, no critic.
+Sample rollouts, filter by reward, SFT on the survivors, repeat.
+
+That's it.
+The "RL" lives entirely in the *filtering step*.
+
+### The iterated SFT loop
+
+For $T$ rounds:
+
+1. Sample $N$ rollouts from current $\pi_\theta$ on each prompt.
+2. Score them with a reward function (or a correctness check, or a test-passing oracle, etc.).
+3. Keep the top-$k$ per prompt, or all rewards above threshold → call this filtered set $\mathcal{D}_t$.
+4. SFT $\pi_\theta$ on $\mathcal{D}_t$ → new $\pi_\theta$.
+5. Repeat.
+
+The per-round objective is the plain SFT loss on the filtered set:
+
+$$\mathcal{L}_t(\theta) = -\mathbb{E}_{(x, y) \sim \mathcal{D}_t}\!\left[\log \pi_\theta(y \mid x)\right], \quad \mathcal{D}_t = \{(x, y) : y \sim \pi_{\theta_{t-1}}(\cdot \mid x),\; R(x, y) \geq \tau\}$$
+
+Each iteration is forward KL minimization to a self-curated target distribution biased toward high reward.
+The rejection-sampling filter is doing the work of the policy gradient — high-reward samples get all the gradient mass, low-reward samples get none.
+As $\pi_\theta$ improves, $\mathcal{D}_t$ improves, which improves $\pi_\theta$ further.
+
+Compared to the Online PG branch, Self-Training has lower variance per step (no per-token gradient on every rollout) but coarser credit assignment (sequence-level filter, no per-token signal).
+You can think of it as the policy-gradient equivalent of REINFORCE with a hard threshold instead of a learned baseline — *all-or-nothing* advantages instead of continuous ones.
+
+### STaR, ReST, RAFT
+
+The three named methods differ mainly in *what* gets filtered and *how* the loop is scheduled:
+
+- **STaR** (Zelikman et al. 2022) — the original. For reasoning tasks with verifiable answers: sample reasoning chains, keep the ones that arrive at the correct final answer, SFT on the (problem, correct chain) pairs. Plus a "rationalization" trick: for problems the model gets wrong, condition on the gold answer to generate a fake-but-plausible chain, and include those in $\mathcal{D}_t$ too. Bootstraps reasoning ability without supervised reasoning traces.
+- **ReST** (Gulcehre et al. 2023) — *Reinforced Self-Training*. Generalizes STaR's loop to arbitrary reward-model-scored samples (not just verifiable correctness). Two nested loops: an outer "Grow" loop that samples new data from the current policy, and an inner "Improve" loop that filters at progressively higher thresholds and runs SFT.
+- **RAFT** (Dong et al. 2023) — *Reward-rAnked Fine-Tuning*. The most direct: sample $N$, take top-$k$ by reward, SFT, repeat. No threshold scheduling, no rationalization trick. The simplest possible iterated-SFT loop.
+
+The reason this branch works at all is the same reason Online PG works: as long as the filter is correlated with reward, the policy improves on average each round.
+Self-Training trades the precision of a continuous advantage for the simplicity of "just SFT, repeatedly."
+
+## Linking back to SFT
+
+The three branches above (Online Policy Gradient, Preference Optimization, Self-Training) cover the algorithm tree from <Ref fig="algorithm-tree" />.
+SFT itself sits outside that tree — it's the loss everything starts from.
+
+These four (SFT plus the three branches) aren't actually different paradigms.
+Every one of them reduces to the same shape:
+
+> **Choose a target distribution. Minimize a divergence to it.**
+
+What changes is *which* target and *which* divergence.
+
+### SFT: forward KL to the data
+
+The standard SFT loss is cross-entropy:
+
+$$\mathcal{L}_{\text{SFT}} = -\log \pi_\theta(y^* \mid x)$$
+
+Cross-entropy decomposes as $H(p, q) = H(p) + D_{KL}(p \,\|\, q)$.
+For SFT the target distribution $p$ is one-hot on the gold token, so $H(p) = 0$ and cross-entropy equals KL exactly:
+
+$$\mathcal{L}_{\text{SFT}} = D_{KL}(p_{\text{data}} \,\|\, \pi_\theta)$$
+
+That's *forward* KL — data on the left, model on the right.
+Forward KL is **mode-covering**: it punishes the model for assigning low probability where the data has mass, so the model is forced to spread itself to cover everything in the dataset.
+This is the baseline.
+Every other branch is a way of choosing a *different* target distribution and minimizing some divergence to *that* — when the data alone isn't enough.
+
+### Forward KL vs reverse KL
+
+The $\beta \cdot D_{KL}(\pi_\theta \,\|\, \pi_{\text{ref}})$ anchor used by Online PG is *reverse* KL — model on the left, reference on the right.
+Reverse KL is **mode-seeking**: only places where the model puts mass contribute to the penalty.
+The model is free to drop mass on anything; the only thing it can't do without paying is invent outputs $\pi_{\text{ref}}$ never produced.
+
+<Figure id="kl-direction">
+  <KLDirectionChart />
+</Figure>
+
+This is why post-RL policies are sharper than their SFT base.
+SFT spread the mass to cover everything reasonable in the data; reverse-KL-anchored RL lets the model concentrate mass on whichever subset of that cover the reward favors.
+This is real and observable: entropy drops, perplexity on its own samples falls, output diversity at any given temperature shrinks.
+People sometimes call this "mode collapse" and treat it as a bug.
+It's the design working as specified — the KL direction was chosen precisely to allow collapse onto high-reward modes while preventing the worse failure of the model walking off SFT's support entirely.
+
+<Figure id="policy-sharpening">
+  <PolicySharpeningChart />
+</Figure>
+
+(Aside: classical RL — Atari, MuJoCo, gym — has no $\pi_{\text{ref}}$ in the loss at all.
+Just the clipped surrogate.
+You start from a random policy, there's no good behavior to anchor to, and drift is the goal.
+The frozen-SFT KL anchor is a contribution of LLM-RL, not PPO itself.)
+
+### Two kinds of mode-seeking
+
+A reasonable question after the KL-direction story: *is RL just a mode-seeking operation?* Two effects say yes, and they're worth separating.
+
+**Reason 1: the fixed point of reward maximization.**
+Forget the KL anchor for a moment.
+The bare objective $J(\theta) = \mathbb{E}_{\tau \sim \pi_\theta}[R(\tau)]$ has a degenerate optimum — a point mass on $\arg\max_a R(a)$.
+The policy that maximizes expected reward puts *all* its probability on the single best action (or one of them, if ties).
+This has nothing to do with KL.
+Maximizing an expectation over a bounded reward collapses the distribution onto the argmax.
+Pure RL, in this sense, is maximally mode-seeking: the fixed point is a delta function.
+The path during training doesn't have to be that, but the destination is.
+
+**Reason 2: the reverse-KL anchor.**
+Layered on top of Reason 1 in LLM-RL is the $-\beta \cdot D_{KL}(\pi_\theta \,\|\, \pi_{\text{ref}})$ term — the mode-seeking *direction* of KL, as we just saw.
+This doesn't *cause* mode-seeking (reward max already does that); it *constrains* where the collapse lands.
+Without the anchor, the policy is free to collapse anywhere — including onto out-of-distribution junk that happens to game the reward.
+With it, the policy can only collapse onto a subset of $\pi_{\text{ref}}$'s support.
+The anchor doesn't prevent mode-seeking; it just channels where the collapse goes.
+
+So the LLM-RL setup stacks two mode-seeking pressures: reward-max picks the high-reward mode, the reverse-KL anchor picks the modes inside $\pi_{\text{ref}}$'s support.
+
+The cases where RL is *not* mode-seeking are exactly the cases where one of these is broken.
+Maximum-entropy RL ($\max\,\mathbb{E}[R] + \beta\, H(\pi)$, as in soft actor-critic) replaces the argmax fixed point with a softmax over rewards — concentrated but not collapsed.
+Off-policy methods with a diverse behavior prior inherit some of that breadth.
+Explicit diversity rewards add a term that resists collapse.
+None of these are active in the standard RLHF or GRPO loop. That's why post-RL policies are notably sharp — the mode-seeking is intentional, on two axes at once, and nothing in the recipe pushes back.
+
+### The unifying picture
+
+Pulling all four together:
+
+| Branch | Target | Divergence | Gradient flow |
+|:---|:---|:---|:---|
+| **SFT** | The data | Forward KL | Direct on demos |
+| **Online PG** | Reward-shaped, anchored to ref policy | Reverse KL + reward max | Score-function on rollouts |
+| **Preference Opt** | Closed-form RL optimum | Supervised log-likelihood | Direct on preference pairs |
+| **Self-Training** | Reward-filtered self-samples | Forward KL | Iterated SFT on the filter |
+
+The branches answer *which of the two questions am I willing to pay for?*
+
+- *Cheap target, expensive divergence*: Online PG.
+The target is just "high reward, anchored to SFT" — easy to specify, but you pay with rollouts and noisy gradients.
+- *Expensive target, cheap divergence*: Preference Optimization.
+The target requires preference data (and an implicit reward model embedded in the labelers), but once you have it, the loss is plain supervised.
+- *Iterative bootstrap*: Self-Training.
+Don't pay for either upfront — let the policy and the target distribution co-evolve through filtering.
+- *No target synthesis at all*: SFT.
+The target is given (the data) and the divergence is the cheapest possible.
+
+That's why "SFT vs RL" is the wrong axis.
+The right axis is: *how much work are you willing to do to construct the target distribution, and what divergence are you willing to compute against it?*
+Everything else — the critic, the clip, the KL coefficient, the preference labelers, the rejection filter — is engineering in service of those two choices.
+
+## What's outside the tree
+
+The three branches above cover where the gradient flows, but several practical pieces of the pipeline sit alongside the tree rather than inside it. They're orthogonal to the algorithm choice — you can mix and match.
+
+### Reward modeling
+
+Online PG and DPO both assume a reward function $r(x, y)$ they can query.
+For verifiable tasks (math, code), $r$ is just a correctness check.
+For everything else — helpfulness, safety, style — $r$ has to be *learned*.
+
+The standard recipe: fit a Bradley-Terry reward model on human preference pairs.
+Take a frozen LLM, swap the language-modeling head for a scalar head, train it to score the preferred response higher than the rejected one.
+The resulting $r_\psi(x, y)$ becomes the reward used in PPO/GRPO rollouts.
+
+DPO's clever move, in retrospect, is that it skips this step entirely.
+The preferences *are* the reward signal; the policy and the implicit reward model collapse into one object — the trained policy $\pi_\theta$ itself.
+
+### Process reward models (PRMs)
+
+Outcome-level rewards say nothing about *which* token in a long reasoning chain mattered.
+PRMs are auxiliary models trained to score *partial* trajectories — given a prefix of reasoning, predict whether the chain will arrive at the correct answer.
+
+In training, the PRM gives per-step rewards rather than just a final outcome.
+This sharpens credit assignment: instead of pushing the same outcome signal back through every token, you can attribute gradient to the steps the PRM actually scored highly.
+Most recent reasoning recipes use PRMs in some form — either at training time, or at decoding time for best-of-$N$ sampling.<Cite id="prm">[Lightman et al., 2023](https://arxiv.org/abs/2305.20050) — the *Let's Verify Step by Step* paper, which introduced the now-standard process-reward setup for math reasoning.</Cite>
+
+### RLAIF
+
+*RL from AI feedback* — replace the human labelers with a strong LLM, and use it to label preference pairs or score rollouts.<Cite id="rlaif">[Lee et al., 2023](https://arxiv.org/abs/2309.00267) — the RLAIF paper, showing comparable downstream quality to RLHF on summarization and helpfulness.</Cite>
+Cheap and scalable, but the AI labeler's biases become the trained policy's biases.
+
+The practical compromise is hybrid: a small amount of human data to calibrate the AI judge, then a much larger amount of AI labels for scale.
+Most production preference-optimization pipelines today are some flavor of this.
+
+### Offline RL proper
+
+RL on a fixed, pre-collected dataset with no further exploration.
+Classical methods (CQL, IQL, BCQ) add conservatism penalties so the policy doesn't extrapolate into unsupported actions.
+
+For LLMs, this niche has mostly been eaten by DPO and its variants — the closed-form RL optimum *is* what offline RL was trying to approximate, and DPO gets there directly from preference pairs without the conservatism machinery.
+Pure offline RL on language data still shows up occasionally, but the preference-optimization branch is doing most of the work.
+
+---
+
+These pieces are orthogonal to the algorithm tree.
+You can run PPO with a learned reward model, a PRM for per-step signal, and RLAIF labels for scale.
+You can run GRPO with verifiable rewards and no reward model at all.
+You can do DPO on RLAIF-generated pairs.
+The tree tells you how the gradient flows. This list tells you where the reward comes from.
+
+## A note on RL's shrinking domain
+
+One thing worth saying out loud before closing.
+
+For the last decade, the pitch for deep RL was: some behaviors are too complex to write by hand, but you can learn them with gradient descent on a policy network.
+That argument made sense when "by hand" meant a human at a keyboard.
+It looks different now.
+
+A recent example: Codex iterated a closed-loop NumPy + OpenCV policy that plays VizDoom — a canonical pixels-in deep-RL benchmark — without training any neural network. A few hundred lines of Python image processing, edited a dozen times by the model in response to game outcomes. No PPO, no replay buffer, no reward shaping, no GPU.<Cite id="codex-vizdoom">[Jerry Tworek](https://x.com/millionint/status/2053310486335324620) quote-tweeting Jiayi Weng's VizDoom experiment, May 2026. Jerry called this "mostly a bearish take on RL," which is roughly right.</Cite>
+
+If an LLM can write the policy as code and improve it through edit loops, then "write the policy by hand" no longer means "a *human* writing the policy by hand."
+The set of problems where RL is the right tool is shrinking from this angle: pixel-in/action-out games, low-dimensional control, anything where a competent coder could plausibly construct the controller.
+
+What's left in RL's stronghold is exactly the domain this post is about.
+No one is going to write a chatbot's policy as a Python program.
+The action space (vocab × context) and the surface (everything from arithmetic to safety to empathy) put LLM policies several orders of magnitude past what code generation can substitute for.
+The reason RL stays load-bearing for frontier LLM training is precisely that the policy is too high-dimensional to be code-generated — which is the same property that made RL necessary in the first place.
+
+So the framing for everything above: this is the part of RL's domain that's still load-bearing. The pixel-game benchmarks may end up solved another way.
+
+## Closing Thoughts
+
+All four algorithms are fundamentally solving the same problem: estimate the gradient of $J(\theta) = \mathbb{E}[R(\tau)]$.
+What separates them is *how carefully* they estimate the advantage, and at what cost.
+
+The elegant thing about the zero-gradient property is that it gives enormous freedom in choosing the baseline.
+GRPO's insight — that the mean reward of a group of same-prompt rollouts is a cheap, unbiased estimate of $V^{\pi}$ — is both theoretically sound and practically efficient.
+REINFORCE++'s insight — that even a batch-level constant helps, and token-level KL tightens the constraint where it matters — is the kind of simple engineering that turns out to work surprisingly well.
+
+It's a reminder that deep theory and practical engineering are not always in tension.
+Sometimes, the right theoretical framing reveals that a simple heuristic is actually doing exactly the right thing.
+
+<Citation
+  author="Xuhui Zhou"
+  title="Thinking in RL"
+  year="2026"
+  url="https://xuhuizhou.com/blog/thinking-in-rl"
+  bibtexKey="zhou2026rl"
+/>

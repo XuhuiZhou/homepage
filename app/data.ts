@@ -77,6 +77,13 @@ export const WORK_EXPERIENCE: WorkExperience[] = [
 
 export const BLOG_POSTS: BlogPost[] = [
   {
+    title: 'Thinking in RL',
+    description: 'An opinionated tour through the algorithm tree of modern LLM RL — PPO, GRPO, REINFORCE, REINFORCE++, DPO, and the theoretical ideas that tie them together.',
+    link: '/blog/thinking-in-rl',
+    uid: 'blog-3',
+    date: '2026-04-13',
+  },
+  {
     title: 'The Quest of User-Effective AI Agents',
     description: 'Exploring what makes AI agents truly effective for users, beyond benchmark performance.',
     link: '/blog/on-the-quest-of-user-effective-ai-agents',
