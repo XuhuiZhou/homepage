@@ -29,7 +29,7 @@ export const metadata = {
 </div>
 
 RL is happening everywhere. The RL algorithms powering today's frontier models are being actively debated, reimagined, and simplified at a remarkable pace.
-The blog aims to summerize them in a relatively high level concept and tries to find synergies among the ``million" RL algorithms.
+The blog aims to summerize them in a relatively high level concept and tries to find synergies among the "million" RL algorithms.
 Many of the high level thoughts and summerization and metaphors are totally from my own perspectives (so it's mostly about LLM), so they may or may not be absolutely true. Up for a discussion or debate anytime haha.
 
 If you want a more comprehensive treatment alongside this post, these are the resources I'd recommend:
@@ -58,10 +58,16 @@ The training objective is to maximize the expected reward over trajectories draw
 
 $$J(\theta) = \mathbb{E}_{\tau \sim \pi_\theta}\bigl[R(\tau)\bigr]$$
 
-One crucial difference from classical RL: rewards in LLM training are almost always *sparse and outcome-level*.
+Three observations here: 
+(1) This objective, when in the LLM setting, is essentially mode-seeking. For example, in RLHF, if producing a certain format of text would generally gain more preference (aka rewards) from whoever human judges included in the training phase. Then you would almost observe this format (e.g., bullet points) showing up really frequently. 
+
+(2) Rewards in LLM training are almost always *sparse and outcome-level*.
 There is no per-token signal telling the model "this word was a good choice."
-A trajectory might be thousands of tokens long, and the model only learns after the final token whether it did well.
-This makes the credit assignment problem — figuring out which decisions actually caused the good or bad outcome — particularly hard.
+A trajectory might be thousands of tokens long, and the model only learns after the final token whether it did well. This actually makes the credit assignment problem particularly hard. That's why on-policy distallation gets so trended these days <Cite id="on-policy-distallation">[On-Policy Distallation](https://thinkingmachines.ai/blog/on-policy-distillation/)</Cite>. 
+
+(3) The reward here is a scalar value! However, for complex things happening in our real life, the judges could be from multiple dimensions, and somehow we would need a way to squeeze them into a scalar value in this setting.
+
+Nevertheless, the whole thing is really powerful, in a way that almost start to crack into "every" corner of human life.
 
 ## The Policy Gradient Theorem
 
@@ -69,7 +75,7 @@ The **Policy Gradient Theorem** is the mathematical backbone of every algorithm 
 
 $$\nabla_\theta J(\theta) = \mathbb{E}_{\tau \sim \pi_\theta}\left[\sum_{t=1}^{T} \nabla_\theta \log \pi_\theta(a_t \mid s_t) \cdot Q^{\pi}(s_t, a_t)\right]$$
 
-where $Q^{\pi}(s_t, a_t)$ is the **action-value function** — the expected total reward from taking action $a_t$ in state $s_t$ and following policy $\pi$ thereafter.<Cite id="pg-derivation">**Where does this come from?** We start from $J(\theta) = \mathbb{E}_\tau[R(\tau)]$ and take the gradient. The *log-derivative trick* ($\nabla p = p \cdot \nabla \log p$) gives $\nabla_\theta J = \mathbb{E}_\tau[\nabla_\theta \log p_\theta(\tau) \cdot R(\tau)]$. The trajectory log-prob expands as $\log p(s_0) + \sum_t \log \pi_\theta(a_t|s_t) + \sum_t \log p(s_{t+1}|s_t,a_t)$ — the initial state and transition terms don't depend on $\theta$ and vanish, leaving $\sum_t \nabla_\theta \log \pi_\theta(a_t|s_t)$. This gives REINFORCE: $\mathbb{E}_\tau[\sum_t \nabla_\theta \log \pi_\theta(a_t|s_t) \cdot R(\tau)]$. Finally, *causality*: $r_{t'}$ with $t' < t$ was collected before action $a_t$, so $\mathbb{E}[\nabla_\theta \log \pi_\theta(a_t|s_t) \cdot r_{t'}] = 0$ for past rewards. Dropping them replaces $R(\tau)$ with the return-to-go $R_t = \sum_{t' \geq t} r_{t'}$. Since $\mathbb{E}[R_t \mid s_t, a_t] = Q^\pi(s_t, a_t)$ by definition, $R_t$ is just a Monte Carlo sample of $Q^\pi$.</Cite>
+where $Q^{\pi}(s_t, a_t)$ is the **action-value function**, i.e, the expected total reward from taking action $a_t$ in state $s_t$ and following policy $\pi$ thereafter.<Cite id="pg-derivation">**Where does this come from?** We start from $J(\theta) = \mathbb{E}_\tau[R(\tau)]$ and take the gradient. The *log-derivative trick* ($\nabla p = p \cdot \nabla \log p$) gives $\nabla_\theta J = \mathbb{E}_\tau[\nabla_\theta \log p_\theta(\tau) \cdot R(\tau)]$. The trajectory log-prob expands as $\log p(s_0) + \sum_t \log \pi_\theta(a_t|s_t) + \sum_t \log p(s_{t+1}|s_t,a_t)$ — the initial state and transition terms don't depend on $\theta$ and vanish, leaving $\sum_t \nabla_\theta \log \pi_\theta(a_t|s_t)$. This gives REINFORCE: $\mathbb{E}_\tau[\sum_t \nabla_\theta \log \pi_\theta(a_t|s_t) \cdot R(\tau)]$. Finally, *causality*: $r_{t'}$ with $t' < t$ was collected before action $a_t$, so $\mathbb{E}[\nabla_\theta \log \pi_\theta(a_t|s_t) \cdot r_{t'}] = 0$ for past rewards. Dropping them replaces $R(\tau)$ with the return-to-go $R_t = \sum_{t' \geq t} r_{t'}$. Since $\mathbb{E}[R_t \mid s_t, a_t] = Q^\pi(s_t, a_t)$ by definition, $R_t$ is just a Monte Carlo sample of $Q^\pi$.</Cite>
 
 The term $\nabla_\theta \log \pi_\theta(a_t \mid s_t)$ is the **score function** (also called the log-likelihood gradient).
 It points in the direction that makes the chosen token $a_t$ more probable under the current policy.
@@ -83,15 +89,14 @@ How we do that estimation is exactly what distinguishes the algorithms we'll cov
   <MonteCarloChart />
 </Figure>
 
-$Q^{\pi}(s_t, a_t)$ is defined as the *expectation* of the return-to-go $R_t = \sum_{t' \geq t} r_{t'}$ — averaged over all possible ways the future could unfold from $(s_t, a_t)$ under policy $\pi$. In practice we can't compute this expectation directly. But if we run one rollout and observe its $R_t$, that single number is an unbiased (if noisy) estimate of $Q^{\pi}$. That's Monte Carlo estimation: use a sample mean to approximate an expectation.
 
 ## The Advantage Function
 
-Rather than estimating $Q^{\pi}$ directly, it turns out we can do better by working with the **advantage function**:
+Rather than estimating $Q^{\pi}$ directly, sometimes we prefer to work with the **advantage function**:
 
 $$A^{\pi}(s_t, a_t) = Q^{\pi}(s_t, a_t) - V^{\pi}(s_t)$$
 
-where $V^{\pi}(s_t) = \mathbb{E}_{a \sim \pi}[Q^{\pi}(s_t, a)]$ is the **state value function** — how good state $s_t$ is on average, regardless of which action is taken.
+where $V^{\pi}(s_t) = \mathbb{E}_{a \sim \pi}[Q^{\pi}(s_t, a)]$ is the **state value function**, aka how good state $s_t$ is on average, regardless of which action is taken.
 
 The advantage asks a sharper question: *is this particular action better or worse than what the policy would do on average in this state?*
 That's more informative than the raw $Q$ value, because $Q$ carries a lot of "how good is this state" signal mixed in.
@@ -101,7 +106,7 @@ This substitution doesn't introduce any bias. Subtracting $V^{\pi}(s_t)$ from $Q
 
 $$\mathbb{E}_{a \sim \pi_\theta(\cdot \mid s)}\!\left[\nabla_\theta \log \pi_\theta(a \mid s)\right] = \nabla_\theta \sum_a \pi_\theta(a \mid s) = \nabla_\theta\, 1 = 0$$
 
-Any function of the state alone — not the action — can be subtracted from the gradient estimator without bias. This is the **zero-gradient property**, and it's the key insight we'll return to.
+This is the **zero-gradient property**, and it's the key insight we'll return to.
 
 <Figure id="advantage-estimation">
   <AdvantageEstimationChart />
@@ -111,10 +116,10 @@ Any function of the state alone — not the action — can be subtracted from th
 
 ## Online Policy Gradient
 
-This is the blue branch from <Ref fig="algorithm-tree" /> — the most-used RL approach for LLM post-training as of early 2026.
+Online Policy Gradient is the blue branch from <Ref fig="algorithm-tree" />.
 Every algorithm in this branch (PPO, GRPO, REINFORCE, REINFORCE++, and the many variants below them) shares the same gradient shape: score-function × advantage.
-They differ only in how they estimate the advantage and how aggressively they regularize each step.
-We work from the most expensive (PPO, with a learned critic) down to the simplest (REINFORCE, no baseline at all), then close with the theory that ranks them.
+They differ only in how they estimate the advantage and how they regularize each step.
+We work from the most expensive (PPO, with a learned critic) down to the simplest (REINFORCE, no baseline at all).
 
 ### PPO: The Trusted Workhorse
 
@@ -136,6 +141,8 @@ Rather than the raw single-step residual, PPO uses **GAE**<Cite id="gae">[Schulm
 
 $$\hat{A}_t^{\text{GAE}} = \sum_{l=0}^{\infty} (\gamma\lambda)^l \delta_{t+l}, \quad \delta_t = r_t + \gamma V_\phi(s_{t+1}) - V_\phi(s_t)$$
 
+The quantity $\delta_t$ is the **TD residual**, and it is itself a one-sample estimate of the advantage.<Cite id="td-learning">Why is $\delta_t$ an advantage estimate? By definition $A(s_t,a_t) = Q(s_t,a_t) - V(s_t)$, and $Q(s_t,a_t) = \mathbb{E}[r_t + \gamma V(s_{t+1})]$. This bootstrapping idea of updating an estimate from another estimate rather than waiting for the full return is **temporal-difference (TD) learning**, the bridge between Monte Carlo and dynamic programming. [This video](https://www.youtube.com/watch?v=jflq6vNcZyA&list=PLvOO0btloRnsiqM72G4Uid0UWljikENlU&index=2) has the most intuitive explanation I've found.</Cite>
+
 The parameter $\lambda \in [0,1]$ trades bias for variance: $\lambda=0$ gives the one-step TD estimate (low variance, some bias), $\lambda=1$ gives the full Monte Carlo return (unbiased, higher variance).
 
 #### Clipped objective
@@ -148,7 +155,7 @@ where $r_t(\theta) = \frac{\pi_\theta(a_t \mid s_t)}{\pi_{\text{old}}(a_t \mid s
 
 **The cost**: PPO requires maintaining and training a critic network that is often the same size as the policy.
 For a 70B-parameter LLM, that is a second 70B model in memory, plus all the optimizer states.
-This makes PPO expensive — which is why the community started looking for alternatives.
+This makes PPO expensive.
 
 ### GRPO: Eliminating the Critic
 
