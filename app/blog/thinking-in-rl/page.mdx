@@ -145,13 +145,15 @@ The quantity $\delta_t$ is the **TD residual**, and it is itself a one-sample es
 
 The parameter $\lambda \in [0,1]$ trades bias for variance: $\lambda=0$ gives the one-step TD estimate (low variance, some bias), $\lambda=1$ gives the full Monte Carlo return (unbiased, higher variance).
 
+A subtlety in the LLM setting: as noted above, there is no genuine per-token reward — $r_t = 0$ for every intermediate token, and $r_T = R$ only at the terminal token.<Cite id="ppo-llm-reward">In implementations like TRL/OpenRLHF, the per-token KL penalty against $\pi_{\text{ref}}$ is often folded into $r_t$ as a dense shaping term, which is why you'll see non-zero intermediate $r_t$ in code even though the task reward itself is purely terminal.</Cite> Plugging this into GAE, all the $\delta_t$ for $t < T$ reduce to $\gamma V_\phi(s_{t+1}) - V_\phi(s_t)$, and only $\delta_T$ carries the actual reward signal. The critic $V_\phi$ is doing all the heavy lifting: it learns to predict the eventual outcome from each prefix, and GAE then uses those predictions to spread the terminal reward backward across tokens. This is the real reason PPO needs a well-trained critic in LLM-RL — without it, there is no per-token learning signal at all.
+
 #### Clipped objective
 
 PPO adds a constraint to prevent the policy update from being too large in any single step:
 
-$$\mathcal{L}_{\text{PPO}} = \mathbb{E}_t\!\left[\min\!\Bigl(r_t(\theta)\hat{A}_t,\;\text{clip}\bigl(r_t(\theta), 1{-}\epsilon, 1{+}\epsilon\bigr)\hat{A}_t\Bigr)\right]$$
+$$\mathcal{L}_{\text{PPO}} = -\frac{1}{\sum_i |\tau_i|} \sum_{i=1}^{N} \sum_{t=1}^{|\tau_i|} \min\!\Bigl(r_{i,t}(\theta)\hat{A}_{i,t},\;\text{clip}\bigl(r_{i,t}(\theta), 1{-}\epsilon, 1{+}\epsilon\bigr)\hat{A}_{i,t}\Bigr)$$
 
-where $r_t(\theta) = \frac{\pi_\theta(a_t \mid s_t)}{\pi_{\text{old}}(a_t \mid s_t)}$ is the importance ratio.
+where the sum runs over $N$ rollouts $\tau_i$ in the batch and all tokens within each, and $r_{i,t}(\theta) = \frac{\pi_\theta(a_{i,t} \mid s_{i,t})}{\pi_{\text{old}}(a_{i,t} \mid s_{i,t})}$ is the per-token importance ratio.
 
 **The cost**: PPO requires maintaining and training a critic network that is often the same size as the policy.
 For a 70B-parameter LLM, that is a second 70B model in memory, plus all the optimizer states.

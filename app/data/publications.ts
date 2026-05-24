@@ -22,6 +22,25 @@ export const PUBLICATIONS: Publication[] = [
   // 2026
   {
     year: 2026,
+    title: 'OdysSim: Building Foundation Models for Human Behavior Simulation',
+    authors: ['Xuhui Zhou*', 'Weiwei Sun*', 'Weihua Du', 'Jiarui Liu', 'Haojia Sun', 'Qianou Ma', 'Sherry Tongshuang Wu', 'Yiming Yang', 'Maarten Sap'],
+    venue: 'Under submission, NeurIPS 2026',
+    abbr: 'NeurIPS (under review)',
+    themes: ['Social AI', 'Agents'],
+    representative: true,
+  },
+  {
+    year: 2026,
+    title: 'Reinforcing Human Behavior Simulation via Verbal Feedback',
+    authors: ['Weiwei Sun*', 'Xuhui Zhou*', 'Jiarui Liu', 'Weihua Du', 'Haojia Sun', 'Yiqing Xie', 'Qianou Ma', 'Sihao Chen', 'Mengting Wan', 'Longqi Yang', 'Pei Zhou', 'Sherry Tongshuang Wu', 'Sean Welleck', 'Graham Neubig', 'Yiming Yang', 'Maarten Sap'],
+    venue: 'arXiv preprint',
+    abbr: 'arXiv',
+    url: 'https://arxiv.org/abs/2605.20506',
+    arxiv: 'https://arxiv.org/abs/2605.20506',
+    themes: ['Social AI', 'Agents'],
+  },
+  {
+    year: 2026,
     title: 'Mind the Sim2Real Gap in User Simulation for Agentic Tasks',
     authors: ['Xuhui Zhou', 'Weiwei Sun', 'Qianou Ma', 'Yiqing Xie', 'Jiarui Liu', 'Weihua Du', 'Sean Welleck', 'Yiming Yang', 'Graham Neubig', 'Sherry Tongshuang Wu', 'Maarten Sap'],
     venue: 'arXiv preprint',
