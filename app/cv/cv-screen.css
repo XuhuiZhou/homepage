@@ -1,0 +1,125 @@
+/* Screen styles for CV page — academic CV aesthetic */
+
+@media screen {
+  .cv-root {
+    font-family: 'EB Garamond', Georgia, 'Times New Roman', serif;
+    max-width: 52rem;
+    margin: 0 auto;
+    line-height: 1.5;
+  }
+
+  .cv-root .prose h1 {
+    font-size: 2.25rem;
+    margin: 0 0 0.25rem 0;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+  }
+
+  .cv-root .prose h2 {
+    font-size: 1.15rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    font-weight: 600;
+    border-bottom: 1px solid currentColor;
+    padding-bottom: 0.25rem;
+    margin-top: 1.75rem;
+    margin-bottom: 0.75rem;
+    opacity: 0.85;
+  }
+
+  .cv-root .prose h3 {
+    font-size: 1rem;
+    font-weight: 600;
+    margin-top: 1rem;
+    margin-bottom: 0.4rem;
+    letter-spacing: 0.02em;
+  }
+
+  .cv-root .prose p {
+    margin-top: 0.35rem;
+    margin-bottom: 0.35rem;
+  }
+
+  /* Drop the visual <hr> separators — section borders handle this now */
+  .cv-root .prose hr {
+    display: none;
+  }
+
+  /* Header: name+research on left, contact on right */
+  .cv-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 2rem;
+    margin-top: 1rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .cv-header-left {
+    flex: 1 1 auto;
+  }
+
+  .cv-header-left .cv-last-update {
+    font-style: italic;
+    font-size: 0.875rem;
+    opacity: 0.7;
+    margin-top: 0;
+  }
+
+  .cv-header-right {
+    flex: 0 0 auto;
+    text-align: right;
+    font-size: 0.9rem;
+    line-height: 1.5;
+  }
+
+  .cv-header-right a {
+    text-decoration: none;
+  }
+  .cv-header-right a:hover {
+    text-decoration: underline;
+  }
+
+  /* Right-aligned date entries (Education, Industry, etc.) */
+  .cv-entry {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 1rem;
+    margin: 0.5rem 0;
+  }
+
+  .cv-entry-main {
+    flex: 1 1 auto;
+  }
+
+  .cv-entry-date {
+    flex: 0 0 auto;
+    font-style: italic;
+    opacity: 0.75;
+    white-space: nowrap;
+    font-size: 0.92rem;
+  }
+
+  .cv-entry-sub {
+    font-size: 0.92rem;
+    opacity: 0.85;
+    margin-top: 0.1rem;
+  }
+
+  /* Compact publications: hanging indent + tight leading */
+  .cv-root .cv-pubs h3 {
+    margin-top: 0.9rem;
+    margin-bottom: 0.25rem;
+    font-size: 0.95rem;
+    opacity: 0.75;
+  }
+
+  .cv-root .cv-pubs p {
+    font-size: 0.92rem;
+    line-height: 1.35;
+    margin: 0.3rem 0 !important;
+    padding-left: 1.6rem;
+    text-indent: -1.6rem;
+  }
+}
