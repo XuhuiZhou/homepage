@@ -95,7 +95,7 @@ export default function Personal() {
         {/* Bio Content with Text Wrapping */}
         <div className="space-y-4">
           <p className="text-zinc-600 dark:text-zinc-400">
-            I am a PhD candidate at the{' '}
+            I am a PhD student at the{' '}
             <a
               href="https://www.lti.cs.cmu.edu/"
               target="_blank"
@@ -113,34 +113,7 @@ export default function Personal() {
             >
               Maarten Sap
             </a>
-            , and a 2026{' '}
-            <a
-              href="https://www.microsoft.com/en-us/research/academic-program/microsoft-research-fellowship/fellows/"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="font-medium text-zinc-900 underline decoration-zinc-300 underline-offset-2 dark:text-zinc-50 dark:decoration-zinc-700"
-            >
-              Microsoft Research Fellow
-            </a>
-            . My research focuses on making NLP systems socially intelligent and aligned with human social values. My work has been presented at top-tier NLP and AI conferences, receiving spotlight recognition and runner-up best paper awards, and has been covered by outlets including{' '}
-            <a
-              href="https://www.nytimes.com/2024/07/19/technology/ai-data-restrictions.html"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="font-medium text-zinc-900 underline decoration-zinc-300 underline-offset-2 dark:text-zinc-50 dark:decoration-zinc-700"
-            >
-              The New York Times
-            </a>
-            ,{' '}
-            <a
-              href="https://www.ft.com/content/0876687a-f8b7-4b39-b513-5fee942831e8"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="font-medium text-zinc-900 underline decoration-zinc-300 underline-offset-2 dark:text-zinc-50 dark:decoration-zinc-700"
-            >
-              Financial Times
-            </a>
-            , and The Washington Post.
+            .
           </p>
           <p className="text-zinc-600 dark:text-zinc-400">
             I am interested in socially intelligent AI. More specifically:
