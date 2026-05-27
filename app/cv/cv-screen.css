@@ -122,4 +122,58 @@
     padding-left: 1.6rem;
     text-indent: -1.6rem;
   }
+
+}
+
+/* ============================================================
+   Selected-only mode — applies in BOTH screen and print
+   so saving to PDF respects the toggle state.
+   ============================================================ */
+
+/* Marker spans never render */
+.pub-sel {
+  display: none !important;
+}
+
+/* Hide non-selected pubs and all year headers when toggled */
+.cv-root.selected-only .cv-pubs > p {
+  display: none;
+}
+.cv-root.selected-only .cv-pubs > p:has(.pub-sel) {
+  display: block;
+}
+.cv-root.selected-only .cv-pubs > h3 {
+  display: none;
+}
+
+/* Hide the Service section entirely in trimmed mode */
+.cv-root.selected-only .cv-service {
+  display: none;
+}
+
+/* Renumber visible (selected) pubs 1..N via CSS counter */
+.cv-root.selected-only .cv-pubs {
+  counter-reset: pub;
+}
+.cv-root.selected-only .cv-pubs > p:has(.pub-sel) {
+  counter-increment: pub;
+}
+/* Hide the original "**N.**" bold prefix (first <strong> in <p>) */
+.cv-root.selected-only .cv-pubs > p:has(.pub-sel) > strong:first-child {
+  display: none;
+}
+/* Insert the recount before the title */
+.cv-root.selected-only .cv-pubs > p:has(.pub-sel)::before {
+  content: counter(pub) ". ";
+  font-weight: 700;
+}
+
+/* Toggle wrapper — small margin under last-update line, hidden in print */
+.cv-toggle-wrap {
+  margin-top: 0.4rem;
+}
+@media print {
+  .cv-toggle-wrap {
+    display: none;
+  }
 }

@@ -42,7 +42,7 @@ export const PUBLICATIONS: Publication[] = [
   {
     year: 2026,
     title: 'Mind the Sim2Real Gap in User Simulation for Agentic Tasks',
-    authors: ['Xuhui Zhou', 'Weiwei Sun', 'Qianou Ma', 'Yiqing Xie', 'Jiarui Liu', 'Weihua Du', 'Sean Welleck', 'Yiming Yang', 'Graham Neubig', 'Sherry Tongshuang Wu', 'Maarten Sap'],
+    authors: ['Xuhui Zhou*', 'Weiwei Sun*', 'Qianou Ma', 'Yiqing Xie', 'Jiarui Liu', 'Weihua Du', 'Sean Welleck', 'Yiming Yang', 'Graham Neubig', 'Sherry Tongshuang Wu', 'Maarten Sap'],
     venue: 'arXiv preprint',
     abbr: 'arXiv',
     url: 'https://arxiv.org/abs/2603.11245',
