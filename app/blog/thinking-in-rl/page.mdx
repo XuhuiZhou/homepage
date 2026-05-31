@@ -169,13 +169,9 @@ $$\hat{A}_i = \frac{R_i - \text{mean}(\{R_j\}_{j=1}^G)}{\text{std}(\{R_j\}_{j=1}
 
 No critic. No value network. The group mean is the baseline.
 
-Why is this valid? All $G$ outputs share the same prompt (state) $q$.
-Their average reward $\text{mean}(\{R_j\})$ is a function of the state alone — it doesn't depend on which specific action rollout $i$ took.
-By the zero-gradient property, subtracting it leaves the gradient unbiased.
-And because the group outputs all come from the same $q$, this mean is a direct Monte Carlo estimate of $V^{\pi}(q) = \mathbb{E}_{\tau \sim \pi}[R(\tau) \mid q]$.
-The more samples $G$, the better the estimate.
+Think of it as **grading on a curve**. The $G$ responses are students sitting the same exam $q$, and their mean reward is the class average; the advantage asks the only useful question — *did this response beat its cohort?* — instead of the meaningless *was $0.6$ good in the abstract?* Because that average is shared by the whole group and never looks at which response is rollout $i$, the zero-gradient property says subtracting it keeps the gradient unbiased — it only sharpens the contrast. And the cohort average is itself a sample estimate of the prompt's expected reward $V^{\pi}(q) = \mathbb{E}_{\tau \sim \pi}[R(\tau) \mid q]$, so the group quietly plays the role of PPO's critic — no value network needed, and the bigger $G$ is, the better the estimate.
 
-The normalization by $\text{std}$ ensures the advantage scale is consistent across prompts with wildly different reward distributions — a prompt where all outputs score 0.5±0.01 shouldn't dominate over one where outputs span 0.0–1.0.
+Dividing by std just puts every prompt at the same volume. Otherwise an easy prompt scoring $0.5{\pm}0.01$ whispers while one spanning $0.0$–$1.0$ shouts, and the update only hears the loud one — even though picking the best sibling is just as real a lesson on the quiet prompt.<Cite id="grpo-std">This is pure rescaling, not a correctness fix — which is exactly why PPO has no such term: its trained critic already returns advantages on a calibrated, per-state scale, so there's nothing to re-normalize. The std is also a known wart (it over-weights very low-variance prompts), which is why *Dr. GRPO* drops it.</Cite>
 
 GRPO's clipped objective also adds a token-level KL term against a reference policy $\pi_{\text{ref}}$ to prevent reward hacking:
 
