@@ -35,6 +35,24 @@
     counter-reset: sidenote-counter;
   }
 
+  /* Keep wide content (long display equations, tables) from stretching the
+     page on narrow screens — let it scroll within its own block instead.
+     No effect on desktop, where these fit. */
+  .blog-post .katex-display {
+    max-width: 100%;
+    overflow-x: auto;
+    overflow-y: hidden;
+    padding-bottom: 2px;
+  }
+
+  @media (max-width: 1024px) {
+    .blog-post .prose table {
+      display: block;
+      max-width: 100%;
+      overflow-x: auto;
+    }
+  }
+
   .sidenote-number {
     counter-increment: sidenote-counter;
   }

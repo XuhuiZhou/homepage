@@ -1,0 +1,197 @@
+import { ArcTimeline, ScalarCollapseFunnel, HonestyMeter, ReflexionVsDitto, RootsBraid, DittoMechanism, SoulResultsChart, SoulRadarChart, TeacherStudentGapChart, FeedbackEvolutionCard } from './ChartComponents'
+
+export const metadata = {
+  metadataBase: new URL('https://xuhuizhou.com'),
+  title: 'Learning with Verbal Feedback',
+  description: 'After scores and checkmarks, the next reward is a sentence. An opinionated tour through the arc of feedback in RL for language models — from scalar RLHF and verifiable RLVR to verbal, natural-language feedback — and Ditto, which folds verbal feedback directly into the optimization loop.',
+  date: '2026-05-31',
+  authors: [{ name: 'Xuhui Zhou' }, { name: 'Weiwei Sun' }],
+  openGraph: {
+    title: 'Learning with Verbal Feedback',
+    description: 'After scores and checkmarks, the next reward is a sentence — the arc of feedback in RL for LLMs, from scalar rewards to verbal feedback, culminating in Ditto.',
+    type: 'article',
+    publishedTime: '2026-05-31',
+    authors: ['Xuhui Zhou', 'Weiwei Sun'],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Learning with Verbal Feedback',
+    description: 'After scores and checkmarks, the next reward is a sentence.',
+    creator: '@nlpxuhui',
+  },
+}
+
+# Learning with Verbal Feedback
+
+<div className="not-prose mb-8 border-b border-zinc-200 pb-6">
+  <div className="text-sm text-zinc-500">
+    By Xuhui Zhou and Weiwei Sun · May 31, 2026
+  </div>
+  <div className="mt-1 text-sm italic text-zinc-400">
+    After scores and checkmarks, the next reward is a sentence.
+  </div>
+</div>
+
+Imagine learning tennis from a single number. You serve, you rally, and at the end of each point a coach who has watched silently holds up a card: **0.6**. No "your toss is too low," no "you're late on the backhand" — just a score, point after point, for months. You would eventually improve, because even a number carries *some* gradient. But you would improve absurdly slowly, and you would have no idea what you were doing right or wrong.
+
+This is, more or less, how we train language models with reinforcement learning. And almost everyone agrees it is strange — yet it is the standard recipe. This post is about the slow, ongoing correction of that strangeness: the arc along which the *feedback signal* in RL for language models has been getting more expressive, and where we think it goes next. The short version of our thesis is that the reward is becoming a sentence.
+
+We will end at a specific paper — **Ditto**<Cite id="ditto">[Sun, Zhou, et al., 2026](https://arxiv.org/abs/2605.20506), *Reinforcing Human Behavior Simulation via Verbal Feedback*. Disclosure: this is our own work, so read the framing as a thesis we are arguing for, not a neutral survey. We have tried to be honest about what it does and does not buy you (see the caveats near the end).</Cite>, which folds verbal feedback directly into the RL loop for the messiest domain we know of — simulating human behavior. But Ditto only makes sense as the endpoint of a much longer story, so we will spend most of the post getting there.
+
+<Figure id="arc">
+  <ArcTimeline />
+</Figure>
+
+## Recap: RL as a gradient on a scalar
+
+In the companion post, [Thinking in RL](/blog/thinking-in-rl), we argued that every RL algorithm for language models is, underneath, the same move: estimate the gradient of
+
+$$J(\theta) = \mathbb{E}_{\tau \sim \pi_\theta}\bigl[R(\tau)\bigr]$$
+
+where $R(\tau)$ is a **scalar** reward assigned to a trajectory. PPO, GRPO, REINFORCE, DPO — they differ in how they estimate the advantage and regularize the step, but they all differentiate the same object: the expectation of a number.
+
+This whole post is about that number refusing to stay a number. Read the arc as the story of $R$ slowly acquiring the bandwidth of language — and the algorithms barely changing while it does.
+
+## The scalar era and its bottleneck
+
+The modern recipe begins by deciding, deliberately, that the human teacher should never have to say what they mean. Christiano et al. reduce human teaching to ordinal comparisons between trajectory segments, then fit a single scalar reward to those comparisons.<Cite id="christiano">[Christiano et al., 2017](https://arxiv.org/abs/1706.03741) — deep RL from human preferences. The human only ever clicks "this one is better"; a Bradley-Terry model turns those clicks into a scalar. Asking for a *number* directly is hard and noisy; asking for a *comparison* is easy. That ergonomic insight is the seed of everything that follows.</Cite> Ziegler, Stiennon, and then InstructGPT carry this into language models and make it the industry default.<Cite id="rlhf-lineage">[Ziegler et al., 2019](https://arxiv.org/abs/1909.08593) ported preference-RL to LMs; [Stiennon et al., 2020](https://arxiv.org/abs/2009.01325) showed a learned preference reward beats hand-crafted proxies like ROUGE on summarization; [Ouyang et al., 2022](https://arxiv.org/abs/2203.02155) (InstructGPT) made SFT → reward model → PPO the standard recipe, with a 1.3B model preferred to 175B GPT-3.</Cite>
+
+The defining act of this era is **compression**. Everything a human cares about — is it correct, is it kind, is it the right length, did it dodge the question — gets squeezed into one number so the policy gradient has something scalar to chase. It works astonishingly well. But the bottleneck is real and, by now, formally understood. Casper et al. catalogue how a single scalar reward model cannot represent a population with diverse or multi-objective values;<Cite id="casper">[Casper et al., 2023](https://arxiv.org/abs/2307.15217) — an open-problems survey of RLHF. A scalar reward model is forced to pick *one* tradeoff between competing values for an entire population of users.</Cite> Siththaranjan et al. prove that standard preference learning silently performs a Borda-count vote over hidden context, discarding the disagreement instead of representing it.<Cite id="distshift">[Siththaranjan et al., 2023](https://arxiv.org/abs/2312.08358) — shows standard RLHF implicitly aggregates hidden context as a Borda count, and proposes distributional reward models to recover what the scalar throws away.</Cite>
+
+This is $\mathbb{E}[R(\tau)]$ in its purest, lossiest form: a number that is, by construction, a vote whose ballots we burned.
+
+<Figure id="funnel">
+  <ScalarCollapseFunnel />
+</Figure>
+
+## Two ways the scalar tried to grow
+
+Faced with the bottleneck, the field tried two repairs — both of which kept the reward a number.
+
+**Decompose it.** Instead of one holistic score, train several dimension-specific reward models and hand out dense, segment-level rewards. Wu et al.'s fine-grained RLHF is the clean example;<Cite id="finegrained">[Wu et al., 2023](https://arxiv.org/abs/2306.01693) — *Fine-Grained Human Feedback Gives Better Rewards*: multiple reward models (factuality, relevance, …) and per-segment rewards instead of one number per response.</Cite> process reward models push the same idea down to individual reasoning steps.<Cite id="prm">[Lightman et al., 2023](https://arxiv.org/abs/2305.20050) — *Let's Verify Step by Step*: supervising the process (each step) beats supervising only the outcome, and the released PRM800K made this practical.</Cite> Richer, yes — but still a vector of scalars, still no words.
+
+**Make it honest.** The reasoning era took the opposite tack: stop trying to *learn* a faithful reward and instead pick a domain where the reward can be *checked*. RL with verifiable rewards — DeepSeekMath's GRPO, DeepSeek-R1, Tulu 3 — replaces the hackable reward model with a programmatic correctness check.<Cite id="rlvr">GRPO was introduced in [DeepSeekMath (Shao et al., 2024)](https://arxiv.org/abs/2402.03300) and made central by [DeepSeek-R1 (2025)](https://arxiv.org/abs/2501.12948); [Tulu 3 (Lambert et al., 2024)](https://arxiv.org/abs/2411.15124) named and operationalized "RLVR." The reward is a unit test or an answer-checker — clean, unhackable, and scalar.</Cite> This is the scalar's apotheosis: when correctness is verifiable, the number loses almost nothing, and it works spectacularly.
+
+But "make it honest" only works where honesty is checkable. It draws a boundary the rest of this post lives on the other side of: math and code, where a scalar is honest — and *was this a believable, socially skilled human?*, where it is not.
+
+<Figure id="honesty">
+  <HonestyMeter />
+</Figure>
+
+<Ref fig="honesty" /> is the whole domain argument in one image. In a verifiable task, the scalar and a full verbal critique agree — the number is an honest summary. In a subjective task, the scalar `0.7` sits next to a long, divergent critique, because it has compressed away the very thing being judged. **Verbal feedback helps most exactly where the scalar hides the most.**
+
+## Language sneaks in — and gets escorted back out
+
+Language did find its way into the loop, repeatedly. The pattern is always the same: it enters as a *critique* and leaves as a *number*.
+
+Constitutional AI is the pivotal example.<Cite id="cai">[Bai et al., 2022](https://arxiv.org/abs/2212.08073) — *Constitutional AI*: a natural-language "constitution" drives a self-critique-and-revise step, and the resulting comparisons train a preference model (RLAIF).</Cite> A plain-English principle drives a verbal self-critique-and-revise; the model rewrites its answer to better satisfy the principle. But the language is an *intermediate*: the revised pair is immediately converted into a preference and distilled into a scalar reward model. RLAIF formalizes the AI-feedback substitution and shows it scales;<Cite id="rlaif">[Lee et al., 2023](https://arxiv.org/abs/2309.00267) — AI preference labels match human ones at scale; direct-RLAIF even skips the reward model — but the judgment is still a score.</Cite> Self-Rewarding and Meta-Rewarding push the judge to be the model itself, judging its own outputs and then its own judgments.<Cite id="selfreward">[Yuan et al., 2024](https://arxiv.org/abs/2401.10020) (Self-Rewarding) has the model act as its own LLM-as-judge to generate DPO pairs; [Wu et al., 2024](https://arxiv.org/abs/2407.19594) (Meta-Rewarding) adds a layer where the model critiques its own judgments. Both still collapse the verbal judgment into a preference.</Cite>
+
+Even the reasoning-era verifiers started to *talk* before scoring. Critique-out-Loud reward models and generative verifiers verbalize a critique and then emit a number;<Cite id="genrm">[Ankner et al., 2024](https://arxiv.org/abs/2408.11791) (Critique-out-Loud) and [Zhang et al., 2024](https://arxiv.org/abs/2408.15240) (Generative Verifiers / GenRM) recast reward modeling as next-token prediction — reason in words, then score.</Cite> rubrics-as-rewards replace the binary check with a structured language rubric to push RLVR into fuzzier domains.<Cite id="rubrics">[Gunjal et al., 2025](https://arxiv.org/abs/2507.17746) (Rubrics as Rewards) and [Liu et al., 2025](https://arxiv.org/abs/2510.07743) (OpenRubrics) use instance-specific natural-language rubrics as the reward signal — language structuring the score, to extend RLVR past verifiable tasks.</Cite>
+
+In every one of these, language is allowed in the front door and escorted out the back. The critique does real work, then we throw away the words and keep the number. The obvious question — the one this whole post is circling — is: *what if the words are allowed to stay?*
+
+## The verbal thread, branch one: feedback at inference time
+
+There is a parallel tradition that keeps the feedback in language and never converts it to a reward at all. Its first branch does so at **inference time**, with no weight updates.
+
+Reflexion is the conceptual anchor. It reframes the RL loop itself as verbal: the agent acts, a critic produces a *verbal reflection* on what went wrong, and the "policy update" is simply appending that reflection to an episodic memory the agent reads on its next attempt.<Cite id="reflexion">[Shinn et al., 2023](https://arxiv.org/abs/2303.11366) — *Reflexion: Language Agents with Verbal Reinforcement Learning*. The reflection text *is* the update; it lives in a memory buffer, not the weights.</Cite> Self-Refine strips it to the minimum — one frozen model generates, critiques itself, and revises, no training at all;<Cite id="selfrefine">[Madaan et al., 2023](https://arxiv.org/abs/2303.17651) — *Self-Refine*: iterative self-critique and refinement from a single frozen LLM. The purest "no weight change" instance.</Cite> CRITIC grounds the self-critique in external tools so it is reliable rather than hallucinated.<Cite id="critic">[Gou et al., 2023](https://arxiv.org/abs/2305.11738) — *CRITIC*: the model verifies and corrects itself using tools (search, code execution, a toxicity API), which keeps the verbal feedback honest.</Cite>
+
+These are genuinely powerful, and they prove the point that language is a sufficient learning signal. But the lesson lives in the context window and dies with the episode. The model re-derives "don't make this mistake" every single time it sees a fresh instance; nothing accumulates in the weights. It is learning written entirely in sand.
+
+## The verbal thread, branch two: internalizing feedback into weights
+
+The second branch makes the feedback *stick* by turning it into a gradient.
+
+Chain-of-Hindsight is the earliest clean instance: condition on a (generation, feedback) pair and train next-token prediction on the improved continuation, for feedback of any polarity.<Cite id="coh">[Liu et al., 2023](https://arxiv.org/abs/2302.02676) — *Chain of Hindsight*: turn feedback of any kind into a sequence the model is trained to continue. An ancestor of feedback-as-weight-update.</Cite> The ILF (imitation learning from language feedback) lineage makes it a real RLHF alternative: take a piece of language feedback, sample candidate refinements conditioned on it, keep the best, and fine-tune on it.<Cite id="ilf">[Scheurer et al., 2022](https://arxiv.org/abs/2204.14146) and [2023 (at scale)](https://arxiv.org/abs/2303.16755) — *Training Language Models with Language Feedback*: feedback → refinements → pick the best → fine-tune. [Chen et al., 2023](https://arxiv.org/abs/2303.16749) carried ILF to code with unit-test-filtered refinements (+38% relative on MBPP). This "feedback → improved target → distill it in" is the most direct ancestor of Ditto.</Cite> REFINER trains a generator against a learned critic that emits structured natural-language feedback on each reasoning step.<Cite id="refiner">[Paul et al., 2024](https://arxiv.org/abs/2304.01904) — *REFINER*: an automatic critic produces structured NL feedback during training, not just at inference.</Cite>
+
+What makes this branch principled — rather than a pile of heuristics — is that it sits on three older ideas, which we will see fused in Ditto:
+
+<Figure id="roots">
+  <RootsBraid />
+</Figure>
+
+- **Privileged information.** The feedback is information available to the teacher during training but absent at test time. Learning under privileged information (LUPI) is exactly this asymmetry, and it is known to *speed up* learning, not just enable it.<Cite id="lupi">Vapnik & Vashist's LUPI (2009) and Vapnik & Izmailov (2015) formalize training with extra "intelligent teacher" information $x^*$ that is gone at test time; under the right conditions it improves the learning rate from $O(1/\sqrt{n})$ to $O(1/n)$.</Cite>
+- **Distillation.** Keeping a privileged teacher's competence in an unprivileged student is just distillation, and the two ideas were formally unified as "generalized distillation."<Cite id="distill">[Hinton et al., 2015](https://arxiv.org/abs/1503.02531) (knowledge distillation) and [Lopez-Paz et al., 2016](https://arxiv.org/abs/1511.03643) (*Unifying distillation and privileged information*) — the theoretical bridge that makes "privileged teacher → unprivileged student" a single, legitimate operation.</Cite>
+- **Hindsight relabeling.** Re-running an episode *as if* you had known the right thing all along turns a failure into supervision. Hindsight Experience Replay did this for goals in control; HIR lifted it to instructions for language models.<Cite id="hindsight">[Andrychowicz et al., 2017](https://arxiv.org/abs/1707.01495) (Hindsight Experience Replay) relabels failed trajectories with the goals they *did* achieve; [Zhang et al., 2023](https://arxiv.org/abs/2302.05206) (Hindsight Instruction Relabeling) brings the trick to LLMs. A feedback-conditioned rollout is hindsight in language.</Cite>
+
+Recently the two threads — verbal feedback and the RL loop — have started to merge outright. CTRL and Critique-RL make the *verbal critique itself* the object of RL, optimized for how much it helps a downstream revision;<Cite id="ctrl">[Xie et al., 2025](https://arxiv.org/abs/2502.03492) (CTRL) and [Xi et al., 2025](https://arxiv.org/abs/2510.24320) (Critique-RL) train a critic with RL so its natural-language feedback maximizes the generator's correct revisions.</Cite> Critique-GRPO augments numerical GRPO with natural-language critiques, on the explicit argument that a scalar "cannot convey why a response fails or how to fix it."<Cite id="critiquegrpo">[Zhang et al., 2025](https://arxiv.org/abs/2506.03106) — *Critique-GRPO*: fuses verbal critiques into the GRPO loop alongside numerical rewards.</Cite> And the sharpest statement of the counter-thesis simply abandons the scalar: condition the policy directly on the feedback.<Cite id="fcp">[Luo et al., 2025](https://arxiv.org/abs/2509.22638) — Feedback-Conditional Policy: drop scalar rewards and condition the policy directly on language feedback. A close cousin of where Ditto lands.</Cite>
+
+## Ditto: letting the words stay
+
+Ditto is where this thread becomes load-bearing in the place the scalar fails hardest — **subjective, multi-turn human-behavior simulation** — and where the verbal feedback is finally allowed to stay as the operative training signal.
+
+The setup keeps the policy-gradient machinery from the [GRPO](/blog/thinking-in-rl) era and changes only what the judge returns. For each prompt $x$, a judge returns not a number but a *tuple*: a scalar reward $r$ **and** structured verbal feedback $h$.
+
+<Figure id="mechanism">
+  <DittoMechanism />
+</Figure>
+
+The mechanism, concretely:
+
+1. **Student rollout.** Sample $y_0 \sim \pi_\theta(\cdot \mid x)$ — the unaided attempt — and judge it to get $(r_0, h)$.
+2. **Hindsight teacher rollout.** Condition the *same* policy on the critique: $y_1 \sim \pi_\theta(\cdot \mid x, h)$, and judge it to get $r_1$. Because $y_1$ got to read what was wrong with $y_0$, it is reliably better. This is hindsight relabeling in language.
+3. **Joint GRPO.** Put $\{y_0, y_1\}$ in one group and compute group-relative advantages $\hat{A}_i = (r_i - \mu)/\sigma$, exactly as in [GRPO](/blog/thinking-in-rl). Add an extra term $\mathcal{L}_{\text{fb}}$ that does a second GRPO update on the feedback-conditioned rollouts alone:
+
+$$\mathcal{L}_{\text{Ditto}} = \mathcal{L}_{\text{group}}(\{y_0, y_1\}) + \lambda\,\mathcal{L}_{\text{fb}}(y_1)$$
+
+The feedback-conditioned policy $\pi_\theta(\cdot \mid x, h)$ is an **implicit teacher** whose improved behavior gets distilled, on-policy, into the unconditioned student $\pi_\theta(\cdot \mid x)$.<Cite id="onpolicy">The on-policy distillation framing — student samples its own trajectories, a teacher grades them densely — is the family this sits in (e.g. Thinking Machines' on-policy distillation, 2025). The closest methodological sibling is [Hübotter et al., 2026 (SDPO)](https://arxiv.org/abs/2601.20802), which distills a feedback-conditioned self-teacher into a feedback-free policy for *verifiable* reasoning; Ditto differs by using GRPO group-normalization and, crucially, by targeting *subjective* tasks.</Cite> The critique $h$ is **privileged information**: present during training, gone at test time. By the end, the model behaves like the feedback-conditioned teacher on a fresh prompt in a single forward pass — no judge, no critique, nothing to re-derive. The lesson is in the weights, not in sand.
+
+This is the precise contrast with Reflexion. Same insight — reflect in language, then improve — opposite ontology. Reflexion's update is text in a buffer that evaporates at the end of the episode; Ditto's update is a gradient that persists and transfers.
+
+<Figure id="reflexion-vs-ditto">
+  <ReflexionVsDitto />
+</Figure>
+
+And because the feedback is language, it has headroom a saturating scalar does not. As the policy improves, the critiques get *sharper* — early ones flag blunt failures, later ones target subtle ones — so the feedback-conditioned teacher keeps pulling ahead of the student rather than collapsing into it.
+
+<Figure id="gap">
+  <TeacherStudentGapChart />
+</Figure>
+
+<Figure id="evolution">
+  <FeedbackEvolutionCard />
+</Figure>
+
+## Why this domain, why now
+
+The reason Ditto lives in human-behavior simulation, and not in math, is that human simulation is where the scalar is most dishonest. Simulating a believable user, patient, learner, or persona is judged along many axes that do not reduce to a common currency — and, increasingly, it is something we genuinely rely on. Generative agents are judged on *believability* by human raters;<Cite id="genagents">[Park et al., 2023](https://arxiv.org/abs/2304.03442) (Generative Agents) — memory/reflection/planning agents whose success is "believability," judged by humans, not a checker. [Park et al., 2024](https://arxiv.org/abs/2411.10109) built agents from interviews that replicate individuals' survey responses ~85% as well as the people replicate themselves.</Cite> social agents in SOTOPIA are scored on seven subjective dimensions with free-text rationales;<Cite id="sotopia">[Zhou et al., 2023](https://arxiv.org/abs/2310.11667) (SOTOPIA) — goal-oriented social interaction scored on seven dimensions (believability, relationship, knowledge, secret-keeping, social rules, financial/material benefit, goal). The rationales are inherently verbal. (One of us is an author here — this is the kind of task that motivated the whole line of work.)</Cite> theory-of-mind benchmarks reveal that scalar accuracy can hide *illusory* competence, a right answer for the wrong reason.<Cite id="tom">[Kim et al., 2023](https://arxiv.org/abs/2310.15421) (FANToM) shows interactive, information-asymmetric ToM where high accuracy can mask shallow reasoning — "illusory theory of mind." [Wu et al., 2023](https://arxiv.org/abs/2310.16755) (Hi-ToM) pushes to higher-order recursive beliefs. A scalar cannot tell you the model got it right for the wrong reason; a verbal critique can.</Cite>
+
+To measure this, Ditto introduces **SOUL** (Simulation gym Of hUman-Like behavior): 10 tasks across six categories — Theory of Mind, character role play, social skill, learner simulation, user simulation, and persona simulation. These are deliberately the tasks where a scalar reward is least informative.
+
+<Figure id="results">
+  <SoulResultsChart />
+</Figure>
+
+Trained with Ditto, an 8B model improves an **average of 36%** over the base policy (0.533 → 0.726) and **beats GPT-5.4 on 6 of the 10 tasks**, despite being far smaller. The average is the least interesting number, though — what matters is *where* the gains land.
+
+<Figure id="radar">
+  <SoulRadarChart />
+</Figure>
+
+The blowouts are on **Social Skill** (Sotopia, 0.28 → 0.47) and **User Simulation** (UserLLM, 0.47 → 0.93; MirrorBench, 0.55 → 0.71) — the most interactive, most multi-dimensional tasks on the board. GPT-5.4 still leads on the role-play tasks that lean more on stored knowledge than on moment-to-moment social calibration. That split *is* the thesis: verbal feedback buys almost nothing where the scalar was already honest, and almost everything where it was hiding the most.
+
+## A few honest caveats
+
+We find the arc compelling, but it is worth being clear about what verbal feedback does not buy you.
+
+The feedback here comes from an *LLM judge*, not a human. That puts Ditto in the same family as RLAIF: the policy can only become as nuanced as the critiques it trains on, so the judge's blind spots become the policy's blind spots. It also opens a language-space version of reward hacking — verbosity, sycophancy, gaming the critic's stylistic tells — that we are only beginning to understand.
+
+It is not free, either. Each prompt now needs *two* rollouts — student and feedback-conditioned teacher — so you pay roughly double the generation cost per step. The bet is that the better target is worth more than the extra samples; on SOUL it clearly was, but that is workload-dependent.
+
+And internalization cuts both ways. Because the feedback dimensions get baked into the weights, you cannot cheaply *change your mind* about what you want at test time the way you can by re-prompting a system that reads feedback live (the Reflexion trade, in reverse). If the target moves, you retrain.
+
+Finally, beating GPT-5.4 on SOUL is not the same as being indistinguishable from a person — and the illusory-ToM worry applies to our own model too. The real test of verbal feedback is whether the student internalized the *reasoning* the critique pointed at, or just the *answer*. That is the thing we most want to verify next.
+
+## Coda: R is a sentence now
+
+Return to the gradient we started with, $\nabla_\theta\, \mathbb{E}_{\tau \sim \pi_\theta}[R(\tau)]$. Across the entire arc — RLHF, RLAIF, RLVR, and now verbal feedback — that gradient barely changes. What changes is the thing we put inside the expectation. For a decade it was a scalar, because a scalar is what made the gradient easy. The arc is the field slowly admitting that the native form of human feedback was always language, and engineering its way back to it.
+
+No coach hands an athlete a 0.62. They say *you're late on the backhand.* The interesting frontier in RL for language models is the same correction, finally arriving: the reward has gotten the bandwidth of a sentence.
+
+<Citation
+  author="Xuhui Zhou and Weiwei Sun"
+  title="Learning with Verbal Feedback"
+  year="2026"
+  url="https://xuhuizhou.com/blog/learning-with-verbal-feedback"
+  bibtexKey="zhou2026verbal"
+/>

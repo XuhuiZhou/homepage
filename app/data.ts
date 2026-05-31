@@ -77,6 +77,13 @@ export const WORK_EXPERIENCE: WorkExperience[] = [
 
 export const BLOG_POSTS: BlogPost[] = [
   {
+    title: 'Learning with Verbal Feedback',
+    description: 'After scores and checkmarks, the next reward is a sentence. An opinionated tour through the arc of feedback in RL for LLMs — scalar RLHF, verifiable RLVR, and the rise of verbal feedback — culminating in Ditto.',
+    link: '/blog/learning-with-verbal-feedback',
+    uid: 'blog-4',
+    date: '2026-05-31',
+  },
+  {
     title: 'Thinking in RL',
     description: 'An opinionated tour through the algorithm tree of modern LLM RL — PPO, GRPO, REINFORCE, REINFORCE++, DPO, and the theoretical ideas that tie them together.',
     link: '/blog/thinking-in-rl',
