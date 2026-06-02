@@ -20,8 +20,8 @@ export default function TableOfContents() {
   const [activeId, setActiveId] = useState<string>('')
 
   useEffect(() => {
-    // Extract all h2 and h3 headings from the page
-    const elements = document.querySelectorAll('main h2, main h3')
+    // Extract only top-level (h2) headings — skip the h3 subsections
+    const elements = document.querySelectorAll('main h2')
     const items: TOCItem[] = Array.from(elements).map((element) => {
       const text = element.textContent || ''
       const level = parseInt(element.tagName.charAt(1))
@@ -62,8 +62,8 @@ export default function TableOfContents() {
   if (headings.length === 0) return null
 
   return (
-    <nav className="space-y-1 text-sm">
-      <div className="font-semibold text-zinc-900 mb-3">
+    <nav className="space-y-0.5 text-xs leading-snug">
+      <div className="font-semibold text-zinc-900 mb-3 text-[13px]">
         On this page
       </div>
       {headings.map((heading) => (

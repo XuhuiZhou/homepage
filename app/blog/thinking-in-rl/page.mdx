@@ -213,49 +213,6 @@ where $B$ is the full batch of *diverse* prompts (not the same prompt $G$ times,
 The KL term at the token level penalizes the policy for drifting from the reference model token-by-token, not just at the sequence level.
 This is a finer-grained constraint that helps prevent the policy from collapsing onto degenerate solutions.
 
-### The Theoretical Justification: Why Any Baseline Works
-
-I claimed above that subtracting a state-dependent baseline leaves the gradient unbiased. Let me prove this carefully.
-
-**Theorem (Zero-Gradient Property):** For any function $b(s)$ that depends only on the state $s$ and not on the action $a$:
-
-$$\mathbb{E}_{a \sim \pi_\theta(\cdot \mid s)}\!\left[\nabla_\theta \log \pi_\theta(a \mid s) \cdot b(s)\right] = 0$$
-
-**Proof.** Since $b(s)$ does not depend on $a$, it factors out:
-
-$$b(s) \cdot \mathbb{E}_{a \sim \pi_\theta}\!\left[\nabla_\theta \log \pi_\theta(a \mid s)\right] = b(s) \cdot \mathbb{E}_{a \sim \pi_\theta}\!\left[\frac{\nabla_\theta \pi_\theta(a \mid s)}{\pi_\theta(a \mid s)}\right]$$
-
-$$= b(s) \cdot \nabla_\theta \sum_a \pi_\theta(a \mid s) = b(s) \cdot \nabla_\theta\, 1 = 0 \qquad \square$$
-
-This means we can subtract *any* state-dependent $b(s)$ from the reward without changing the gradient in expectation.
-The baseline only affects **variance**, never bias.
-The question is just: which baseline minimizes variance?
-
-It can be shown that the **optimal baseline** (the one that minimizes gradient variance) is approximately:
-
-$$b^*(s) \approx V^{\pi}(s) = \mathbb{E}_{\tau \sim \pi}[R(\tau) \mid s]$$
-
-This is exactly the state value function.
-The closer your baseline is to $V^{\pi}(s)$, the more variance you reduce.
-
-Now we can see how the four methods rank:
-
-**PPO** trains an explicit critic to estimate $V^{\pi}(s)$. In the limit of a well-trained critic, this is the optimal baseline. Best variance reduction, highest cost.
-
-**GRPO** uses the group mean $\frac{1}{G}\sum_{j=1}^G R_j$ as a Monte Carlo estimate of $V^{\pi}(s)$ — using the *same prompt*, so this is genuinely state-dependent. As $G \to \infty$, this converges to $V^{\pi}(s)$. Very good in practice for $G = 4$–$16$.
-
-**REINFORCE++** uses the batch mean $\frac{1}{B}\sum_{j=1}^B R_j$ across *different prompts*.
-This is technically not a function of the state — it mixes rewards from different states.
-The justification is that in expectation over batches, $\text{mean}(R_{\text{batch}}) \to \mathbb{E}[R]$, which is a constant (and constants are trivially state-independent baselines that satisfy the zero-gradient property).
-The approximation is tight when the batch is large and reward distributions are similar across prompts.
-
-**REINFORCE** uses $b = 0$.
-Zero is a valid constant baseline, but it provides no variance reduction at all.
-Every trajectory, regardless of how unremarkable it is, gets a positive gradient push.
-
-The hierarchy is: PPO ≥ GRPO ≥ REINFORCE++ ≥ REINFORCE in terms of variance reduction.
-But the memory cost goes in the opposite direction.
-
 ### Putting It All Together
 
 Here is a summary of what each algorithm requires and what it achieves:
@@ -444,12 +401,12 @@ None of these are active in the standard RLHF or GRPO loop. That's why post-RL p
 
 Pulling all four together:
 
-| Branch | Target | Divergence | Gradient flow |
-|:---|:---|:---|:---|
-| **SFT** | The data | Forward KL | Direct on demos |
-| **Online PG** | Reward-shaped, anchored to ref policy | Reverse KL + reward max | Score-function on rollouts |
-| **Preference Opt** | Closed-form RL optimum | Supervised log-likelihood | Direct on preference pairs |
-| **Self-Training** | Reward-filtered self-samples | Forward KL | Iterated SFT on the filter |
+| Branch | Target | Divergence | Gradient flow | Mode behavior |
+|:---|:---|:---|:---|:---|
+| **SFT** | The data | Forward KL | Direct on demos | Mode-covering |
+| **Online PG** | Reward-shaped, anchored to ref policy | Reverse KL + reward max | Score-function on rollouts | Mode-seeking |
+| **Preference Opt** | Closed-form RL optimum | Supervised log-likelihood | Direct on preference pairs | Mode-seeking (fits the reverse-KL optimum) |
+| **Self-Training** | Reward-filtered self-samples | Forward KL | Iterated SFT on the filter | Mode-seeking (covers within the reward filter) |
 
 The branches answer *which of the two questions am I willing to pay for?*
 
@@ -466,76 +423,6 @@ That's why "SFT vs RL" is the wrong axis.
 The right axis is: *how much work are you willing to do to construct the target distribution, and what divergence are you willing to compute against it?*
 Everything else — the critic, the clip, the KL coefficient, the preference labelers, the rejection filter — is engineering in service of those two choices.
 
-## What's outside the tree
-
-The three branches above cover where the gradient flows, but several practical pieces of the pipeline sit alongside the tree rather than inside it. They're orthogonal to the algorithm choice — you can mix and match.
-
-### Reward modeling
-
-Online PG and DPO both assume a reward function $r(x, y)$ they can query.
-For verifiable tasks (math, code), $r$ is just a correctness check.
-For everything else — helpfulness, safety, style — $r$ has to be *learned*.
-
-The standard recipe: fit a Bradley-Terry reward model on human preference pairs.
-Take a frozen LLM, swap the language-modeling head for a scalar head, train it to score the preferred response higher than the rejected one.
-The resulting $r_\psi(x, y)$ becomes the reward used in PPO/GRPO rollouts.
-
-DPO's clever move, in retrospect, is that it skips this step entirely.
-The preferences *are* the reward signal; the policy and the implicit reward model collapse into one object — the trained policy $\pi_\theta$ itself.
-
-### Process reward models (PRMs)
-
-Outcome-level rewards say nothing about *which* token in a long reasoning chain mattered.
-PRMs are auxiliary models trained to score *partial* trajectories — given a prefix of reasoning, predict whether the chain will arrive at the correct answer.
-
-In training, the PRM gives per-step rewards rather than just a final outcome.
-This sharpens credit assignment: instead of pushing the same outcome signal back through every token, you can attribute gradient to the steps the PRM actually scored highly.
-Most recent reasoning recipes use PRMs in some form — either at training time, or at decoding time for best-of-$N$ sampling.<Cite id="prm">[Lightman et al., 2023](https://arxiv.org/abs/2305.20050) — the *Let's Verify Step by Step* paper, which introduced the now-standard process-reward setup for math reasoning.</Cite>
-
-### RLAIF
-
-*RL from AI feedback* — replace the human labelers with a strong LLM, and use it to label preference pairs or score rollouts.<Cite id="rlaif">[Lee et al., 2023](https://arxiv.org/abs/2309.00267) — the RLAIF paper, showing comparable downstream quality to RLHF on summarization and helpfulness.</Cite>
-Cheap and scalable, but the AI labeler's biases become the trained policy's biases.
-
-The practical compromise is hybrid: a small amount of human data to calibrate the AI judge, then a much larger amount of AI labels for scale.
-Most production preference-optimization pipelines today are some flavor of this.
-
-### Offline RL proper
-
-RL on a fixed, pre-collected dataset with no further exploration.
-Classical methods (CQL, IQL, BCQ) add conservatism penalties so the policy doesn't extrapolate into unsupported actions.
-
-For LLMs, this niche has mostly been eaten by DPO and its variants — the closed-form RL optimum *is* what offline RL was trying to approximate, and DPO gets there directly from preference pairs without the conservatism machinery.
-Pure offline RL on language data still shows up occasionally, but the preference-optimization branch is doing most of the work.
-
----
-
-These pieces are orthogonal to the algorithm tree.
-You can run PPO with a learned reward model, a PRM for per-step signal, and RLAIF labels for scale.
-You can run GRPO with verifiable rewards and no reward model at all.
-You can do DPO on RLAIF-generated pairs.
-The tree tells you how the gradient flows. This list tells you where the reward comes from.
-
-## A note on RL's shrinking domain
-
-One thing worth saying out loud before closing.
-
-For the last decade, the pitch for deep RL was: some behaviors are too complex to write by hand, but you can learn them with gradient descent on a policy network.
-That argument made sense when "by hand" meant a human at a keyboard.
-It looks different now.
-
-A recent example: Codex iterated a closed-loop NumPy + OpenCV policy that plays VizDoom — a canonical pixels-in deep-RL benchmark — without training any neural network. A few hundred lines of Python image processing, edited a dozen times by the model in response to game outcomes. No PPO, no replay buffer, no reward shaping, no GPU.<Cite id="codex-vizdoom">[Jerry Tworek](https://x.com/millionint/status/2053310486335324620) quote-tweeting Jiayi Weng's VizDoom experiment, May 2026. Jerry called this "mostly a bearish take on RL," which is roughly right.</Cite>
-
-If an LLM can write the policy as code and improve it through edit loops, then "write the policy by hand" no longer means "a *human* writing the policy by hand."
-The set of problems where RL is the right tool is shrinking from this angle: pixel-in/action-out games, low-dimensional control, anything where a competent coder could plausibly construct the controller.
-
-What's left in RL's stronghold is exactly the domain this post is about.
-No one is going to write a chatbot's policy as a Python program.
-The action space (vocab × context) and the surface (everything from arithmetic to safety to empathy) put LLM policies several orders of magnitude past what code generation can substitute for.
-The reason RL stays load-bearing for frontier LLM training is precisely that the policy is too high-dimensional to be code-generated — which is the same property that made RL necessary in the first place.
-
-So the framing for everything above: this is the part of RL's domain that's still load-bearing. The pixel-game benchmarks may end up solved another way.
-
 ## Closing Thoughts
 
 All four algorithms are fundamentally solving the same problem: estimate the gradient of $J(\theta) = \mathbb{E}[R(\tau)]$.
@@ -547,6 +434,27 @@ REINFORCE++'s insight — that even a batch-level constant helps, and token-leve
 
 It's a reminder that deep theory and practical engineering are not always in tension.
 Sometimes, the right theoretical framing reveals that a simple heuristic is actually doing exactly the right thing.
+
+There's a larger sense in which the entire tree is one idea.
+Every branch picks a target distribution and minimizes a divergence to it: SFT to the data, Self-Training to its reward-filtered samples, Preference Optimization to the closed-form $\pi^*$.
+Even Online PG — the branch that looks like it *maximizes reward* rather than matching a distribution — is doing the same thing.
+The KL-regularized objective is, up to a constant, a divergence to the very same $\pi^*(y \mid x) \propto \pi_{\text{ref}}(y \mid x)\,\exp\!\big(\tfrac{1}{\beta} r(x, y)\big)$ we derived for DPO:
+
+$$\underbrace{\mathbb{E}_{y \sim \pi}\big[r(x, y)\big] - \beta\, D_{KL}\big(\pi \,\|\, \pi_{\text{ref}}\big)}_{\text{reward, KL-anchored}} \;=\; \underbrace{-\beta\, D_{KL}\big(\pi \,\|\, \pi^*\big)}_{\text{divergence to the target}} \;+\; \text{const}$$
+
+Maximizing reward *is* minimizing reverse KL to a target.
+The reward doesn't replace the target distribution — it *defines* it, tilting the reference policy by $\exp(r/\beta)$, with $\beta$ the temperature of the tilt: small $\beta$ concentrates $\pi^*$ on high reward, large $\beta$ leaves it near $\pi_{\text{ref}}$.
+
+That turns "SFT vs RL" from a question of philosophy into a question of *access*: do you have samples from your target, or only a way to score samples?
+Demonstrations are samples from the target, so forward KL is computable directly — that's SFT.
+A reward is only a scorer; you can't draw from the target, so the best you can do is sample your own policy and reweight by reward, which is reverse KL on rollouts — that's RL.
+The divergence direction isn't chosen for its mode-seeking or mode-covering flavor; it's forced by what you can sample, and the mode behavior follows.
+
+Ground the reward and the picture sharpens.
+For a verifiable task — $r = 1$ when the answer checks out, $0$ otherwise — the target $\pi^*$ in the $\beta \to 0$ limit is just the base model conditioned on being correct, which is exactly what rejection-sampling self-training fits.
+For a learned safety reward scoring refusals on harmful prompts, $\pi^*$ is the base policy tilted toward refusal — and there you *want* the collapse reverse KL gives.
+The reward says where the target sits; the divergence says whether you spread across it or collapse onto it.
+Which is the whole post in one line: the gradient of $J(\theta)$ walks the policy toward a target distribution the reward quietly defines.
 
 <Citation
   author="Xuhui Zhou"
