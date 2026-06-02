@@ -425,36 +425,50 @@ Everything else — the critic, the clip, the KL coefficient, the preference lab
 
 ## Closing Thoughts
 
-All four algorithms are fundamentally solving the same problem: estimate the gradient of $J(\theta) = \mathbb{E}[R(\tau)]$.
+All four categories of algorithms are fundamentally solving the same problem: estimate the gradient of $J(\theta) = \mathbb{E}[R(\tau)]$.
 What separates them is *how carefully* they estimate the advantage, and at what cost.
 
 The elegant thing about the zero-gradient property is that it gives enormous freedom in choosing the baseline.
-GRPO's insight — that the mean reward of a group of same-prompt rollouts is a cheap, unbiased estimate of $V^{\pi}$ — is both theoretically sound and practically efficient.
-REINFORCE++'s insight — that even a batch-level constant helps, and token-level KL tightens the constraint where it matters — is the kind of simple engineering that turns out to work surprisingly well.
+GRPO: the mean reward of a group of same-prompt rollouts is a cheap, unbiased estimate of $V^{\pi}$
+REINFORCE++': a batch-level constant helps, and token-level KL tightens the constraint where it matters
 
-It's a reminder that deep theory and practical engineering are not always in tension.
+You see! deep theory and practical engineering are not always in tension.
 Sometimes, the right theoretical framing reveals that a simple heuristic is actually doing exactly the right thing.
 
-There's a larger sense in which the entire tree is one idea.
+If we stand a bit higher!
 Every branch picks a target distribution and minimizes a divergence to it: SFT to the data, Self-Training to its reward-filtered samples, Preference Optimization to the closed-form $\pi^*$.
-Even Online PG — the branch that looks like it *maximizes reward* rather than matching a distribution — is doing the same thing.
+Even Online PG, the branch that looks like it *maximizes reward* rather than matching a distribution, could be interpreted as doing the same thing.
 The KL-regularized objective is, up to a constant, a divergence to the very same $\pi^*(y \mid x) \propto \pi_{\text{ref}}(y \mid x)\,\exp\!\big(\tfrac{1}{\beta} r(x, y)\big)$ we derived for DPO:
 
 $$\underbrace{\mathbb{E}_{y \sim \pi}\big[r(x, y)\big] - \beta\, D_{KL}\big(\pi \,\|\, \pi_{\text{ref}}\big)}_{\text{reward, KL-anchored}} \;=\; \underbrace{-\beta\, D_{KL}\big(\pi \,\|\, \pi^*\big)}_{\text{divergence to the target}} \;+\; \text{const}$$
 
 Maximizing reward *is* minimizing reverse KL to a target.
-The reward doesn't replace the target distribution — it *defines* it, tilting the reference policy by $\exp(r/\beta)$, with $\beta$ the temperature of the tilt: small $\beta$ concentrates $\pi^*$ on high reward, large $\beta$ leaves it near $\pi_{\text{ref}}$.
+The reward here somehow *defines/shapes* the target distribution of the policy, pushing the reference policy by $\exp(r/\beta)$, with $\beta$ the temperature of the tilt: small $\beta$ concentrates $\pi^*$ on high reward, large $\beta$ leaves it near $\pi_{\text{ref}}$.
 
 That turns "SFT vs RL" from a question of philosophy into a question of *access*: do you have samples from your target, or only a way to score samples?
-Demonstrations are samples from the target, so forward KL is computable directly — that's SFT.
-A reward is only a scorer; you can't draw from the target, so the best you can do is sample your own policy and reweight by reward, which is reverse KL on rollouts — that's RL.
+Demonstrations are samples from the target, so forward KL is computable directly, aka SFT.
+A reward is only a scorer; you can't draw from the target, so the best you can do is sample your own policy and reweight by reward, which is reverse KL on rollouts, aka RL.
 The divergence direction isn't chosen for its mode-seeking or mode-covering flavor; it's forced by what you can sample, and the mode behavior follows.
 
-Ground the reward and the picture sharpens.
-For a verifiable task — $r = 1$ when the answer checks out, $0$ otherwise — the target $\pi^*$ in the $\beta \to 0$ limit is just the base model conditioned on being correct, which is exactly what rejection-sampling self-training fits.
-For a learned safety reward scoring refusals on harmful prompts, $\pi^*$ is the base policy tilted toward refusal — and there you *want* the collapse reverse KL gives.
-The reward says where the target sits; the divergence says whether you spread across it or collapse onto it.
+Ground this in two tasks that pull in opposite directions.
+
+Take a verifiable task: $r = 1$ when the answer checks out, $0$ otherwise. The tilt $\exp(r/\beta)$ multiplies correct answers by $\exp(1/\beta)$ and wrong ones by $\exp(0) = 1$, so as $\beta \to 0$ it blows up on the correct answers while the wrong ones wash out under the normalizer. What's left is the *base model's own distribution, restricted to correct answers*. This is exactly what you get by sampling from $\pi_{\text{ref}}$ and throwing the failures away. The cold-temperature reward optimum is literally rejection sampling, which is why filtered self-training fits the same target.
+
+A learned safety reward is the soft version of the same move: it scores refusals on harmful prompts highly, so the tilt piles $\pi^*$'s mass onto refusal-shaped responses. But this task has essentially *one* acceptable behavior: refuse, and you want it every single time, not a diverse spread of ways to handle a jailbreak. So here you actually *want* the policy to collapse onto that one mode, which is exactly the mode-seeking reverse-KL RL gives you. The diversity loss that looks like RL's weakness is the feature.
+
+Same machinery, opposite wishes: math has many correct answers and you'd rather keep them all; safety has basically one right behavior and you'd rather lock onto it. The reward says *where* the target sits; the divergence says whether you fan out across it or collapse onto it.
+
 Which is the whole post in one line: the gradient of $J(\theta)$ walks the policy toward a target distribution the reward quietly defines.
+
+There's one last lens that makes the same point from underneath. A policy assigns a probability $\pi(y \mid x)$, and any probability is a code: the string $y$ can be written in $-\log \pi(y \mid x)$ bits. Forward KL to the data is then just the *excess* bits the model spends describing it, $D_{KL}(p_{\text{data}} \,\|\, \pi) = \mathbb{E}_{\text{data}}[-\log \pi] - H(p_{\text{data}})$, so SFT is nothing but *make the model the shortest description of the data your function class can express*. That's the Minimum Description Length principle (yeah, Kolmogorov complexity), and it's why the same objective that trains a language model also makes it a state-of-the-art compressor.<Cite id="ilya-compression">[Ilya Sutskever, *An Observation on Generalization*](https://www.youtube.com/watch?v=AKMuA_TVz3A) — Simons Institute, Aug 2023. Argues that unsupervised learning works because fitting the data well *is* compressing it, with the explicit link to Kolmogorov complexity.</Cite><Cite id="lm-compression">[Delétang et al., 2023](https://arxiv.org/abs/2309.10668) — *Language Modeling Is Compression*. Log-loss is bits-per-byte, and large language models turn out to be strong general-purpose compressors.</Cite>
+
+The reward branch is the same statement, re-priced. Read the optimum $\pi^*$ in bits:
+
+$$-\log \pi^*(y \mid x) = -\log \pi_{\text{ref}}(y \mid x) - \tfrac{1}{\beta}\, r(x, y) + \log Z(x)$$
+
+The codelength under the optimal policy is the prior's codelength minus reward (in nats) over $\beta$. Reward literally buys shorter codes, and $\beta$ is the exchange rate between bits and reward. The anchor $\beta \cdot D_{KL}(\pi \,\|\, \pi_{\text{ref}})$ is the price, in bits, of moving off the prior. So pretraining pays the enormous compression cost of describing the corpus, and RL pays only a small, KL-bounded surcharge to re-rank what already lives in $\pi_{\text{ref}}$'s support. 
+
+Which is maybe the most compact way to hold the whole tree in your head: every method is searching for the shortest code for its target, and reward is just a discount on the codelength of the outcomes you want to see.
 
 <Citation
   author="Xuhui Zhou"
