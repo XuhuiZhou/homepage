@@ -77,6 +77,14 @@ export const WORK_EXPERIENCE: WorkExperience[] = [
 
 export const BLOG_POSTS: BlogPost[] = [
   {
+    title: 'Frontier Model Benchmark Matrix',
+    description:
+      'A source-audited comparison of public benchmark results for GPT-5.6, Claude 5, Muse Spark 1.1, and Grok 4.5.',
+    link: '/benchmarks/frontier-models',
+    uid: 'benchmark-1',
+    date: '2026-07-09',
+  },
+  {
     title: 'Thinking in RL',
     description: 'An opinionated tour through the algorithm tree of modern LLM RL — PPO, GRPO, REINFORCE, REINFORCE++, DPO, and the theoretical ideas that tie them together.',
     link: '/blog/thinking-in-rl',

@@ -24,6 +24,7 @@ export default function RootLayout({
 }>) {
   const pathname = usePathname()
   const isBlogPage = pathname?.startsWith('/blog')
+  const isBenchmarkPage = pathname?.startsWith('/benchmarks')
 
   return (
     <html lang="en" suppressHydrationWarning>
@@ -37,7 +38,7 @@ export default function RootLayout({
           defaultTheme="system"
         >
           <div className="flex min-h-screen w-full flex-col font-[family-name:var(--font-inter-tight)]">
-            {isBlogPage ? (
+            {isBlogPage || isBenchmarkPage ? (
               <>{children}</>
             ) : (
               <div className="relative mx-auto w-full max-w-screen-sm flex-1 px-4 pt-20">
