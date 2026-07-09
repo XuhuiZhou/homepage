@@ -5,6 +5,10 @@ export type NewsItem = {
 
 export const NEWS_ITEMS: NewsItem[] = [
   {
+    date: '2026-07-08',
+    content: 'Excited that five papers were accepted to <a href="https://colmweb.org/" target="_blank" rel="noopener noreferrer" class="font-medium text-zinc-900 underline decoration-zinc-300 underline-offset-2 dark:text-zinc-50 dark:decoration-zinc-700">COLM 2026</a>: <a href="https://arxiv.org/abs/2603.11245" target="_blank" rel="noopener noreferrer" class="font-medium text-zinc-900 underline decoration-zinc-300 underline-offset-2 dark:text-zinc-50 dark:decoration-zinc-700">Mind the Sim2Real Gap in User Simulation for Agentic Tasks</a>, <a href="https://arxiv.org/abs/2605.02307" target="_blank" rel="noopener noreferrer" class="font-medium text-zinc-900 underline decoration-zinc-300 underline-offset-2 dark:text-zinc-50 dark:decoration-zinc-700">SOTOPIA-TOM</a>, <a href="https://arxiv.org/abs/2509.00559" target="_blank" rel="noopener noreferrer" class="font-medium text-zinc-900 underline decoration-zinc-300 underline-offset-2 dark:text-zinc-50 dark:decoration-zinc-700">Social World Models</a>, <a href="https://arxiv.org/abs/2604.11924" target="_blank" rel="noopener noreferrer" class="font-medium text-zinc-900 underline decoration-zinc-300 underline-offset-2 dark:text-zinc-50 dark:decoration-zinc-700">GoodPoint</a>, and <a href="https://arxiv.org/abs/2511.02208" target="_blank" rel="noopener noreferrer" class="font-medium text-zinc-900 underline decoration-zinc-300 underline-offset-2 dark:text-zinc-50 dark:decoration-zinc-700">Training Proactive and Personalized LLM Agents</a>.',
+  },
+  {
     date: '2026-04-18',
     content: 'Gave a talk on "User-Effective AI Agents" at <a href="https://scale.com/" target="_blank" rel="noopener noreferrer" class="font-medium text-zinc-900 underline decoration-zinc-300 underline-offset-2 dark:text-zinc-50 dark:decoration-zinc-700">Scale AI</a>. <a href="/user-effective-agents.html" target="_blank" rel="noopener noreferrer" class="font-medium text-zinc-900 underline decoration-zinc-300 underline-offset-2 dark:text-zinc-50 dark:decoration-zinc-700">[Slides]</a>',
   },

@@ -1,6 +1,7 @@
 'use client'
 import { motion } from 'motion/react'
 import { NEWS_ITEMS } from '../data/news'
+import { formatDateOnly } from '@/lib/utils'
 
 const VARIANTS_CONTAINER = {
   hidden: { opacity: 0 },
@@ -39,11 +40,7 @@ export default function News() {
               {NEWS_ITEMS.map((item, index) => (
                 <tr key={index} className="group">
                   <td className="py-4 pr-6 text-sm text-zinc-500 dark:text-zinc-400 whitespace-nowrap align-top">
-                    {new Date(item.date).toLocaleDateString('en-US', {
-                      month: 'short',
-                      day: 'numeric',
-                      year: 'numeric',
-                    })}
+                    {formatDateOnly(item.date)}
                   </td>
                   <td
                     className="py-4 text-sm text-zinc-600 dark:text-zinc-400"
