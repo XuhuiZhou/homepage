@@ -10,10 +10,11 @@ import {
 import { BenchmarkLifecycle } from './BenchmarkLifecycle'
 import { SafetyCoverage } from './SafetyCoverage'
 
-const PAGE_URL = 'https://xuhui-homepage.vercel.app/benchmarks/frontier-models'
+const SITE_URL = 'https://xuhuiz.com'
+const PAGE_URL = `${SITE_URL}/benchmarks/frontier-models`
 
 export const metadata: Metadata = {
-  metadataBase: new URL('https://xuhui-homepage.vercel.app'),
+  metadataBase: new URL(SITE_URL),
   title: 'Frontier Model Benchmark Matrix | Xuhui Zhou',
   description:
     'An audited capability matrix, safety-evaluation map, and interactive history of benchmark reporting across current frontier model families.',
