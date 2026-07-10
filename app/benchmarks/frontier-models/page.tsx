@@ -186,11 +186,13 @@ export default function FrontierModelsPage() {
         <div className="mt-4 grid gap-5 text-sm leading-relaxed text-zinc-600 md:grid-cols-3 dark:text-zinc-400">
           <p>
             <strong className="font-medium text-zinc-900 dark:text-zinc-100">
-              Reporting choices shape the picture.
+              Labs are measuring different things.
             </strong>{' '}
-            Across 18 releases, 70 of 143 capability benchmarks appear only
-            once. Safety is even more fragmented: 71 of 80 rows appear in one
-            current report.
+            Across 18 releases, OpenAI reported 74 distinct capability editions,
+            Anthropic 72, Meta 34, and xAI 23. Of 143 editions, 105 appeared in
+            only one lab&apos;s reports; just 6 appeared across all four. Safety is
+            even less aligned: 71 of 80 rows appear in only one current release
+            bundle, and Grok 4.5 reports none.
           </p>
           <p>
             <strong className="font-medium text-zinc-900 dark:text-zinc-100">
