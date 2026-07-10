@@ -116,6 +116,18 @@ export default function Personal() {
             </a>
             .
           </p>
+          <p className="border-l-2 border-zinc-300 pl-4 text-zinc-700 dark:border-zinc-700 dark:text-zinc-300">
+            I was selected as a{' '}
+            <a
+              href="https://www.microsoft.com/en-us/research/academic-program/microsoft-research-fellowship/fellows/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="font-semibold text-zinc-950 underline decoration-zinc-400 underline-offset-2 dark:text-zinc-50 dark:decoration-zinc-600"
+            >
+              2026 Microsoft Research Fellow
+            </a>
+            .
+          </p>
           <p className="text-zinc-600 dark:text-zinc-400">
             I am interested in socially intelligent AI. More specifically:
           </p>
