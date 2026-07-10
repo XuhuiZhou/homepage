@@ -204,14 +204,14 @@ export default function FrontierModelsPage() {
               Current reports use different benchmark portfolios.
             </strong>{' '}
             Of {CURRENT_BENCHMARK_ROWS.length} capability rows in the current
-            matrix, {CURRENT_SINGLE_REPORT_ROWS} have a public numeric result
-            from one release and {CURRENT_SHARED_ROWS} from at least two; only{' '}
-            {CURRENT_ALL_REPORT_ROWS} appear in all four. This measures
-            reporting overlap, not model quality: more reported benchmark
-            results do not imply a better model. Safety reporting is also
-            fragmented: 71 of 80 normalized rows appear in one current release
-            bundle, and an unreported result does not prove the test was not
-            run.
+            matrix, {CURRENT_SINGLE_REPORT_ROWS} are unique to one current
+            release&apos;s public report and {CURRENT_SHARED_ROWS} are shared
+            across at least two; only {CURRENT_ALL_REPORT_ROWS} appear in all
+            four. This measures reporting overlap, not model quality: more
+            reported benchmark results do not imply a better model. Safety
+            reporting is also fragmented: 71 of 80 normalized rows appear in one
+            current release bundle, and an unreported result does not prove the
+            test was not run.
           </p>
           <p>
             <strong className="font-medium text-zinc-900 dark:text-zinc-100">
@@ -253,8 +253,8 @@ export default function FrontierModelsPage() {
         <dl className="mb-6 grid grid-cols-2 border-y border-zinc-200 sm:grid-cols-4 dark:border-zinc-800">
           {[
             [CURRENT_BENCHMARK_ROWS.length, 'Benchmark rows'],
-            [CURRENT_SINGLE_REPORT_ROWS, 'One release report'],
-            [CURRENT_SHARED_ROWS, 'Two or more reports'],
+            [CURRENT_SINGLE_REPORT_ROWS, 'Unique to one release'],
+            [CURRENT_SHARED_ROWS, 'Shared across 2+ releases'],
             [CURRENT_ALL_REPORT_ROWS, 'All four reports'],
           ].map(([value, label], index) => (
             <div

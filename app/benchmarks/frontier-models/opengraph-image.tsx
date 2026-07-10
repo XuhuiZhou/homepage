@@ -103,8 +103,8 @@ export default function Image() {
                 lineHeight: 1.2,
               }}
             >
-              {SINGLE_REPORT_ROWS} of {CURRENT_ROWS.length} benchmark rows have
-              a public numeric result from one current release.
+              {SINGLE_REPORT_ROWS} of {CURRENT_ROWS.length} benchmark rows are
+              unique to one current release&apos;s public report.
             </div>
 
             <div
@@ -209,7 +209,7 @@ export default function Image() {
                     backgroundColor: '#f0cf63',
                   }}
                 />
-                {SINGLE_REPORT_ROWS} in one release
+                {SINGLE_REPORT_ROWS} unique to one release
               </div>
               <div style={{ display: 'flex', alignItems: 'center' }}>
                 <div
@@ -221,7 +221,7 @@ export default function Image() {
                     backgroundColor: '#6eafe8',
                   }}
                 />
-                {SHARED_ROWS} in 2+ releases
+                {SHARED_ROWS} shared across 2+ releases
               </div>
             </div>
 
