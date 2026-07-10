@@ -13,7 +13,12 @@ export const alt =
 export const size = { width: 1200, height: 630 }
 export const contentType = 'image/png'
 
-const LAB_COLORS = ['#7c3aed', '#ea580c', '#2563eb', '#18181b']
+const CURRENT_RELEASES = [
+  { name: 'GPT-5.6', variant: 'Sol', color: '#7c3aed' },
+  { name: 'Claude 5', variant: 'Mythos / Fable', color: '#ea580c' },
+  { name: 'Muse Spark', variant: '1.1', color: '#2563eb' },
+  { name: 'Grok', variant: '4.5', color: '#18181b' },
+]
 
 function reportingNonRetention(releases: ReleaseReport[]) {
   let previousBenchmarkCount = 0
@@ -37,7 +42,25 @@ function reportingNonRetention(releases: ReleaseReport[]) {
   return Math.round((droppedBenchmarkCount / previousBenchmarkCount) * 100)
 }
 
+function singleLabEditionCount(releases: ReleaseReport[]) {
+  const labsByBenchmark = new Map<string, Set<ReleaseReport['lab']>>(
+    BENCHMARK_FAMILIES.map((benchmark) => [
+      benchmark.id,
+      new Set<ReleaseReport['lab']>(),
+    ]),
+  )
+
+  for (const release of releases) {
+    for (const benchmarkId of Object.keys(release.benchmarks)) {
+      labsByBenchmark.get(benchmarkId)?.add(release.lab)
+    }
+  }
+
+  return [...labsByBenchmark.values()].filter((labs) => labs.size === 1).length
+}
+
 const NON_RETENTION_RATE = reportingNonRetention(RELEASE_REPORTS)
+const SINGLE_LAB_EDITIONS = singleLabEditionCount(RELEASE_REPORTS)
 
 export default function Image() {
   return new ImageResponse(
@@ -50,18 +73,18 @@ export default function Image() {
           flexDirection: 'column',
           backgroundColor: '#ffffff',
           color: '#18181b',
-          padding: '56px 68px',
+          padding: '48px 68px',
           fontFamily: 'Arial, sans-serif',
         }}
       >
         <div style={{ display: 'flex', width: '100%', height: 8 }}>
-          {LAB_COLORS.map((color) => (
+          {CURRENT_RELEASES.map((release) => (
             <div
-              key={color}
+              key={release.name}
               style={{
                 display: 'flex',
                 width: '25%',
-                backgroundColor: color,
+                backgroundColor: release.color,
               }}
             />
           ))}
@@ -87,13 +110,13 @@ export default function Image() {
           style={{
             display: 'flex',
             flexDirection: 'column',
-            marginTop: 38,
+            marginTop: 28,
           }}
         >
           <div
             style={{
               display: 'flex',
-              fontSize: 64,
+              fontSize: 58,
               lineHeight: 1.04,
               fontWeight: 700,
             }}
@@ -103,23 +126,53 @@ export default function Image() {
           <div
             style={{
               display: 'flex',
-              maxWidth: 970,
-              marginTop: 18,
-              fontSize: 27,
+              maxWidth: 1020,
+              marginTop: 13,
+              fontSize: 25,
               lineHeight: 1.35,
               color: '#52525b',
             }}
           >
-            Capability scores, safety reporting, and how benchmark choices
-            change from one model release to the next.
+            Current results, safety reporting, and one year of benchmark
+            turnover.
           </div>
+        </div>
+
+        <div style={{ display: 'flex', width: '100%', gap: 12, marginTop: 24 }}>
+          {CURRENT_RELEASES.map((release) => (
+            <div
+              key={release.name}
+              style={{
+                display: 'flex',
+                width: '25%',
+                flexDirection: 'column',
+                borderTop: `5px solid ${release.color}`,
+                backgroundColor: '#fafafa',
+                padding: '10px 14px 11px',
+              }}
+            >
+              <div style={{ display: 'flex', fontSize: 20, fontWeight: 700 }}>
+                {release.name}
+              </div>
+              <div
+                style={{
+                  display: 'flex',
+                  marginTop: 4,
+                  fontSize: 15,
+                  color: '#71717a',
+                }}
+              >
+                {release.variant}
+              </div>
+            </div>
+          ))}
         </div>
 
         <div
           style={{
             display: 'flex',
             width: '100%',
-            minHeight: 166,
+            minHeight: 132,
             marginTop: 'auto',
             backgroundColor: '#f4f4f5',
             borderTop: '1px solid #d4d4d8',
@@ -131,67 +184,66 @@ export default function Image() {
               display: 'flex',
               width: '44%',
               alignItems: 'center',
-              gap: 22,
-              padding: '26px 30px',
+              padding: '20px 26px',
             }}
           >
             <div
               style={{
                 display: 'flex',
-                width: 160,
+                width: 200,
                 flexShrink: 0,
-                fontSize: 64,
+                fontSize: 52,
                 lineHeight: 1,
                 fontWeight: 700,
               }}
             >
+              {SINGLE_LAB_EDITIONS}/{BENCHMARK_FAMILIES.length}
+            </div>
+            <div
+              style={{
+                display: 'flex',
+                width: 190,
+                flexDirection: 'column',
+                gap: 6,
+                marginLeft: 18,
+                fontSize: 19,
+                lineHeight: 1.2,
+              }}
+            >
+              <div style={{ display: 'flex', fontWeight: 700 }}>
+                reported by only one lab
+              </div>
+              <div
+                style={{ display: 'flex', fontSize: 16, color: '#71717a' }}
+              >
+                at the exact-edition level
+              </div>
+            </div>
+          </div>
+
+          <div
+            style={{
+              display: 'flex',
+              width: '28%',
+              flexDirection: 'column',
+              justifyContent: 'center',
+              borderLeft: '1px solid #d4d4d8',
+              padding: '20px 26px',
+            }}
+          >
+            <div style={{ display: 'flex', fontSize: 44, fontWeight: 700 }}>
               {NON_RETENTION_RATE}%
             </div>
             <div
               style={{
                 display: 'flex',
-                width: 205,
-                flexDirection: 'column',
-                gap: 7,
-                marginLeft: 22,
-                fontSize: 20,
-                lineHeight: 1.2,
-              }}
-            >
-              <div style={{ display: 'flex', fontWeight: 700 }}>
-                not carried forward
-              </div>
-              <div
-                style={{ display: 'flex', fontSize: 18, color: '#71717a' }}
-              >
-                to the next public report
-              </div>
-            </div>
-          </div>
-
-          <div
-            style={{
-              display: 'flex',
-              width: '28%',
-              flexDirection: 'column',
-              justifyContent: 'center',
-              borderLeft: '1px solid #d4d4d8',
-              padding: '26px 30px',
-            }}
-          >
-            <div style={{ display: 'flex', fontSize: 48, fontWeight: 700 }}>
-              {BENCHMARK_FAMILIES.length}
-            </div>
-            <div
-              style={{
-                display: 'flex',
                 marginTop: 5,
-                fontSize: 19,
+                fontSize: 17,
                 lineHeight: 1.25,
                 color: '#71717a',
               }}
             >
-              capability benchmark editions
+              not carried into the next public report
             </div>
           </div>
 
@@ -202,17 +254,17 @@ export default function Image() {
               flexDirection: 'column',
               justifyContent: 'center',
               borderLeft: '1px solid #d4d4d8',
-              padding: '26px 30px',
+              padding: '20px 26px',
             }}
           >
-            <div style={{ display: 'flex', fontSize: 48, fontWeight: 700 }}>
+            <div style={{ display: 'flex', fontSize: 44, fontWeight: 700 }}>
               {SAFETY_EVALUATIONS.length}
             </div>
             <div
               style={{
                 display: 'flex',
                 marginTop: 5,
-                fontSize: 19,
+                fontSize: 17,
                 lineHeight: 1.25,
                 color: '#71717a',
               }}
