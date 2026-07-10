@@ -1,9 +1,16 @@
 import { ImageResponse } from 'next/og'
 import { ALL_GROUPS, MODEL_KEYS, MODEL_LABELS, type ModelKey } from './data'
+import {
+  BENCHMARK_FAMILIES,
+  LABS,
+  RELEASE_REPORTS,
+  type BenchmarkCategory,
+} from './history-data'
+import { SAFETY_EVALUATIONS } from './safety-data'
 
 export const runtime = 'edge'
 export const alt =
-  'Current frontier release benchmark matrix: reporting coverage is not model quality'
+  'Three findings from frontier model benchmark reporting: overlap, new evaluation areas, and reporting rotation'
 export const size = { width: 1200, height: 630 }
 export const contentType = 'image/png'
 
@@ -18,9 +25,68 @@ const CURRENT_ROWS = ALL_GROUPS.flatMap((group) => group.rows)
 const SINGLE_REPORT_ROWS = CURRENT_ROWS.filter(
   (row) => MODEL_KEYS.filter((model) => row[model] !== 'NR').length === 1,
 ).length
-const SHARED_ROWS = CURRENT_ROWS.length - SINGLE_REPORT_ROWS
 const SINGLE_REPORT_PERCENT = Math.round(
   (SINGLE_REPORT_ROWS / CURRENT_ROWS.length) * 100,
+)
+const ONE_REPORT_SAFETY_ROWS = SAFETY_EVALUATIONS.filter(
+  (evaluation) => Object.keys(evaluation.coverage).length === 1,
+).length
+
+const CATEGORY_BY_BENCHMARK = new Map(
+  BENCHMARK_FAMILIES.map((benchmark) => [benchmark.id, benchmark.category]),
+)
+const ADDITION_COUNTS = new Map<BenchmarkCategory, number>()
+let transitionCount = 0
+let previousBenchmarkCount = 0
+let retainedBenchmarkCount = 0
+
+for (const lab of LABS) {
+  const releases = RELEASE_REPORTS.filter(
+    (release) => release.lab === lab.id,
+  ).sort((a, b) => a.date.localeCompare(b.date))
+
+  for (let index = 1; index < releases.length; index += 1) {
+    const previousIds = new Set(Object.keys(releases[index - 1].benchmarks))
+    const currentIds = new Set(Object.keys(releases[index].benchmarks))
+    transitionCount += 1
+    previousBenchmarkCount += previousIds.size
+    retainedBenchmarkCount += [...previousIds].filter((benchmarkId) =>
+      currentIds.has(benchmarkId),
+    ).length
+
+    for (const benchmarkId of currentIds) {
+      if (previousIds.has(benchmarkId)) continue
+      const category = CATEGORY_BY_BENCHMARK.get(
+        benchmarkId as (typeof BENCHMARK_FAMILIES)[number]['id'],
+      )
+      if (!category) continue
+      ADDITION_COUNTS.set(category, (ADDITION_COUNTS.get(category) ?? 0) + 1)
+    }
+  }
+}
+
+const RETENTION_PERCENT = Math.round(
+  (retainedBenchmarkCount / previousBenchmarkCount) * 100,
+)
+const NON_RETENTION_PERCENT = 100 - RETENTION_PERCENT
+const ADDITION_CATEGORIES: Array<{
+  category: BenchmarkCategory
+  label: string
+  color: string
+}> = [
+  { category: 'Coding', label: 'Coding', color: '#a78bfa' },
+  { category: 'Agents + tools', label: 'Agents + tools', color: '#60a5fa' },
+  { category: 'Professional', label: 'Professional', color: '#f0b94d' },
+  {
+    category: 'Science + health',
+    label: 'Science + health',
+    color: '#4bc49a',
+  },
+]
+const MAX_ADDITION_COUNT = Math.max(
+  ...ADDITION_CATEGORIES.map(
+    ({ category }) => ADDITION_COUNTS.get(category) ?? 0,
+  ),
 )
 
 export default function Image() {
@@ -34,7 +100,7 @@ export default function Image() {
           flexDirection: 'column',
           backgroundColor: '#151515',
           color: '#f7f7f5',
-          padding: '38px 56px 32px',
+          padding: '32px 52px 27px',
           fontFamily: 'Arial, sans-serif',
         }}
       >
@@ -43,16 +109,48 @@ export default function Image() {
             display: 'flex',
             width: '100%',
             justifyContent: 'space-between',
-            alignItems: 'center',
-            fontSize: 16,
-            fontWeight: 700,
+            alignItems: 'flex-start',
           }}
         >
-          <div style={{ display: 'flex', color: '#b8dcff' }}>
-            FRONTIER MODEL BENCHMARK AUDIT
+          <div style={{ display: 'flex', flexDirection: 'column' }}>
+            <div
+              style={{
+                display: 'flex',
+                fontSize: 15,
+                fontWeight: 700,
+                color: '#b8dcff',
+              }}
+            >
+              FRONTIER MODEL BENCHMARK AUDIT
+            </div>
+            <div
+              style={{
+                display: 'flex',
+                marginTop: 5,
+                fontSize: 29,
+                fontWeight: 700,
+              }}
+            >
+              Three findings from public release reporting
+            </div>
           </div>
-          <div style={{ display: 'flex', color: '#a3a3a3', fontWeight: 400 }}>
-            Xuhui Zhou · audited July 9, 2026
+          <div
+            style={{
+              display: 'flex',
+              maxWidth: 390,
+              flexDirection: 'column',
+              alignItems: 'flex-end',
+              fontSize: 14,
+              lineHeight: 1.3,
+              color: '#a3a3a3',
+            }}
+          >
+            <div style={{ display: 'flex' }}>
+              Current matrix + July 2025-July 2026 history
+            </div>
+            <div style={{ display: 'flex', marginTop: 4, color: '#d4d4d4' }}>
+              Reporting coverage is not model quality.
+            </div>
           </div>
         </div>
 
@@ -61,119 +159,75 @@ export default function Image() {
             display: 'flex',
             width: '100%',
             flex: 1,
-            marginTop: 25,
+            marginTop: 24,
+            borderTop: '1px solid #555555',
+            borderBottom: '1px solid #555555',
           }}
         >
           <div
             style={{
               display: 'flex',
-              width: '54%',
+              width: '33.333%',
               flexDirection: 'column',
-              borderRight: '1px solid #555555',
-              paddingRight: 48,
+              padding: '18px 24px 17px 0',
             }}
           >
             <div
               style={{
                 display: 'flex',
-                fontSize: 17,
+                fontSize: 13,
                 fontWeight: 700,
-                color: '#b8dcff',
+                color: '#f0cf63',
               }}
             >
-              CURRENT RELEASE BENCHMARK MATRIX
+              01 / CURRENT REPORTS
             </div>
             <div
               style={{
                 display: 'flex',
-                marginTop: 17,
-                fontSize: 118,
-                lineHeight: 0.9,
-                fontWeight: 800,
+                marginTop: 8,
+                fontSize: 23,
+                lineHeight: 1.1,
+                fontWeight: 700,
               }}
             >
-              {SINGLE_REPORT_PERCENT}%
+              Reporting choices shape the story.
             </div>
             <div
-              style={{
-                display: 'flex',
-                maxWidth: 535,
-                marginTop: 17,
-                fontSize: 28,
-                lineHeight: 1.2,
-              }}
+              style={{ display: 'flex', alignItems: 'flex-end', marginTop: 9 }}
             >
-              {SINGLE_REPORT_ROWS} of {CURRENT_ROWS.length} benchmark rows are
-              unique to one current release&apos;s public report.
-            </div>
-
-            <div
-              style={{
-                display: 'flex',
-                flexDirection: 'column',
-                marginTop: 'auto',
-                borderTop: '1px solid #555555',
-                paddingTop: 14,
-              }}
-            >
-              <div style={{ display: 'flex', fontSize: 18, fontWeight: 700 }}>
-                Reporting coverage is not model quality.
-              </div>
               <div
                 style={{
                   display: 'flex',
-                  marginTop: 5,
-                  fontSize: 15,
-                  lineHeight: 1.3,
-                  color: '#b7b7b3',
-                }}
-              >
-                More public benchmark results do not imply a better model.
-              </div>
-            </div>
-          </div>
-
-          <div
-            style={{
-              display: 'flex',
-              width: '46%',
-              flexDirection: 'column',
-              paddingLeft: 44,
-            }}
-          >
-            <div style={{ display: 'flex', alignItems: 'flex-end' }}>
-              <div
-                style={{
-                  display: 'flex',
-                  fontSize: 90,
-                  lineHeight: 0.85,
+                  fontSize: 67,
+                  lineHeight: 0.9,
                   fontWeight: 800,
                 }}
               >
-                {CURRENT_ROWS.length}
+                {SINGLE_REPORT_PERCENT}%
               </div>
               <div
                 style={{
                   display: 'flex',
-                  width: 190,
-                  marginLeft: 18,
+                  width: 180,
+                  marginLeft: 13,
                   paddingBottom: 2,
-                  fontSize: 17,
+                  fontSize: 14,
                   lineHeight: 1.2,
                   color: '#c9c9c5',
                 }}
               >
-                capability benchmark rows in the current matrix
+                {SINGLE_REPORT_ROWS} of {CURRENT_ROWS.length} capability rows
+                are unique to one current release
               </div>
             </div>
-
             <div
               style={{
                 display: 'flex',
-                width: 349,
+                width: 233,
                 flexWrap: 'wrap',
-                gap: 8,
-                marginTop: 27,
+                gap: 5,
+                marginTop: 14,
               }}
             >
               {CURRENT_ROWS.map((row, index) => (
@@ -181,59 +235,254 @@ export default function Image() {
                   key={`${row.benchmark}-${index}`}
                   style={{
                     display: 'flex',
-                    width: 13,
-                    height: 13,
+                    width: 9,
+                    height: 9,
                     backgroundColor:
                       index < SINGLE_REPORT_ROWS ? '#f0cf63' : '#6eafe8',
                   }}
                 />
               ))}
             </div>
-
-            <div
-              style={{
-                display: 'flex',
-                marginTop: 20,
-                gap: 24,
-                fontSize: 14,
-                color: '#c9c9c5',
-              }}
-            >
-              <div style={{ display: 'flex', alignItems: 'center' }}>
-                <div
-                  style={{
-                    display: 'flex',
-                    width: 12,
-                    height: 12,
-                    marginRight: 8,
-                    backgroundColor: '#f0cf63',
-                  }}
-                />
-                {SINGLE_REPORT_ROWS} unique to one release
-              </div>
-              <div style={{ display: 'flex', alignItems: 'center' }}>
-                <div
-                  style={{
-                    display: 'flex',
-                    width: 12,
-                    height: 12,
-                    marginRight: 8,
-                    backgroundColor: '#6eafe8',
-                  }}
-                />
-                {SHARED_ROWS} shared across 2+ releases
-              </div>
-            </div>
-
             <div
               style={{
                 display: 'flex',
                 marginTop: 'auto',
-                fontSize: 14,
-                color: '#929292',
+                borderTop: '1px solid #4b4b4b',
+                paddingTop: 10,
+                alignItems: 'baseline',
               }}
             >
-              NR = no public numeric result found in the audited source
+              <div style={{ display: 'flex', fontSize: 24, fontWeight: 700 }}>
+                {ONE_REPORT_SAFETY_ROWS}/80
+              </div>
+              <div
+                style={{
+                  display: 'flex',
+                  marginLeft: 10,
+                  fontSize: 13,
+                  color: '#b7b7b3',
+                }}
+              >
+                safety rows appear once
+              </div>
+            </div>
+          </div>
+
+          <div
+            style={{
+              display: 'flex',
+              width: '33.333%',
+              flexDirection: 'column',
+              borderLeft: '1px solid #555555',
+              padding: '18px 24px 17px',
+            }}
+          >
+            <div
+              style={{
+                display: 'flex',
+                fontSize: 13,
+                fontWeight: 700,
+                color: '#60a5fa',
+              }}
+            >
+              02 / NEW REPORT ADDITIONS
+            </div>
+            <div
+              style={{
+                display: 'flex',
+                marginTop: 8,
+                fontSize: 23,
+                lineHeight: 1.1,
+                fontWeight: 700,
+              }}
+            >
+              Evaluation is moving toward real work.
+            </div>
+            <div
+              style={{
+                display: 'flex',
+                flexDirection: 'column',
+                marginTop: 18,
+              }}
+            >
+              {ADDITION_CATEGORIES.map(({ category, label, color }) => {
+                const count = ADDITION_COUNTS.get(category) ?? 0
+                return (
+                  <div
+                    key={category}
+                    style={{
+                      display: 'flex',
+                      flexDirection: 'column',
+                      marginBottom: 11,
+                    }}
+                  >
+                    <div
+                      style={{
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        fontSize: 13,
+                        color: '#d4d4d4',
+                      }}
+                    >
+                      <div style={{ display: 'flex' }}>{label}</div>
+                      <div style={{ display: 'flex', fontWeight: 700 }}>
+                        {count}
+                      </div>
+                    </div>
+                    <div
+                      style={{
+                        display: 'flex',
+                        width: '100%',
+                        height: 6,
+                        marginTop: 5,
+                        backgroundColor: '#333333',
+                      }}
+                    >
+                      <div
+                        style={{
+                          display: 'flex',
+                          width: `${(count / MAX_ADDITION_COUNT) * 100}%`,
+                          height: '100%',
+                          backgroundColor: color,
+                        }}
+                      />
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+            <div
+              style={{
+                display: 'flex',
+                marginTop: 'auto',
+                flexDirection: 'column',
+                borderTop: '1px solid #4b4b4b',
+                paddingTop: 9,
+                fontSize: 12,
+                lineHeight: 1.3,
+                color: '#a3a3a3',
+              }}
+            >
+              <div style={{ display: 'flex' }}>
+                Added-report events across {transitionCount} same-lab
+                transitions
+              </div>
+              <div style={{ display: 'flex', marginTop: 3 }}>
+                Reasoning follows at {ADDITION_COUNTS.get('Reasoning') ?? 0}
+              </div>
+            </div>
+          </div>
+
+          <div
+            style={{
+              display: 'flex',
+              width: '33.333%',
+              flexDirection: 'column',
+              borderLeft: '1px solid #555555',
+              padding: '18px 0 17px 24px',
+            }}
+          >
+            <div
+              style={{
+                display: 'flex',
+                fontSize: 13,
+                fontWeight: 700,
+                color: '#d98aa2',
+              }}
+            >
+              03 / REPORTING ROTATION
+            </div>
+            <div
+              style={{
+                display: 'flex',
+                marginTop: 8,
+                fontSize: 23,
+                lineHeight: 1.1,
+                fontWeight: 700,
+              }}
+            >
+              Benchmark portfolios turn over quickly.
+            </div>
+            <div
+              style={{
+                display: 'flex',
+                marginTop: 15,
+                fontSize: 84,
+                lineHeight: 0.9,
+                fontWeight: 800,
+              }}
+            >
+              {RETENTION_PERCENT}%
+            </div>
+            <div
+              style={{
+                display: 'flex',
+                marginTop: 8,
+                maxWidth: 285,
+                fontSize: 16,
+                lineHeight: 1.25,
+                color: '#c9c9c5',
+              }}
+            >
+              of previously reported editions reappear in the next public report
+            </div>
+            <div
+              style={{
+                display: 'flex',
+                width: '100%',
+                height: 16,
+                marginTop: 20,
+              }}
+            >
+              <div
+                style={{
+                  display: 'flex',
+                  width: `${RETENTION_PERCENT}%`,
+                  height: '100%',
+                  backgroundColor: '#6eafe8',
+                }}
+              />
+              <div
+                style={{
+                  display: 'flex',
+                  width: `${NON_RETENTION_PERCENT}%`,
+                  height: '100%',
+                  backgroundColor: '#c66f89',
+                }}
+              />
+            </div>
+            <div
+              style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                marginTop: 7,
+                fontSize: 12,
+                color: '#b7b7b3',
+              }}
+            >
+              <div style={{ display: 'flex' }}>carried forward</div>
+              <div style={{ display: 'flex' }}>
+                {NON_RETENTION_PERCENT}% not carried forward
+              </div>
+            </div>
+            <div
+              style={{
+                display: 'flex',
+                marginTop: 'auto',
+                flexDirection: 'column',
+                borderTop: '1px solid #4b4b4b',
+                paddingTop: 9,
+                fontSize: 12,
+                lineHeight: 1.3,
+                color: '#a3a3a3',
+              }}
+            >
+              <div style={{ display: 'flex' }}>
+                Across {transitionCount} same-lab release transitions
+              </div>
+              <div style={{ display: 'flex', marginTop: 3 }}>
+                Absence from a later report does not prove retirement
+              </div>
             </div>
           </div>
         </div>
@@ -242,9 +491,7 @@ export default function Image() {
           style={{
             display: 'flex',
             width: '100%',
-            marginTop: 22,
-            borderTop: '1px solid #555555',
-            paddingTop: 15,
+            marginTop: 18,
           }}
         >
           {MODEL_KEYS.map((model, index) => (
@@ -256,17 +503,17 @@ export default function Image() {
                 flexDirection: 'column',
                 borderTop: `5px solid ${MODEL_COLORS[model]}`,
                 marginLeft: index === 0 ? 0 : 18,
-                paddingTop: 8,
+                paddingTop: 7,
               }}
             >
-              <div style={{ display: 'flex', fontSize: 18, fontWeight: 700 }}>
+              <div style={{ display: 'flex', fontSize: 17, fontWeight: 700 }}>
                 {MODEL_LABELS[model].name}
               </div>
               <div
                 style={{
                   display: 'flex',
-                  marginTop: 3,
-                  fontSize: 13,
+                  marginTop: 2,
+                  fontSize: 12,
                   color: '#a3a3a3',
                 }}
               >
