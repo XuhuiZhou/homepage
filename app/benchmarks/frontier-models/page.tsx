@@ -177,10 +177,11 @@ export default function FrontierModelsPage() {
         <div className="mt-4 grid gap-5 text-sm leading-relaxed text-zinc-600 md:grid-cols-3 dark:text-zinc-400">
           <p>
             <strong className="font-medium text-zinc-900 dark:text-zinc-100">
-              Benchmark choice is part of the story.
+              Reporting choices shape the picture.
             </strong>{' '}
-            Across 18 release bundles and 143 benchmark editions, labs report
-            visibly different mixes, and 70 editions appear in only one report.
+            Across 18 releases, 70 of 143 capability editions appear only once.
+            Safety is even more fragmented: 71 of 80 rows appear in one current
+            report; the Grok 4.5 launch bundle reports no safety results.
           </p>
           <p>
             <strong className="font-medium text-zinc-900 dark:text-zinc-100">
@@ -191,10 +192,12 @@ export default function FrontierModelsPage() {
           </p>
           <p>
             <strong className="font-medium text-zinc-900 dark:text-zinc-100">
-              Safety reporting is even less standardized.
+              A benchmark is a projection, not the model.
             </strong>{' '}
-            Of 80 normalized safety rows, 71 appear in one current report; the
-            Grok 4.5 launch bundle reports none.
+            A score compresses behavior into one test space and invites Goodhart
+            effects. Real-use quality, including how capable, reliable, useful,
+            and pleasant a model feels, matters at least as much as leaderboard
+            rank.
           </p>
         </div>
       </section>
