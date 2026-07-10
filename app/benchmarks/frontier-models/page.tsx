@@ -201,17 +201,14 @@ export default function FrontierModelsPage() {
         <div className="mt-4 grid gap-5 text-sm leading-relaxed text-zinc-600 md:grid-cols-3 dark:text-zinc-400">
           <p>
             <strong className="font-medium text-zinc-900 dark:text-zinc-100">
-              Current reports use different benchmark portfolios.
+              Reporting choices shape the story:
             </strong>{' '}
-            Of {CURRENT_BENCHMARK_ROWS.length} capability rows in the current
-            matrix, {CURRENT_SINGLE_REPORT_ROWS} are unique to one current
-            release&apos;s public report and {CURRENT_SHARED_ROWS} are shared
-            across at least two; only {CURRENT_ALL_REPORT_ROWS} appear in all
-            four. This measures reporting overlap, not model quality: more
-            reported benchmark results do not imply a better model. Safety
-            reporting is also fragmented: 71 of 80 normalized rows appear in one
-            current release bundle, and an unreported result does not prove the
-            test was not run.
+            For {CURRENT_BENCHMARK_ROWS.length} capability benchmark rows in the
+            current matrix, {CURRENT_SINGLE_REPORT_ROWS} are unique;{' '}
+            {CURRENT_SHARED_ROWS} are from two models +; only{' '}
+            {CURRENT_ALL_REPORT_ROWS} appear in all four. Safety reporting is
+            even more fragmented: 71 of 80 normalized rows appear once in the
+            current four releases.
           </p>
           <p>
             <strong className="font-medium text-zinc-900 dark:text-zinc-100">
