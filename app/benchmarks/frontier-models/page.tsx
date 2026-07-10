@@ -7,6 +7,7 @@ import {
   type BenchmarkGroup,
   type ModelKey,
 } from './data'
+import { BenchmarkLifecycle } from './BenchmarkLifecycle'
 
 const PAGE_URL = 'https://xuhui-homepage.vercel.app/benchmarks/frontier-models'
 
@@ -14,12 +15,12 @@ export const metadata: Metadata = {
   metadataBase: new URL('https://xuhui-homepage.vercel.app'),
   title: 'Frontier Model Benchmark Matrix | Xuhui Zhou',
   description:
-    'An audited matrix of public capability benchmark results for GPT-5.6 Sol, Claude Mythos and Fable 5, Muse Spark 1.1, and Grok 4.5.',
+    'An audited benchmark matrix for current frontier models, plus an interactive history of benchmark reporting, retention, and retirement across 18 model releases.',
   alternates: { canonical: PAGE_URL },
   openGraph: {
     title: 'Frontier Model Benchmark Matrix',
     description:
-      '68 public capability benchmark rows across GPT-5.6, Claude 5, Muse Spark 1.1, and Grok 4.5.',
+      '68 current benchmark rows plus an interactive reporting lifecycle across 18 frontier model releases.',
     type: 'article',
     url: PAGE_URL,
   },
@@ -27,7 +28,7 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     title: 'Frontier Model Benchmark Matrix',
     description:
-      '68 public capability benchmark rows across GPT-5.6, Claude 5, Muse Spark 1.1, and Grok 4.5.',
+      '68 current benchmark rows plus an interactive reporting lifecycle across 18 frontier model releases.',
     creator: '@nlpxuhui',
   },
 }
@@ -147,11 +148,26 @@ export default function FrontierModelsPage() {
         <p className="mt-3 max-w-4xl text-base text-zinc-600 dark:text-zinc-400">
           Public numeric capability results for GPT-5.6 Sol, Claude Mythos and
           Fable 5, Muse Spark 1.1, and Grok 4.5. NR means no public numeric
-          result was found in the audited sources.
+          result was found in the audited sources. The release history below
+          tracks when benchmark families enter, persist, disappear, or return.
         </p>
+        <nav
+          className="mt-5 flex flex-wrap gap-x-5 gap-y-2 text-sm"
+          aria-label="Page sections"
+        >
+          <a className="underline underline-offset-4" href="#current-matrix">
+            Current matrix
+          </a>
+          <a className="underline underline-offset-4" href="#lifecycle">
+            Reporting lifecycle
+          </a>
+        </nav>
       </header>
 
-      <div className="grid items-start gap-6 xl:grid-cols-2">
+      <div
+        id="current-matrix"
+        className="grid scroll-mt-6 items-start gap-6 xl:grid-cols-2"
+      >
         <BenchmarkTable
           groups={LEFT_GROUPS}
           label="Professional, agent, coding, and AI self-improvement benchmarks"
@@ -162,12 +178,14 @@ export default function FrontierModelsPage() {
         />
       </div>
 
+      <BenchmarkLifecycle />
+
       <footer className="mt-8 border-t border-zinc-200 pt-5 text-sm text-zinc-500 dark:border-zinc-800 dark:text-zinc-400">
         <div className="grid gap-4 lg:grid-cols-[1fr_auto]">
           <p>
             Tint marks the best directly comparable score. * indicates a
-            different setup, metric, or leaderboard snapshot. M/F denotes
-            Claude Mythos/Fable; U denotes GPT-5.6 Sol Ultra.
+            different setup, metric, or leaderboard snapshot. M/F denotes Claude
+            Mythos/Fable; U denotes GPT-5.6 Sol Ultra.
           </p>
           <div className="flex flex-wrap gap-x-4 gap-y-2 lg:justify-end">
             <a
@@ -208,9 +226,9 @@ export default function FrontierModelsPage() {
           <strong className="font-medium text-zinc-700 dark:text-zinc-300">
             Transparency note:
           </strong>{' '}
-          This matrix was created with assistance from AI agents and checked
-          against the linked first-party sources. Mistakes may remain. If you
-          spot one, please{' '}
+          This matrix and lifecycle audit were created with assistance from AI
+          agents and checked against the linked first-party sources. Mistakes
+          may remain. If you spot one, please{' '}
           <a
             className="underline underline-offset-4"
             href="mailto:xuhuiz@cs.cmu.edu?subject=Frontier%20benchmark%20matrix%20correction"
