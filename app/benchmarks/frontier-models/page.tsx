@@ -151,6 +151,15 @@ export default function FrontierModelsPage() {
           Fable 5, Muse Spark 1.1, and Grok 4.5. NR means no public numeric
           result was found in the audited sources.
         </p>
+        <p className="mt-3 max-w-4xl text-base text-zinc-600 dark:text-zinc-400">
+          A benchmark is only one projection of model behavior. Increasingly, a
+          compelling real-world demo, such as watching a model build a game, can
+          feel more persuasive than another leaderboard point because people
+          care whether a model is capable, reliable, and pleasant to work with.
+          That instinct is a useful response to Goodhart&apos;s law, but science
+          needs more than vibes: the challenge is to turn those real-use
+          qualities into repeatable evaluations.
+        </p>
         <nav
           className="mt-5 flex flex-wrap gap-x-5 gap-y-2 text-sm"
           aria-label="Page sections"
@@ -192,11 +201,12 @@ export default function FrontierModelsPage() {
           </p>
           <p>
             <strong className="font-medium text-zinc-900 dark:text-zinc-100">
-              A benchmark is a narrow projection of model behavior.
+              Benchmark reporting turns over quickly.
             </strong>{' '}
-            A score compresses behavior into one test space and invites Goodhart
-            effects. Real-use quality, including how capable, reliable, and
-            pleasant a model feels, probably matters more these days.
+            Across 14 same-lab release transitions, only 56% of previously
+            reported benchmark editions appear again in the next report; 44%
+            drop out of public reporting, though that does not prove the
+            evaluation itself was retired.
           </p>
         </div>
       </section>
