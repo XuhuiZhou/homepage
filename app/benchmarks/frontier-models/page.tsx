@@ -162,46 +162,63 @@ export default function FrontierModelsPage() {
         />
       </div>
 
-      <footer className="mt-8 grid gap-4 border-t border-zinc-200 pt-5 text-sm text-zinc-500 lg:grid-cols-[1fr_auto] dark:border-zinc-800 dark:text-zinc-400">
-        <p>
-          Tint marks the best directly comparable score. * indicates a different
-          setup, metric, or leaderboard snapshot. M/F denotes Claude
-          Mythos/Fable; U denotes GPT-5.6 Sol Ultra.
-        </p>
-        <div className="flex flex-wrap gap-x-4 gap-y-2 lg:justify-end">
-          <a
-            className="underline underline-offset-4"
-            href="https://openai.com/index/gpt-5-6/"
-            target="_blank"
-            rel="noreferrer"
-          >
-            OpenAI
-          </a>
-          <a
-            className="underline underline-offset-4"
-            href="https://www-cdn.anthropic.com/d00db56fa754a1b115b6dd7cb2e3c342ee809620.pdf"
-            target="_blank"
-            rel="noreferrer"
-          >
-            Anthropic
-          </a>
-          <a
-            className="underline underline-offset-4"
-            href="https://ai.meta.com/static-resource/muse-spark-1-1-evaluation-report"
-            target="_blank"
-            rel="noreferrer"
-          >
-            Meta
-          </a>
-          <a
-            className="underline underline-offset-4"
-            href="https://x.ai/news/grok-4-5"
-            target="_blank"
-            rel="noreferrer"
-          >
-            xAI
-          </a>
+      <footer className="mt-8 border-t border-zinc-200 pt-5 text-sm text-zinc-500 dark:border-zinc-800 dark:text-zinc-400">
+        <div className="grid gap-4 lg:grid-cols-[1fr_auto]">
+          <p>
+            Tint marks the best directly comparable score. * indicates a
+            different setup, metric, or leaderboard snapshot. M/F denotes
+            Claude Mythos/Fable; U denotes GPT-5.6 Sol Ultra.
+          </p>
+          <div className="flex flex-wrap gap-x-4 gap-y-2 lg:justify-end">
+            <a
+              className="underline underline-offset-4"
+              href="https://openai.com/index/gpt-5-6/"
+              target="_blank"
+              rel="noreferrer"
+            >
+              OpenAI
+            </a>
+            <a
+              className="underline underline-offset-4"
+              href="https://www-cdn.anthropic.com/d00db56fa754a1b115b6dd7cb2e3c342ee809620.pdf"
+              target="_blank"
+              rel="noreferrer"
+            >
+              Anthropic
+            </a>
+            <a
+              className="underline underline-offset-4"
+              href="https://ai.meta.com/static-resource/muse-spark-1-1-evaluation-report"
+              target="_blank"
+              rel="noreferrer"
+            >
+              Meta
+            </a>
+            <a
+              className="underline underline-offset-4"
+              href="https://x.ai/news/grok-4-5"
+              target="_blank"
+              rel="noreferrer"
+            >
+              xAI
+            </a>
+          </div>
         </div>
+        <p className="mt-4 max-w-5xl border-t border-zinc-200 pt-4 dark:border-zinc-800">
+          <strong className="font-medium text-zinc-700 dark:text-zinc-300">
+            Transparency note:
+          </strong>{' '}
+          This matrix was created with assistance from AI agents and checked
+          against the linked first-party sources. Mistakes may remain. If you
+          spot one, please{' '}
+          <a
+            className="underline underline-offset-4"
+            href="mailto:xuhuiz@cs.cmu.edu?subject=Frontier%20benchmark%20matrix%20correction"
+          >
+            let me know
+          </a>
+          ; corrections are welcome and I will update the page.
+        </p>
       </footer>
     </main>
   )
