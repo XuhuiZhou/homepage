@@ -20,7 +20,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: 'Frontier Model Benchmark Matrix',
     description:
-      '68 current benchmark rows plus an interactive reporting lifecycle across 18 frontier model releases.',
+      '68 current benchmark rows plus an interactive reporting history across 18 frontier model releases.',
     type: 'article',
     url: PAGE_URL,
   },
@@ -28,7 +28,7 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     title: 'Frontier Model Benchmark Matrix',
     description:
-      '68 current benchmark rows plus an interactive reporting lifecycle across 18 frontier model releases.',
+      '68 current benchmark rows plus an interactive reporting history across 18 frontier model releases.',
     creator: '@nlpxuhui',
   },
 }
@@ -149,7 +149,7 @@ export default function FrontierModelsPage() {
           Public numeric capability results for GPT-5.6 Sol, Claude Mythos and
           Fable 5, Muse Spark 1.1, and Grok 4.5. NR means no public numeric
           result was found in the audited sources. The release history below
-          tracks when benchmark families enter, persist, disappear, or return.
+          shows which benchmark families each release publicly reported.
         </p>
         <nav
           className="mt-5 flex flex-wrap gap-x-5 gap-y-2 text-sm"
@@ -159,7 +159,7 @@ export default function FrontierModelsPage() {
             Current matrix
           </a>
           <a className="underline underline-offset-4" href="#lifecycle">
-            Reporting lifecycle
+            Reporting history
           </a>
         </nav>
       </header>
@@ -226,9 +226,9 @@ export default function FrontierModelsPage() {
           <strong className="font-medium text-zinc-700 dark:text-zinc-300">
             Transparency note:
           </strong>{' '}
-          This matrix and lifecycle audit were created with assistance from AI
-          agents and checked against the linked first-party sources. Mistakes
-          may remain. If you spot one, please{' '}
+          This matrix and reporting-history audit were created with assistance
+          from AI agents and checked against the linked first-party sources.
+          Mistakes may remain. If you spot one, please{' '}
           <a
             className="underline underline-offset-4"
             href="mailto:xuhuiz@cs.cmu.edu?subject=Frontier%20benchmark%20matrix%20correction"

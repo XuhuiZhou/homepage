@@ -1,6 +1,6 @@
 'use client'
 
-import { ExternalLink, Search } from 'lucide-react'
+import { Check, ExternalLink, Search } from 'lucide-react'
 import { useMemo, useState } from 'react'
 import {
   BENCHMARK_CATEGORIES,
@@ -14,79 +14,48 @@ import {
 } from './history-data'
 
 type LabFilter = LabKey | 'all'
-type StatusFilter = 'all' | 'active' | 'absent-latest' | 'returned' | 'one-off'
-type LifecycleState = 'first' | 'continued' | 'returned' | 'dropped' | 'absent'
+type StatusFilter = 'all' | 'active' | 'absent-latest' | 'one-off'
 
 const LAB_STYLES: Record<
   LabKey,
   {
     border: string
     bar: string
-    first: string
-    continued: string
-    returned: string
+    reported: string
     badge: string
   }
 > = {
   openai: {
     border: 'border-violet-600 dark:border-violet-400',
     bar: 'bg-violet-600 dark:bg-violet-400',
-    first: 'bg-violet-600 text-white dark:bg-violet-500',
-    continued:
+    reported:
       'bg-violet-100 text-violet-800 dark:bg-violet-500/20 dark:text-violet-200',
-    returned:
-      'bg-violet-50 text-violet-800 shadow-[inset_0_0_0_2px_#7c3aed] dark:bg-violet-500/10 dark:text-violet-200',
     badge:
       'border-violet-200 bg-violet-50 text-violet-800 dark:border-violet-800 dark:bg-violet-500/10 dark:text-violet-200',
   },
   anthropic: {
     border: 'border-orange-600 dark:border-orange-400',
     bar: 'bg-orange-600 dark:bg-orange-400',
-    first: 'bg-orange-600 text-white dark:bg-orange-500',
-    continued:
+    reported:
       'bg-orange-100 text-orange-800 dark:bg-orange-500/20 dark:text-orange-200',
-    returned:
-      'bg-orange-50 text-orange-800 shadow-[inset_0_0_0_2px_#ea580c] dark:bg-orange-500/10 dark:text-orange-200',
     badge:
       'border-orange-200 bg-orange-50 text-orange-800 dark:border-orange-800 dark:bg-orange-500/10 dark:text-orange-200',
   },
   meta: {
     border: 'border-blue-600 dark:border-blue-400',
     bar: 'bg-blue-600 dark:bg-blue-400',
-    first: 'bg-blue-600 text-white dark:bg-blue-500',
-    continued:
+    reported:
       'bg-blue-100 text-blue-800 dark:bg-blue-500/20 dark:text-blue-200',
-    returned:
-      'bg-blue-50 text-blue-800 shadow-[inset_0_0_0_2px_#2563eb] dark:bg-blue-500/10 dark:text-blue-200',
     badge:
       'border-blue-200 bg-blue-50 text-blue-800 dark:border-blue-800 dark:bg-blue-500/10 dark:text-blue-200',
   },
   xai: {
     border: 'border-zinc-950 dark:border-zinc-100',
     bar: 'bg-zinc-950 dark:bg-zinc-100',
-    first: 'bg-zinc-950 text-white dark:bg-zinc-100 dark:text-zinc-950',
-    continued: 'bg-zinc-200 text-zinc-900 dark:bg-zinc-700 dark:text-zinc-100',
-    returned:
-      'bg-zinc-50 text-zinc-950 shadow-[inset_0_0_0_2px_#18181b] dark:bg-zinc-900 dark:text-zinc-100 dark:shadow-[inset_0_0_0_2px_#f4f4f5]',
+    reported: 'bg-zinc-200 text-zinc-900 dark:bg-zinc-700 dark:text-zinc-100',
     badge:
       'border-zinc-300 bg-zinc-100 text-zinc-900 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-100',
   },
-}
-
-const STATE_LABELS: Record<LifecycleState, string> = {
-  first: 'First report in audited sequence',
-  continued: 'Continued from previous report',
-  returned: 'Returned after a reporting gap',
-  dropped: 'Dropped at this release',
-  absent: 'Not reported',
-}
-
-const STATE_MARKS: Record<LifecycleState, string> = {
-  first: 'N',
-  continued: 'C',
-  returned: 'R',
-  dropped: 'D',
-  absent: '.',
 }
 
 const CATEGORY_ORDER = new Map(
@@ -101,28 +70,6 @@ function reportsForLab(lab: LabKey) {
 
 function reportsBenchmark(release: ReleaseReport, benchmarkId: BenchmarkId) {
   return Object.prototype.hasOwnProperty.call(release.benchmarks, benchmarkId)
-}
-
-function lifecycleState(
-  benchmarkId: BenchmarkId,
-  release: ReleaseReport,
-): LifecycleState {
-  const labReports = reportsForLab(release.lab)
-  const releaseIndex = labReports.findIndex((item) => item.id === release.id)
-  const current = reportsBenchmark(release, benchmarkId)
-  const previous = releaseIndex > 0 ? labReports[releaseIndex - 1] : undefined
-  const previousReported = previous
-    ? reportsBenchmark(previous, benchmarkId)
-    : false
-  const appearedEarlier = labReports
-    .slice(0, releaseIndex)
-    .some((item) => reportsBenchmark(item, benchmarkId))
-
-  if (current && !appearedEarlier) return 'first'
-  if (current && previousReported) return 'continued'
-  if (current && appearedEarlier) return 'returned'
-  if (!current && previousReported) return 'dropped'
-  return 'absent'
 }
 
 function transitionStats(releases: ReleaseReport[]) {
@@ -147,13 +94,8 @@ function transitionStats(releases: ReleaseReport[]) {
   })
 }
 
-function cellClass(state: LifecycleState, lab: LabKey) {
-  if (state === 'first') return LAB_STYLES[lab].first
-  if (state === 'continued') return LAB_STYLES[lab].continued
-  if (state === 'returned') return LAB_STYLES[lab].returned
-  if (state === 'dropped') {
-    return 'bg-red-50 text-red-700 dark:bg-red-500/10 dark:text-red-300'
-  }
+function cellClass(reported: boolean, lab: LabKey) {
+  if (reported) return LAB_STYLES[lab].reported
   return 'text-zinc-300 dark:text-zinc-700'
 }
 
@@ -220,13 +162,8 @@ export function BenchmarkLifecycle() {
           !reportsBenchmark(labReports[labReports.length - 1], family.id)
         )
       })
-      const returned = scopedReports.some(
-        (release) => lifecycleState(family.id, release) === 'returned',
-      )
-
       if (statusFilter === 'active') return active
       if (statusFilter === 'absent-latest') return absentFromLatest
-      if (statusFilter === 'returned') return returned
       if (statusFilter === 'one-off') return appearances.length === 1
       return appearances.length > 0
     }).sort((a, b) => {
@@ -264,13 +201,13 @@ export function BenchmarkLifecycle() {
           Reporting history
         </p>
         <h2 className="text-2xl font-semibold sm:text-3xl">
-          Benchmark lifecycle, July 2025 to July 2026
+          Benchmark reporting history, July 2025 to July 2026
         </h2>
         <p className="mt-3 text-base text-zinc-600 dark:text-zinc-400">
-          A family-level audit of 18 first-party flagship release bundles. The
-          timeline distinguishes benchmarks that are newly reported, continued,
-          returned after a gap, or dropped from the next report. Exact variants
-          remain attached to every reported cell.
+          A family-level audit of 18 first-party flagship release bundles. Each
+          cell answers one question: did that release publicly report a numeric
+          result for this benchmark family? Exact variants remain attached to
+          every reported cell.
         </p>
       </header>
 
@@ -437,7 +374,7 @@ export function BenchmarkLifecycle() {
 
           <label>
             <span className="mb-1.5 block text-xs text-zinc-500 uppercase dark:text-zinc-400">
-              Lifecycle
+              Reporting
             </span>
             <select
               value={statusFilter}
@@ -446,10 +383,9 @@ export function BenchmarkLifecycle() {
               }
               className="h-9 border border-zinc-300 bg-white px-2 text-sm dark:border-zinc-700 dark:bg-zinc-950"
             >
-              <option value="all">All reported</option>
-              <option value="active">In latest report</option>
-              <option value="absent-latest">Absent from a latest report</option>
-              <option value="returned">Returned after a gap</option>
+              <option value="all">All benchmarks</option>
+              <option value="active">Reported in latest</option>
+              <option value="absent-latest">Missing from latest</option>
               <option value="one-off">Reported once</option>
             </select>
           </label>
@@ -528,9 +464,7 @@ export function BenchmarkLifecycle() {
             >
               {selectedRelease.model}
             </span>
-            <span className="font-medium">
-              {STATE_LABELS[lifecycleState(selectedFamily.id, selectedRelease)]}
-            </span>
+            <span className="font-medium">Reported</span>
             {reportsBenchmark(selectedRelease, selectedFamily.id) ? (
               <span className="text-zinc-600 dark:text-zinc-400">
                 {selectedRelease.benchmarks[selectedFamily.id]}
@@ -551,7 +485,7 @@ export function BenchmarkLifecycle() {
         <div className="mt-4 overflow-x-auto border border-zinc-200 dark:border-zinc-800">
           <table
             className="min-w-max border-collapse text-xs"
-            aria-label="Benchmark reporting lifecycle by model release"
+            aria-label="Benchmark reporting by model release"
           >
             <colgroup>
               <col className="w-56" />
@@ -634,9 +568,8 @@ export function BenchmarkLifecycle() {
                     </button>
                   </th>
                   {scopedReports.map((release) => {
-                    const state = lifecycleState(family.id, release)
-                    const isSelectable = state !== 'absent'
-                    const description = reportsBenchmark(release, family.id)
+                    const reported = reportsBenchmark(release, family.id)
+                    const description = reported
                       ? release.benchmarks[family.id]
                       : undefined
                     return (
@@ -646,16 +579,20 @@ export function BenchmarkLifecycle() {
                       >
                         <button
                           type="button"
-                          disabled={!isSelectable}
+                          disabled={!reported}
                           onClick={() => {
                             setSelectedBenchmarkId(family.id)
                             setSelectedReleaseId(release.id)
                           }}
-                          title={`${release.model}: ${STATE_LABELS[state]}${description ? ` - ${description}` : ''}`}
-                          aria-label={`${family.name}, ${release.model}: ${STATE_LABELS[state]}${description ? `. ${description}` : ''}`}
-                          className={`mx-auto flex h-7 w-7 items-center justify-center text-[10px] font-semibold focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-zinc-900 disabled:cursor-default dark:focus-visible:outline-zinc-100 ${cellClass(state, release.lab)}`}
+                          title={`${release.model}: ${reported ? 'Reported' : 'Not reported'}${description ? ` - ${description}` : ''}`}
+                          aria-label={`${family.name}, ${release.model}: ${reported ? 'Reported' : 'Not reported'}${description ? `. ${description}` : ''}`}
+                          className={`mx-auto flex h-7 w-7 items-center justify-center text-[10px] font-semibold focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-zinc-900 disabled:cursor-default dark:focus-visible:outline-zinc-100 ${cellClass(reported, release.lab)}`}
                         >
-                          {STATE_MARKS[state]}
+                          {reported ? (
+                            <Check aria-hidden="true" className="h-3.5 w-3.5" />
+                          ) : (
+                            <span aria-hidden="true">—</span>
+                          )}
                         </button>
                       </td>
                     )
@@ -667,29 +604,25 @@ export function BenchmarkLifecycle() {
         </div>
 
         <div className="mt-4 flex flex-wrap gap-x-5 gap-y-2 text-xs text-zinc-500 dark:text-zinc-400">
-          {(
-            [
-              ['N', 'first report'],
-              ['C', 'continued'],
-              ['R', 'returned'],
-              ['D', 'dropped here'],
-              ['.', 'not reported'],
-            ] as const
-          ).map(([mark, label]) => (
-            <span key={mark} className="inline-flex items-center gap-1.5">
-              <span className="flex h-5 w-5 items-center justify-center border border-zinc-300 text-[10px] font-semibold dark:border-zinc-700">
-                {mark}
-              </span>
-              {label}
+          <span className="inline-flex items-center gap-1.5">
+            <span className="flex h-5 w-5 items-center justify-center bg-zinc-200 text-zinc-900 dark:bg-zinc-700 dark:text-zinc-100">
+              <Check aria-hidden="true" className="h-3 w-3" />
             </span>
-          ))}
+            reported
+          </span>
+          <span className="inline-flex items-center gap-1.5">
+            <span className="flex h-5 w-5 items-center justify-center text-zinc-300 dark:text-zinc-700">
+              —
+            </span>
+            not reported
+          </span>
         </div>
       </section>
 
       <section className="mt-12 grid gap-8 border-t border-zinc-200 pt-7 lg:grid-cols-2 dark:border-zinc-800">
         <div>
           <h3 className="text-base font-semibold">
-            What the lifecycle captures
+            What the timeline captures
           </h3>
           <p className="mt-2 text-sm leading-6 text-zinc-600 dark:text-zinc-400">
             Version changes are grouped into families when the underlying task
