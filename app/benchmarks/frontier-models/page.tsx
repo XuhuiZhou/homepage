@@ -186,7 +186,7 @@ export default function FrontierModelsPage() {
         <div className="mt-4 grid gap-5 text-sm leading-relaxed text-zinc-600 md:grid-cols-3 dark:text-zinc-400">
           <p>
             <strong className="font-medium text-zinc-900 dark:text-zinc-100">
-              Labs are measuring different things.
+              Labs report very different benchmark portfolios.
             </strong>{' '}
             Across 18 releases, OpenAI reported 74 distinct capability editions,
             Anthropic 72, Meta 34, and xAI 23. Of 143 editions, 105 appeared in
