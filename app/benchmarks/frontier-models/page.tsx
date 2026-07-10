@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import {
+  ALL_GROUPS,
   LEFT_GROUPS,
   MODEL_KEYS,
   MODEL_LABELS,
@@ -10,6 +11,19 @@ import {
 import { BenchmarkLifecycle } from './BenchmarkLifecycle'
 import { SafetyCoverage } from './SafetyCoverage'
 
+const CURRENT_BENCHMARK_ROWS = ALL_GROUPS.flatMap((group) => group.rows)
+const CURRENT_REPORTING_DISTRIBUTION = CURRENT_BENCHMARK_ROWS.reduce<
+  Record<number, number>
+>((counts, row) => {
+  const reportCount = MODEL_KEYS.filter((model) => row[model] !== 'NR').length
+  counts[reportCount] = (counts[reportCount] ?? 0) + 1
+  return counts
+}, {})
+const CURRENT_SINGLE_REPORT_ROWS = CURRENT_REPORTING_DISTRIBUTION[1] ?? 0
+const CURRENT_SHARED_ROWS =
+  CURRENT_BENCHMARK_ROWS.length - CURRENT_SINGLE_REPORT_ROWS
+const CURRENT_ALL_REPORT_ROWS = CURRENT_REPORTING_DISTRIBUTION[4] ?? 0
+
 const SITE_URL = 'https://xuhuiz.com'
 const PAGE_URL = `${SITE_URL}/benchmarks/frontier-models`
 
@@ -17,12 +31,12 @@ export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   title: 'Frontier Model Benchmark Matrix | Xuhui Zhou',
   description:
-    'An audited capability matrix, safety-evaluation map, and interactive history of benchmark reporting across current frontier model families.',
+    'An audited 68-row current-release capability matrix, safety-reporting map, and interactive history of frontier benchmark reporting.',
   alternates: { canonical: PAGE_URL },
   openGraph: {
     title: 'Frontier Model Benchmark Matrix',
     description:
-      'Current capability results, 80 safety-evaluation rows, and reporting history across 18 frontier model releases.',
+      'A 68-row current-release capability matrix, 80 safety-evaluation rows, and one year of reporting history.',
     type: 'article',
     url: PAGE_URL,
   },
@@ -30,7 +44,7 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     title: 'Frontier Model Benchmark Matrix',
     description:
-      'Current capability results, 80 safety-evaluation rows, and reporting history across 18 frontier model releases.',
+      'A 68-row current-release capability matrix, 80 safety-evaluation rows, and one year of reporting history.',
     creator: '@nlpxuhui',
   },
 }
@@ -165,8 +179,8 @@ export default function FrontierModelsPage() {
           className="mt-5 flex flex-wrap gap-x-5 gap-y-2 text-sm"
           aria-label="Page sections"
         >
-          <a className="underline underline-offset-4" href="#current-matrix">
-            Current matrix
+          <a className="underline underline-offset-4" href="#current-releases">
+            Current releases
           </a>
           <a className="underline underline-offset-4" href="#safety">
             Safety reporting
@@ -187,13 +201,17 @@ export default function FrontierModelsPage() {
         <div className="mt-4 grid gap-5 text-sm leading-relaxed text-zinc-600 md:grid-cols-3 dark:text-zinc-400">
           <p>
             <strong className="font-medium text-zinc-900 dark:text-zinc-100">
-              Labs report very different benchmark portfolios.
+              Current reports use different benchmark portfolios.
             </strong>{' '}
-            Across 18 releases, OpenAI reported 74 distinct capability editions,
-            Anthropic 72, Meta 34, and xAI 23. Of 143 editions, 105 appeared in
-            only one lab&apos;s reports; just 6 appeared across all four. Safety is
-            even less aligned: 71 of 80 rows appear in only one current release
-            bundle, and Grok 4.5 reports none.
+            Of {CURRENT_BENCHMARK_ROWS.length} capability rows in the current
+            matrix, {CURRENT_SINGLE_REPORT_ROWS} have a public numeric result
+            from one release and {CURRENT_SHARED_ROWS} from at least two; only{' '}
+            {CURRENT_ALL_REPORT_ROWS} appear in all four. This measures
+            reporting overlap, not model quality: more reported benchmark
+            results do not imply a better model. Safety reporting is also
+            fragmented: 71 of 80 normalized rows appear in one current release
+            bundle, and an unreported result does not prove the test was not
+            run.
           </p>
           <p>
             <strong className="font-medium text-zinc-900 dark:text-zinc-100">
@@ -207,26 +225,63 @@ export default function FrontierModelsPage() {
               Benchmark reporting turns over quickly.
             </strong>{' '}
             Across 14 same-lab release transitions, only 56% of previously
-            reported benchmark editions appear again in the next report; 44%
-            are not carried into the next public report, though that does not
-            prove the evaluation itself was retired.
+            reported benchmark editions appear again in the next report; 44% are
+            not carried into the next public report, though that does not prove
+            the evaluation itself was retired.
           </p>
         </div>
       </section>
 
-      <div
-        id="current-matrix"
-        className="grid scroll-mt-6 items-start gap-6 xl:grid-cols-2"
-      >
-        <BenchmarkTable
-          groups={LEFT_GROUPS}
-          label="Professional, agent, coding, and AI self-improvement benchmarks"
-        />
-        <BenchmarkTable
-          groups={RIGHT_GROUPS}
-          label="Reasoning, science, health, multimodal, and cybersecurity benchmarks"
-        />
-      </div>
+      <section id="current-releases" className="scroll-mt-6">
+        <div className="mb-5 grid gap-4 lg:grid-cols-[1fr_520px] lg:items-end">
+          <div>
+            <h2 className="text-2xl font-semibold">Current releases</h2>
+            <p className="mt-2 max-w-3xl text-sm leading-relaxed text-zinc-600 dark:text-zinc-400">
+              Public numeric results from the four current release bundles. NR
+              means no public numeric result was found in the audited source.
+            </p>
+          </div>
+          <p className="text-sm leading-relaxed text-zinc-600 lg:text-right dark:text-zinc-400">
+            <strong className="font-medium text-zinc-900 dark:text-zinc-100">
+              Reporting coverage is not model quality.
+            </strong>{' '}
+            More reported benchmark rows do not imply a better model, and NR
+            does not establish that an evaluation was never run.
+          </p>
+        </div>
+
+        <dl className="mb-6 grid grid-cols-2 border-y border-zinc-200 sm:grid-cols-4 dark:border-zinc-800">
+          {[
+            [CURRENT_BENCHMARK_ROWS.length, 'Benchmark rows'],
+            [CURRENT_SINGLE_REPORT_ROWS, 'One release report'],
+            [CURRENT_SHARED_ROWS, 'Two or more reports'],
+            [CURRENT_ALL_REPORT_ROWS, 'All four reports'],
+          ].map(([value, label], index) => (
+            <div
+              key={label}
+              className={`py-3 ${index % 2 === 1 ? 'border-l border-zinc-200 dark:border-zinc-800' : ''} ${index > 1 ? 'border-t border-zinc-200 sm:border-t-0 dark:border-zinc-800' : ''} ${index > 0 ? 'sm:border-l sm:border-zinc-200 sm:pl-4 dark:sm:border-zinc-800' : ''}`}
+            >
+              <dt className="text-xs text-zinc-500 uppercase dark:text-zinc-400">
+                {label}
+              </dt>
+              <dd className="mt-1 text-2xl font-semibold tabular-nums">
+                {value}
+              </dd>
+            </div>
+          ))}
+        </dl>
+
+        <div className="grid items-start gap-6 xl:grid-cols-2">
+          <BenchmarkTable
+            groups={LEFT_GROUPS}
+            label="Professional, agent, coding, and AI self-improvement benchmarks"
+          />
+          <BenchmarkTable
+            groups={RIGHT_GROUPS}
+            label="Reasoning, science, health, multimodal, and cybersecurity benchmarks"
+          />
+        </div>
+      </section>
 
       <SafetyCoverage />
 
@@ -235,8 +290,9 @@ export default function FrontierModelsPage() {
       <footer className="mt-8 border-t border-zinc-200 pt-5 text-sm text-zinc-500 dark:border-zinc-800 dark:text-zinc-400">
         <div className="grid gap-4 lg:grid-cols-[1fr_auto]">
           <p>
-            Tint marks the best directly comparable score. * indicates a
-            different setup, metric, or leaderboard snapshot. M/F denotes Claude
+            Reporting more benchmark rows does not imply a better model. Tint
+            marks the best directly comparable score. * indicates a different
+            setup, metric, or leaderboard snapshot. M/F denotes Claude
             Mythos/Fable; U denotes GPT-5.6 Sol Ultra.
           </p>
           <div className="flex flex-wrap gap-x-4 gap-y-2 lg:justify-end">

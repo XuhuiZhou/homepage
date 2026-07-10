@@ -117,10 +117,10 @@ export function SafetyCoverage() {
         <p className="mt-2 text-base text-zinc-600 dark:text-zinc-400">
           Safety reporting is broad but highly fragmented. Of 80 normalized
           evaluation rows, 71 appear in only one of the three current release
-          documents with safety results. Only VCT and HealthBench Professional
-          appear in all three, and the Grok 4.5 launch bundle reports no safety
-          results. These counts measure disclosure overlap, not which model is
-          safest.
+          documents with quantified safety results. Only VCT and HealthBench
+          Professional appear in all three. These counts measure public
+          disclosure overlap, not which model is safest or how much safety
+          testing each lab performed.
         </p>
       </section>
 
@@ -389,7 +389,8 @@ export function SafetyCoverage() {
           the current matrix are not duplicated here.
         </p>
         <p className="max-w-xl lg:text-right">
-          The Grok 4.5 launch report contains no safety results. xAI&apos;s
+          No quantified safety result was found in the audited Grok 4.5 launch
+          post; that does not show no safety testing occurred. xAI&apos;s
           earlier{' '}
           <a
             className="underline underline-offset-4"
