@@ -204,10 +204,10 @@ export function BenchmarkLifecycle() {
           Benchmark reporting history, July 2025 to July 2026
         </h2>
         <p className="mt-3 text-base text-zinc-600 dark:text-zinc-400">
-          A family-level audit of 18 first-party flagship release bundles. Each
-          cell answers one question: did that release publicly report a numeric
-          result for this benchmark family? Exact variants remain attached to
-          every reported cell.
+          An edition-level audit of 18 first-party flagship release bundles.
+          Each cell answers one question: did that release publicly report a
+          numeric result for this benchmark edition? Run details remain attached
+          to every reported cell.
         </p>
       </header>
 
@@ -222,7 +222,7 @@ export function BenchmarkLifecycle() {
         </div>
         <div className="border-l border-zinc-200 pl-4 dark:border-zinc-800">
           <dt className="text-xs text-zinc-500 uppercase dark:text-zinc-400">
-            Benchmark families
+            Benchmark editions
           </dt>
           <dd className="mt-1 text-2xl font-semibold tabular-nums">
             {BENCHMARK_FAMILIES.length}
@@ -230,7 +230,7 @@ export function BenchmarkLifecycle() {
         </div>
         <div className="border-l border-zinc-200 pl-4 dark:border-zinc-800">
           <dt className="text-xs text-zinc-500 uppercase dark:text-zinc-400">
-            One-report families
+            One-report editions
           </dt>
           <dd className="mt-1 text-2xl font-semibold tabular-nums">
             {oneOffCount}
@@ -246,7 +246,7 @@ export function BenchmarkLifecycle() {
             </h3>
             <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
               Retention is the share of the previous report&apos;s benchmark
-              families that appears again in the next report.
+              editions that appears again in the next report.
             </p>
           </div>
           <p className="text-xs text-zinc-500 dark:text-zinc-400">
@@ -275,7 +275,7 @@ export function BenchmarkLifecycle() {
                         {releases[0].shortModel}
                       </p>
                       <p className="mt-1 text-sm tabular-nums">
-                        {Object.keys(releases[0].benchmarks).length} families
+                        {Object.keys(releases[0].benchmarks).length} editions
                       </p>
                       <p className="mt-2 text-xs text-zinc-500 dark:text-zinc-400">
                         baseline
@@ -400,7 +400,7 @@ export function BenchmarkLifecycle() {
                 type="search"
                 value={query}
                 onChange={(event) => setQuery(event.target.value)}
-                placeholder="Benchmark family"
+                placeholder="Benchmark or edition"
                 className="min-w-0 flex-1 bg-transparent text-sm outline-none placeholder:text-zinc-400"
               />
             </span>
@@ -417,7 +417,7 @@ export function BenchmarkLifecycle() {
         <div className="mt-5 grid gap-4 border-y border-zinc-200 py-4 lg:grid-cols-[minmax(220px,0.8fr)_2fr] dark:border-zinc-800">
           <div>
             <p className="text-xs text-zinc-500 uppercase dark:text-zinc-400">
-              Selected family
+              Selected benchmark
             </p>
             <p className="mt-1 text-lg font-semibold">{selectedFamily.name}</p>
             <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
@@ -508,7 +508,7 @@ export function BenchmarkLifecycle() {
               </tr>
               <tr className="border-b border-zinc-200 dark:border-zinc-800">
                 <th className="sticky left-0 z-20 bg-white px-3 py-2 text-left font-medium dark:bg-zinc-950">
-                  Benchmark family
+                  Benchmark / edition
                 </th>
                 {scopedReports.map((release) => (
                   <th
@@ -625,11 +625,13 @@ export function BenchmarkLifecycle() {
             What the timeline captures
           </h3>
           <p className="mt-2 text-sm leading-6 text-zinc-600 dark:text-zinc-400">
-            Version changes are grouped into families when the underlying task
-            is recognizably continuous, such as SWE-Bench Verified to SWE-Bench
-            Pro. Exact variants are retained in the cell detail. A missing cell
-            means no public numeric result was found in that release bundle, not
-            that the lab stopped evaluating the benchmark internally.
+            Distinct named editions are separate rows, such as SWE-Bench
+            Verified versus Pro, OSWorld-Verified versus OSWorld 2.0, and
+            Terminal-Bench 2.0 versus 2.1. Run-setting differences such as tool
+            access, reasoning effort, context length, or agent scaffolding stay
+            in the cell detail. A missing cell means no public numeric result
+            was found in that release bundle, not that the lab stopped
+            evaluating the benchmark internally.
           </p>
         </div>
         <div>

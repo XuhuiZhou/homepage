@@ -149,7 +149,7 @@ export default function FrontierModelsPage() {
           Public numeric capability results for GPT-5.6 Sol, Claude Mythos and
           Fable 5, Muse Spark 1.1, and Grok 4.5. NR means no public numeric
           result was found in the audited sources. The release history below
-          shows which benchmark families each release publicly reported.
+          shows which benchmark editions each release publicly reported.
         </p>
         <nav
           className="mt-5 flex flex-wrap gap-x-5 gap-y-2 text-sm"
