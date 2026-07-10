@@ -205,8 +205,8 @@ export default function FrontierModelsPage() {
             </strong>{' '}
             Across 14 same-lab release transitions, only 56% of previously
             reported benchmark editions appear again in the next report; 44%
-            drop out of public reporting, though that does not prove the
-            evaluation itself was retired.
+            are not carried into the next public report, though that does not
+            prove the evaluation itself was retired.
           </p>
         </div>
       </section>

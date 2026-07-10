@@ -9,13 +9,13 @@ import { SAFETY_EVALUATIONS } from './safety-data'
 
 export const runtime = 'edge'
 export const alt =
-  'Frontier Model Benchmark Audit covering capability, safety, and reporting attrition'
+  'Frontier Model Benchmark Audit covering capability, safety, and reporting turnover'
 export const size = { width: 1200, height: 630 }
 export const contentType = 'image/png'
 
 const LAB_COLORS = ['#7c3aed', '#ea580c', '#2563eb', '#18181b']
 
-function reportingAttrition(releases: ReleaseReport[]) {
+function reportingNonRetention(releases: ReleaseReport[]) {
   let previousBenchmarkCount = 0
   let droppedBenchmarkCount = 0
 
@@ -37,7 +37,7 @@ function reportingAttrition(releases: ReleaseReport[]) {
   return Math.round((droppedBenchmarkCount / previousBenchmarkCount) * 100)
 }
 
-const ATTRITION_RATE = reportingAttrition(RELEASE_REPORTS)
+const NON_RETENTION_RATE = reportingNonRetention(RELEASE_REPORTS)
 
 export default function Image() {
   return new ImageResponse(
@@ -110,8 +110,8 @@ export default function Image() {
               color: '#52525b',
             }}
           >
-            Capability scores, safety reporting, and which benchmarks survive
-            from one model release to the next.
+            Capability scores, safety reporting, and how benchmark choices
+            change from one model release to the next.
           </div>
         </div>
 
@@ -145,7 +145,7 @@ export default function Image() {
                 fontWeight: 700,
               }}
             >
-              {ATTRITION_RATE}%
+              {NON_RETENTION_RATE}%
             </div>
             <div
               style={{
@@ -159,12 +159,12 @@ export default function Image() {
               }}
             >
               <div style={{ display: 'flex', fontWeight: 700 }}>
-                next-report attrition
+                not carried forward
               </div>
               <div
                 style={{ display: 'flex', fontSize: 18, color: '#71717a' }}
               >
-                14 same-lab transitions
+                to the next public report
               </div>
             </div>
           </div>
