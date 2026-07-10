@@ -8,6 +8,7 @@ import {
   type ModelKey,
 } from './data'
 import { BenchmarkLifecycle } from './BenchmarkLifecycle'
+import { SafetyCoverage } from './SafetyCoverage'
 
 const PAGE_URL = 'https://xuhui-homepage.vercel.app/benchmarks/frontier-models'
 
@@ -15,12 +16,12 @@ export const metadata: Metadata = {
   metadataBase: new URL('https://xuhui-homepage.vercel.app'),
   title: 'Frontier Model Benchmark Matrix | Xuhui Zhou',
   description:
-    'An audited benchmark matrix for current frontier models, plus an interactive history of benchmark reporting, retention, and retirement across 18 model releases.',
+    'An audited capability matrix, safety-evaluation map, and interactive history of benchmark reporting across current frontier model families.',
   alternates: { canonical: PAGE_URL },
   openGraph: {
     title: 'Frontier Model Benchmark Matrix',
     description:
-      '68 current benchmark rows plus an interactive reporting history across 18 frontier model releases.',
+      'Current capability results, 80 safety-evaluation rows, and reporting history across 18 frontier model releases.',
     type: 'article',
     url: PAGE_URL,
   },
@@ -28,7 +29,7 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     title: 'Frontier Model Benchmark Matrix',
     description:
-      '68 current benchmark rows plus an interactive reporting history across 18 frontier model releases.',
+      'Current capability results, 80 safety-evaluation rows, and reporting history across 18 frontier model releases.',
     creator: '@nlpxuhui',
   },
 }
@@ -148,8 +149,9 @@ export default function FrontierModelsPage() {
         <p className="mt-3 max-w-4xl text-base text-zinc-600 dark:text-zinc-400">
           Public numeric capability results for GPT-5.6 Sol, Claude Mythos and
           Fable 5, Muse Spark 1.1, and Grok 4.5. NR means no public numeric
-          result was found in the audited sources. The release history below
-          shows which benchmark editions each release publicly reported.
+          result was found in the audited sources. Separate sections map
+          release-specific safety reporting and track which benchmark editions
+          each model family publicly reported over time.
         </p>
         <nav
           className="mt-5 flex flex-wrap gap-x-5 gap-y-2 text-sm"
@@ -157,6 +159,9 @@ export default function FrontierModelsPage() {
         >
           <a className="underline underline-offset-4" href="#current-matrix">
             Current matrix
+          </a>
+          <a className="underline underline-offset-4" href="#safety">
+            Safety reporting
           </a>
           <a className="underline underline-offset-4" href="#lifecycle">
             Reporting history
@@ -177,6 +182,8 @@ export default function FrontierModelsPage() {
           label="Reasoning, science, health, multimodal, and cybersecurity benchmarks"
         />
       </div>
+
+      <SafetyCoverage />
 
       <BenchmarkLifecycle />
 
@@ -226,9 +233,9 @@ export default function FrontierModelsPage() {
           <strong className="font-medium text-zinc-700 dark:text-zinc-300">
             Transparency note:
           </strong>{' '}
-          This matrix and reporting-history audit were created with assistance
-          from AI agents and checked against the linked first-party sources.
-          Mistakes may remain. If you spot one, please{' '}
+          This matrix, safety map, and reporting-history audit were created with
+          assistance from AI agents and checked against the linked first-party
+          sources. Mistakes may remain. If you spot one, please{' '}
           <a
             className="underline underline-offset-4"
             href="mailto:xuhuiz@cs.cmu.edu?subject=Frontier%20benchmark%20matrix%20correction"
