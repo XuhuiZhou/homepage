@@ -85,6 +85,11 @@ export const BENCHMARK_FAMILIES = [
   { id: 'osworld', name: 'OSWorld', category: 'Agents + tools' },
   { id: 'webarena', name: 'WebArena', category: 'Agents + tools' },
   {
+    id: 'online-mind2web',
+    name: 'Online-Mind2Web',
+    category: 'Agents + tools',
+  },
+  {
     id: 'automationbench',
     name: 'AutomationBench',
     category: 'Agents + tools',
@@ -355,6 +360,8 @@ export const RELEASE_REPORTS = [
       'swe-bench': 'SWE-Bench Pro',
       'terminal-bench': 'Terminal-Bench 2.0',
       osworld: 'OSWorld-Verified',
+      webarena: 'WebArena-Verified (67.3%; GPT-5.2 comparator: 65.4%)',
+      'online-mind2web': 'Online-Mind2Web (92.8%, screenshot-only)',
       mmmu: 'MMMU Pro, with and without tools',
       browsecomp: 'BrowseComp',
       'mcp-atlas': 'MCP Atlas',
