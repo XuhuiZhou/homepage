@@ -114,15 +114,12 @@ export default function Personal() {
             >
               Maarten Sap
             </a>
-            .
-          </p>
-          <p className="border-l-2 border-zinc-300 pl-4 text-zinc-700 dark:border-zinc-700 dark:text-zinc-300">
-            I was selected as a{' '}
+            , and a{' '}
             <a
               href="https://www.microsoft.com/en-us/research/academic-program/microsoft-research-fellowship/fellows/"
               target="_blank"
               rel="noopener noreferrer"
-              className="font-semibold text-zinc-950 underline decoration-zinc-400 underline-offset-2 dark:text-zinc-50 dark:decoration-zinc-600"
+              className="font-medium text-zinc-900 underline decoration-zinc-300 underline-offset-2 dark:text-zinc-50 dark:decoration-zinc-700"
             >
               2026 Microsoft Research Fellow
             </a>
