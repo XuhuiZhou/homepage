@@ -75,21 +75,8 @@ export function SafetyCoverage() {
       id="safety"
       className="mt-16 scroll-mt-6 border-t border-zinc-300 pt-10 dark:border-zinc-700"
     >
-      <header className="max-w-5xl">
-        <p className="mb-2 text-sm font-medium text-zinc-500 uppercase dark:text-zinc-400">
-          Safety reporting
-        </p>
-        <h2 className="text-2xl font-semibold sm:text-3xl">
-          Cyber capability is only one slice of AI safety
-        </h2>
-        <p className="mt-3 text-base text-zinc-600 dark:text-zinc-400">
-          The cybersecurity rows above ask what a model can do. A safety audit
-          must also ask whether it refuses harmful work, survives jailbreaks,
-          stays within a user&apos;s authority, remains monitorable, and avoids
-          harming users or groups. This map records what each current release
-          bundle publicly quantified; it does not assume that an unreported test
-          was never run.
-        </p>
+      <header>
+        <h2 className="text-2xl font-semibold sm:text-3xl">Safety reporting</h2>
       </header>
 
       <dl className="mt-7 grid max-w-4xl grid-cols-3 border-y border-zinc-200 py-4 dark:border-zinc-800">
@@ -111,11 +98,31 @@ export function SafetyCoverage() {
         </div>
         <div className="border-l border-zinc-200 pl-4 dark:border-zinc-800">
           <dt className="text-xs text-zinc-500 uppercase dark:text-zinc-400">
-            Release safety cards
+            Release safety reports
           </dt>
           <dd className="mt-1 text-2xl font-semibold tabular-nums">3 / 4</dd>
         </div>
       </dl>
+
+      <section
+        className="mt-7 max-w-5xl border-y border-zinc-200 py-4 dark:border-zinc-800"
+        aria-labelledby="safety-takeaway-heading"
+      >
+        <h3
+          id="safety-takeaway-heading"
+          className="text-sm font-medium uppercase"
+        >
+          Safety takeaway
+        </h3>
+        <p className="mt-2 text-base text-zinc-600 dark:text-zinc-400">
+          Safety reporting is broad but highly fragmented. Of 80 normalized
+          evaluation rows, 71 appear in only one of the three current release
+          documents with safety results. Only VCT and HealthBench Professional
+          appear in all three, and the Grok 4.5 launch bundle reports no safety
+          results. These counts measure disclosure overlap, not which model is
+          safest.
+        </p>
+      </section>
 
       <div
         className="mt-8 grid border-y border-zinc-200 sm:grid-cols-2 lg:grid-cols-7 dark:border-zinc-800"
@@ -338,6 +345,40 @@ export function SafetyCoverage() {
           ))}
         </table>
       </div>
+
+      <section
+        className="mt-8 grid gap-3 border-y border-zinc-200 py-5 lg:grid-cols-[260px_1fr] dark:border-zinc-800"
+        aria-labelledby="safety-taxonomy-heading"
+      >
+        <h3 id="safety-taxonomy-heading" className="text-base font-semibold">
+          Where the categories come from
+        </h3>
+        <div className="max-w-5xl space-y-3 text-sm text-zinc-600 dark:text-zinc-400">
+          <p>
+            These six categories are an editorial normalization for this audit,
+            not a shared taxonomy endorsed by the labs. They align OpenAI&apos;s
+            Model Safety, Alignment, and Preparedness sections; Anthropic&apos;s
+            Safeguards, Agentic Safety, Alignment, and Responsible Scaling
+            Policy sections; Meta&apos;s Advanced AI Scaling Framework,
+            Adversarial Robustness, and Model Behavior scorecards; and the
+            malicious-use, loss-of-control, and dual-use framing in xAI&apos;s
+            earlier Grok 4.20 system card.
+          </p>
+          <p>
+            <strong className="font-medium text-zinc-800 dark:text-zinc-200">
+              Control + authorization
+            </strong>{' '}
+            asks whether a tool-using model stays within the user&apos;s intent,
+            seeks consent for consequential actions, and avoids destructive or
+            malicious acts.{' '}
+            <strong className="font-medium text-zinc-800 dark:text-zinc-200">
+              Human impact
+            </strong>{' '}
+            groups mental health, child safety, health, bias, election
+            integrity, and related effects on people and groups.
+          </p>
+        </div>
+      </section>
 
       <div className="mt-5 grid gap-3 text-sm text-zinc-500 lg:grid-cols-[1fr_auto] dark:text-zinc-400">
         <p className="max-w-4xl">

@@ -149,9 +149,7 @@ export default function FrontierModelsPage() {
         <p className="mt-3 max-w-4xl text-base text-zinc-600 dark:text-zinc-400">
           Public numeric capability results for GPT-5.6 Sol, Claude Mythos and
           Fable 5, Muse Spark 1.1, and Grok 4.5. NR means no public numeric
-          result was found in the audited sources. Separate sections map
-          release-specific safety reporting and track which benchmark editions
-          each model family publicly reported over time.
+          result was found in the audited sources.
         </p>
         <nav
           className="mt-5 flex flex-wrap gap-x-5 gap-y-2 text-sm"
@@ -168,6 +166,38 @@ export default function FrontierModelsPage() {
           </a>
         </nav>
       </header>
+
+      <section
+        className="mb-10 border-y border-zinc-200 py-5 dark:border-zinc-800"
+        aria-labelledby="tldr-heading"
+      >
+        <h2 id="tldr-heading" className="text-sm font-medium uppercase">
+          TL;DR
+        </h2>
+        <div className="mt-4 grid gap-5 text-sm leading-relaxed text-zinc-600 md:grid-cols-3 dark:text-zinc-400">
+          <p>
+            <strong className="font-medium text-zinc-900 dark:text-zinc-100">
+              Benchmark choice is part of the story.
+            </strong>{' '}
+            Across 18 release bundles and 143 benchmark editions, labs report
+            visibly different mixes, and 70 editions appear in only one report.
+          </p>
+          <p>
+            <strong className="font-medium text-zinc-900 dark:text-zinc-100">
+              Evaluation is moving toward real work.
+            </strong>{' '}
+            New additions concentrate in coding, professional tasks,
+            agents/tools, and science rather than another round of static exams.
+          </p>
+          <p>
+            <strong className="font-medium text-zinc-900 dark:text-zinc-100">
+              Safety reporting is even less standardized.
+            </strong>{' '}
+            Of 80 normalized safety rows, 71 appear in one current report; the
+            Grok 4.5 launch bundle reports none.
+          </p>
+        </div>
+      </section>
 
       <div
         id="current-matrix"

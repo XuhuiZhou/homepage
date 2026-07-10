@@ -45,8 +45,8 @@ export const SAFETY_CATEGORIES: SafetyCategory[] = [
   },
   {
     id: 'agentic-control',
-    label: 'Agentic control',
-    question: 'Will it stay within authority?',
+    label: 'Control + authorization',
+    question: "Does it exceed the user's intent?",
   },
   {
     id: 'alignment-oversight',
@@ -55,8 +55,8 @@ export const SAFETY_CATEGORIES: SafetyCategory[] = [
   },
   {
     id: 'user-societal',
-    label: 'User + societal',
-    question: 'Could outputs harm people or groups?',
+    label: 'Human impact',
+    question: 'Does it protect people and groups?',
   },
 ]
 
