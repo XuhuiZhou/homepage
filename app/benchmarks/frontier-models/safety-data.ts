@@ -84,6 +84,11 @@ export const SAFETY_REPORTS: Record<
     url: 'https://x.ai/news/grok-4-5',
     note: 'No release-specific safety results found',
   },
+  inkling: {
+    label: 'Inkling Model Card',
+    url: 'https://thinkingmachines.ai/model-card/inkling/',
+    note: 'Release-specific model card and safety evaluation table',
+  },
 }
 
 export const PRIOR_GROK_SAFETY_REPORT =
@@ -389,12 +394,30 @@ export const SAFETY_EVALUATIONS: SafetyEvaluation[] = [
   },
   {
     id: 'fortress',
-    name: 'FORTRESS',
+    name: 'FORTRESS (Adversarial)',
     category: 'adversarial-robustness',
     provenance: 'Public benchmark',
     description:
       'Adversarial robustness suite reported as attack-response score.',
-    coverage: { muse: 'Table 2' },
+    coverage: { muse: 'Table 2', inkling: 'Sec. 5 evaluation table' },
+  },
+  {
+    id: 'fortress-benign',
+    name: 'FORTRESS (Benign)',
+    category: 'harm-refusal',
+    provenance: 'Public benchmark',
+    description:
+      'Benign counterpart measuring whether safety behavior avoids excessive refusal.',
+    coverage: { inkling: 'Sec. 5 evaluation table' },
+  },
+  {
+    id: 'strongreject',
+    name: 'StrongREJECT',
+    category: 'adversarial-robustness',
+    provenance: 'Public benchmark',
+    description:
+      'Jailbreak robustness benchmark reported separately from StrongREJECT v2.',
+    coverage: { inkling: 'Sec. 5 evaluation table' },
   },
   {
     id: 'agentharm',

@@ -1,4 +1,9 @@
-export type LabKey = 'openai' | 'anthropic' | 'meta' | 'xai'
+export type LabKey =
+  | 'openai'
+  | 'anthropic'
+  | 'meta'
+  | 'xai'
+  | 'thinking-machines'
 
 export type BenchmarkCategory =
   | 'Professional'
@@ -20,6 +25,11 @@ export const LABS: Array<{
   { id: 'anthropic', name: 'Anthropic', shortName: 'Claude' },
   { id: 'meta', name: 'Meta', shortName: 'Muse' },
   { id: 'xai', name: 'SpaceXAI', shortName: 'Grok' },
+  {
+    id: 'thinking-machines',
+    name: 'Thinking Machines Lab',
+    shortName: 'Inkling',
+  },
 ]
 
 export const BENCHMARK_FAMILIES = [
@@ -98,6 +108,16 @@ export const BENCHMARK_FAMILIES = [
     name: 'Vals Corporate Finance',
     category: 'Professional',
   },
+  {
+    id: 'forecastbench',
+    name: 'ForecastBench',
+    category: 'Professional',
+  },
+  {
+    id: 'prophet-arena',
+    name: 'Prophet Arena',
+    category: 'Professional',
+  },
 
   { id: 'browsecomp', name: 'BrowseComp', category: 'Agents + tools' },
   { id: 'deepsearchqa', name: 'DeepSearchQA', category: 'Agents + tools' },
@@ -111,6 +131,7 @@ export const BENCHMARK_FAMILIES = [
     category: 'Agents + tools',
   },
   { id: 'tau2-bench', name: 'Tau2-bench', category: 'Agents + tools' },
+  { id: 'tau3-banking', name: 'Tau 3 Banking', category: 'Agents + tools' },
   { id: 'osworld', name: 'OSWorld', category: 'Agents + tools' },
   {
     id: 'osworld-verified',
@@ -190,6 +211,11 @@ export const BENCHMARK_FAMILIES = [
   },
   { id: 'vibecodebench', name: 'VibeCodeBench v1.1', category: 'Coding' },
   {
+    id: 'design-arena-agentic-web-dev',
+    name: 'Design Arena Agentic Web Dev (Elo)',
+    category: 'Coding',
+  },
+  {
     id: 'research-debugging',
     name: 'Internal Research Debugging',
     category: 'Coding',
@@ -200,6 +226,7 @@ export const BENCHMARK_FAMILIES = [
   { id: 'rsi-index', name: 'RSI Index', category: 'Coding' },
 
   { id: 'aime', name: 'AIME 2025', category: 'Reasoning' },
+  { id: 'aime-2026', name: 'AIME 2026', category: 'Reasoning' },
   { id: 'frontiermath', name: 'FrontierMath', category: 'Reasoning' },
   { id: 'frontiermath-v2', name: 'FrontierMath v2', category: 'Reasoning' },
   { id: 'gpqa', name: 'GPQA Diamond', category: 'Reasoning' },
@@ -241,6 +268,12 @@ export const BENCHMARK_FAMILIES = [
     category: 'Reasoning',
   },
   { id: 'aa-omniscience', name: 'AA Omniscience', category: 'Reasoning' },
+  {
+    id: 'simpleqa-verified',
+    name: 'SimpleQA Verified',
+    category: 'Reasoning',
+  },
+  { id: 'ifbench', name: 'IFBench', category: 'Reasoning' },
   { id: 'lmarena', name: 'LMArena Text', category: 'Reasoning' },
   { id: 'eqbench', name: 'EQ-Bench 3', category: 'Reasoning' },
   {
@@ -260,6 +293,11 @@ export const BENCHMARK_FAMILIES = [
   { id: 'gmmlu', name: 'GMMLU', category: 'Multilingual' },
   { id: 'milu', name: 'MILU', category: 'Multilingual' },
   { id: 'include', name: 'INCLUDE', category: 'Multilingual' },
+  {
+    id: 'global-mmlu-lite',
+    name: 'Global-MMLU-Lite',
+    category: 'Multilingual',
+  },
 
   { id: 'mmmu', name: 'MMMU', category: 'Multimodal' },
   { id: 'mmmu-pro', name: 'MMMU Pro', category: 'Multimodal' },
@@ -281,6 +319,9 @@ export const BENCHMARK_FAMILIES = [
   { id: 'babyvision', name: 'BabyVision', category: 'Multimodal' },
   { id: 'simplevqa', name: 'SimpleVQA', category: 'Multimodal' },
   { id: 'benchcad', name: 'BenchCAD', category: 'Multimodal' },
+  { id: 'audio-mc', name: 'Audio MC', category: 'Multimodal' },
+  { id: 'mmau', name: 'MMAU', category: 'Multimodal' },
+  { id: 'voicebench', name: 'VoiceBench', category: 'Multimodal' },
 
   { id: 'healthbench', name: 'HealthBench', category: 'Science + health' },
   {
@@ -995,6 +1036,40 @@ export const RELEASE_REPORTS = [
       'terminal-bench-2-1': 'Terminal-Bench 2.1',
       'swe-bench-pro': 'SWE-Bench Pro',
       'legal-agent': 'Harvey Legal Agent Benchmark',
+    },
+  },
+  {
+    id: 'thinking-machines-inkling',
+    lab: 'thinking-machines',
+    model: 'Inkling',
+    shortModel: 'Inkling',
+    date: '2026-07-15',
+    dateLabel: 'Jul 2026',
+    sourceUrl: 'https://thinkingmachines.ai/news/introducing-inkling/',
+    sourceLabel: 'Introducing Inkling and Inkling model card',
+    benchmarks: {
+      'gdpval-aa-v2': 'GDPVal-AA v2',
+      forecastbench: 'No search and with search; earlier checkpoint',
+      'prophet-arena': 'Brier Score; earlier checkpoint',
+      browsecomp: 'With context management',
+      'mcp-atlas': 'MCP Atlas',
+      'tau3-banking': 'Tau 3 Banking',
+      'swe-bench-verified': 'Bash-only harness',
+      'swe-bench-pro': 'Public split',
+      'terminal-bench-2-1': 'Best internal coding harness',
+      'design-arena-agentic-web-dev': 'Blinded human Elo evaluation',
+      hle: 'Text only and with tools',
+      'aime-2026': 'AIME 2026',
+      gpqa: 'GPQA Diamond',
+      'simpleqa-verified': 'SimpleQA Verified',
+      'aa-omniscience': 'Artificial Analysis Omniscience',
+      ifbench: 'IFBench',
+      'global-mmlu-lite': 'Global-MMLU-Lite',
+      'mmmu-pro': 'Standard 10',
+      charxiv: 'No tools and with Python',
+      'audio-mc': 'Audio MC',
+      mmau: 'MMAU',
+      voicebench: 'VoiceBench',
     },
   },
 ] satisfies ReleaseReport[]

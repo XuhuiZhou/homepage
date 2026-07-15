@@ -9,20 +9,28 @@ import {
   type ModelKey,
 } from './data'
 import { BenchmarkLifecycle } from './BenchmarkLifecycle'
+import { RELEASE_REPORTS } from './history-data'
 import { SafetyCoverage } from './SafetyCoverage'
+import { SAFETY_EVALUATIONS } from './safety-data'
 
 const CURRENT_BENCHMARK_ROWS = ALL_GROUPS.flatMap((group) => group.rows)
 const CURRENT_REPORTING_DISTRIBUTION = CURRENT_BENCHMARK_ROWS.reduce<
   Record<number, number>
 >((counts, row) => {
-  const reportCount = MODEL_KEYS.filter((model) => row[model] !== 'NR').length
+  const reportCount = MODEL_KEYS.filter(
+    (model) => (row[model] ?? 'NR') !== 'NR',
+  ).length
   counts[reportCount] = (counts[reportCount] ?? 0) + 1
   return counts
 }, {})
 const CURRENT_SINGLE_REPORT_ROWS = CURRENT_REPORTING_DISTRIBUTION[1] ?? 0
 const CURRENT_SHARED_ROWS =
   CURRENT_BENCHMARK_ROWS.length - CURRENT_SINGLE_REPORT_ROWS
-const CURRENT_ALL_REPORT_ROWS = CURRENT_REPORTING_DISTRIBUTION[4] ?? 0
+const CURRENT_ALL_REPORT_ROWS =
+  CURRENT_REPORTING_DISTRIBUTION[MODEL_KEYS.length] ?? 0
+const CURRENT_SAFETY_SINGLE_REPORT_ROWS = SAFETY_EVALUATIONS.filter(
+  (evaluation) => Object.keys(evaluation.coverage).length === 1,
+).length
 
 const SITE_URL = 'https://xuhuiz.com'
 const PAGE_URL = `${SITE_URL}/benchmarks/frontier-models`
@@ -30,21 +38,18 @@ const PAGE_URL = `${SITE_URL}/benchmarks/frontier-models`
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   title: 'Frontier Model Benchmark Matrix | Xuhui Zhou',
-  description:
-    'An audited 68-row current-release capability matrix, safety-reporting map, and interactive history of frontier benchmark reporting.',
+  description: `An audited ${CURRENT_BENCHMARK_ROWS.length}-row current-release capability matrix, safety-reporting map, and interactive history of frontier benchmark reporting.`,
   alternates: { canonical: PAGE_URL },
   openGraph: {
     title: 'Frontier Model Benchmark Matrix',
-    description:
-      'A 68-row current-release capability matrix, 80 safety-evaluation rows, and one year of reporting history.',
+    description: `An ${CURRENT_BENCHMARK_ROWS.length}-row current-release capability matrix, ${SAFETY_EVALUATIONS.length} safety-evaluation rows, and ${RELEASE_REPORTS.length} release bundles of reporting history.`,
     type: 'article',
     url: PAGE_URL,
   },
   twitter: {
     card: 'summary_large_image',
     title: 'Frontier Model Benchmark Matrix',
-    description:
-      'A 68-row current-release capability matrix, 80 safety-evaluation rows, and one year of reporting history.',
+    description: `An ${CURRENT_BENCHMARK_ROWS.length}-row current-release capability matrix, ${SAFETY_EVALUATIONS.length} safety-evaluation rows, and ${RELEASE_REPORTS.length} release bundles of reporting history.`,
     creator: '@nlpxuhui',
   },
 }
@@ -70,6 +75,11 @@ const MODEL_STYLES: Record<ModelKey, { header: string; winner: string }> = {
     winner:
       'bg-zinc-100 font-medium shadow-[inset_3px_0_0_#18181b] dark:bg-zinc-800 dark:shadow-[inset_3px_0_0_#f4f4f5]',
   },
+  inkling: {
+    header: 'border-emerald-600 dark:border-emerald-400',
+    winner:
+      'bg-emerald-50 font-medium shadow-[inset_3px_0_0_#059669] dark:bg-emerald-500/10',
+  },
 }
 
 function BenchmarkTable({
@@ -80,74 +90,76 @@ function BenchmarkTable({
   label: string
 }) {
   return (
-    <table
-      className="w-full table-fixed border-collapse text-[12px] leading-[1.25] sm:text-[13px]"
-      aria-label={label}
-    >
-      <colgroup>
-        <col className="w-[42%]" />
-        {MODEL_KEYS.map((model) => (
-          <col key={model} className="w-[14.5%]" />
-        ))}
-      </colgroup>
-      <thead>
-        <tr>
-          <th className="border-t-4 border-zinc-300 px-2 py-2 text-left font-medium dark:border-zinc-700">
-            Benchmark
-          </th>
+    <div className="overflow-x-auto">
+      <table
+        className="w-full min-w-[700px] table-fixed border-collapse text-[12px] leading-[1.25] sm:text-[13px] xl:min-w-0"
+        aria-label={label}
+      >
+        <colgroup>
+          <col className="w-[37.5%]" />
           {MODEL_KEYS.map((model) => (
-            <th
-              key={model}
-              className={`border-t-4 px-1 py-2 text-center font-medium ${MODEL_STYLES[model].header}`}
-            >
-              <span className="block">{MODEL_LABELS[model].name}</span>
-              <span className="mt-0.5 block font-normal text-zinc-500 dark:text-zinc-400">
-                {MODEL_LABELS[model].variant}
-              </span>
-            </th>
+            <col key={model} className="w-[12.5%]" />
           ))}
-        </tr>
-      </thead>
-      {groups.map((group) => (
-        <tbody key={group.name}>
+        </colgroup>
+        <thead>
           <tr>
-            <th
-              scope="rowgroup"
-              colSpan={5}
-              className="border-y border-zinc-200 bg-zinc-100 px-2 py-1.5 text-left font-medium text-zinc-500 uppercase dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-400"
-            >
-              {group.name}
+            <th className="border-t-4 border-zinc-300 px-2 py-2 text-left font-medium dark:border-zinc-700">
+              Benchmark
             </th>
-          </tr>
-          {group.rows.map((row) => (
-            <tr
-              key={row.benchmark}
-              className="border-b border-zinc-200 dark:border-zinc-800"
-            >
+            {MODEL_KEYS.map((model) => (
               <th
-                scope="row"
-                className="px-2 py-1.5 text-left font-normal break-words"
+                key={model}
+                className={`border-t-4 px-1 py-2 text-center font-medium ${MODEL_STYLES[model].header}`}
               >
-                {row.benchmark}
+                <span className="block">{MODEL_LABELS[model].name}</span>
+                <span className="mt-0.5 block font-normal text-zinc-500 dark:text-zinc-400">
+                  {MODEL_LABELS[model].variant}
+                </span>
               </th>
-              {MODEL_KEYS.map((model) => {
-                const value = row[model]
-                return (
-                  <td
-                    key={model}
-                    className={`px-1 py-1.5 text-center break-words tabular-nums ${
-                      value === 'NR' ? 'text-zinc-400 dark:text-zinc-600' : ''
-                    } ${row.winner === model ? MODEL_STYLES[model].winner : ''}`}
-                  >
-                    {value}
-                  </td>
-                )
-              })}
+            ))}
+          </tr>
+        </thead>
+        {groups.map((group) => (
+          <tbody key={group.name}>
+            <tr>
+              <th
+                scope="rowgroup"
+                colSpan={MODEL_KEYS.length + 1}
+                className="border-y border-zinc-200 bg-zinc-100 px-2 py-1.5 text-left font-medium text-zinc-500 uppercase dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-400"
+              >
+                {group.name}
+              </th>
             </tr>
-          ))}
-        </tbody>
-      ))}
-    </table>
+            {group.rows.map((row) => (
+              <tr
+                key={row.benchmark}
+                className="border-b border-zinc-200 dark:border-zinc-800"
+              >
+                <th
+                  scope="row"
+                  className="px-2 py-1.5 text-left font-normal break-words"
+                >
+                  {row.benchmark}
+                </th>
+                {MODEL_KEYS.map((model) => {
+                  const value = row[model] ?? 'NR'
+                  return (
+                    <td
+                      key={model}
+                      className={`px-1 py-1.5 text-center break-words tabular-nums ${
+                        value === 'NR' ? 'text-zinc-400 dark:text-zinc-600' : ''
+                      } ${row.winner === model ? MODEL_STYLES[model].winner : ''}`}
+                    >
+                      {value}
+                    </td>
+                  )
+                })}
+              </tr>
+            ))}
+          </tbody>
+        ))}
+      </table>
+    </div>
   )
 }
 
@@ -156,15 +168,16 @@ export default function FrontierModelsPage() {
     <main className="mx-auto w-full max-w-[1500px] px-4 pt-10 pb-16 sm:px-6 sm:pt-14">
       <header className="mb-8 border-b border-zinc-200 pb-7 dark:border-zinc-800">
         <p className="mb-2 text-sm text-zinc-500 dark:text-zinc-400">
-          Audited July 9, 2026
+          Audited July 15, 2026
         </p>
         <h1 className="text-3xl font-semibold sm:text-4xl">
           Frontier Model Benchmark Matrix
         </h1>
         <p className="mt-3 max-w-4xl text-base text-zinc-600 dark:text-zinc-400">
           Public numeric capability results for GPT-5.6 Sol, Claude Mythos and
-          Fable 5, Muse Spark 1.1, and Grok 4.5. NR means no public numeric
-          result was found in the audited sources.
+          Fable 5, Muse Spark 1.1, Grok 4.5, and Thinking Machines&apos;
+          Inkling. NR means no public numeric result was found in the audited
+          sources.
         </p>
         <p className="mt-3 max-w-4xl text-base text-zinc-600 dark:text-zinc-400">
           A benchmark is only one projection of model behavior. Increasingly, a
@@ -205,10 +218,12 @@ export default function FrontierModelsPage() {
             </strong>{' '}
             For {CURRENT_BENCHMARK_ROWS.length} capability benchmark rows in the
             current matrix, {CURRENT_SINGLE_REPORT_ROWS} are unique;{' '}
-            {CURRENT_SHARED_ROWS} are from two models +; only{' '}
-            {CURRENT_ALL_REPORT_ROWS} appear in all four. Safety reporting is
-            even more fragmented: 71 of 80 normalized rows appear once in the
-            current four releases.
+            {CURRENT_SHARED_ROWS} appear in two or more releases; only{' '}
+            {CURRENT_ALL_REPORT_ROWS} appear in all {MODEL_KEYS.length}. Safety
+            reporting is even more fragmented:{' '}
+            {CURRENT_SAFETY_SINGLE_REPORT_ROWS} of {SAFETY_EVALUATIONS.length}{' '}
+            normalized rows appear once in the current {MODEL_KEYS.length}{' '}
+            releases.
           </p>
           <p>
             <strong className="font-medium text-zinc-900 dark:text-zinc-100">
@@ -234,7 +249,7 @@ export default function FrontierModelsPage() {
           <div>
             <h2 className="text-2xl font-semibold">Current releases</h2>
             <p className="mt-2 max-w-3xl text-sm leading-relaxed text-zinc-600 dark:text-zinc-400">
-              Public numeric results from the four current release bundles. NR
+              Public numeric results from the five current release bundles. NR
               means no public numeric result was found in the audited source.
             </p>
           </div>
@@ -252,7 +267,7 @@ export default function FrontierModelsPage() {
             [CURRENT_BENCHMARK_ROWS.length, 'Benchmark rows'],
             [CURRENT_SINGLE_REPORT_ROWS, 'Unique to one release'],
             [CURRENT_SHARED_ROWS, 'Shared across 2+ releases'],
-            [CURRENT_ALL_REPORT_ROWS, 'All four reports'],
+            [CURRENT_ALL_REPORT_ROWS, `All ${MODEL_KEYS.length} reports`],
           ].map(([value, label], index) => (
             <div
               key={label}
@@ -271,11 +286,11 @@ export default function FrontierModelsPage() {
         <div className="grid items-start gap-6 xl:grid-cols-2">
           <BenchmarkTable
             groups={LEFT_GROUPS}
-            label="Professional, agent, coding, and AI self-improvement benchmarks"
+            label="Professional, forecasting, agent, coding, and AI self-improvement benchmarks"
           />
           <BenchmarkTable
             groups={RIGHT_GROUPS}
-            label="Reasoning, science, health, multimodal, and cybersecurity benchmarks"
+            label="Reasoning, knowledge, chat, science, health, multimodal, and cybersecurity benchmarks"
           />
         </div>
       </section>
@@ -289,7 +304,9 @@ export default function FrontierModelsPage() {
           <p>
             Reporting more benchmark rows does not imply a better model. Tint
             marks the best directly comparable score. * indicates a different
-            setup, metric, or leaderboard snapshot. M/F denotes Claude
+            setup, metric, checkpoint, or leaderboard snapshot. Inkling results
+            use effort 0.99; its forecasting rows use a nearby pre-release
+            checkpoint. S10 denotes MMMU Pro Standard 10. M/F denotes Claude
             Mythos/Fable; U denotes GPT-5.6 Sol Ultra.
           </p>
           <div className="flex flex-wrap gap-x-4 gap-y-2 lg:justify-end">
@@ -324,6 +341,14 @@ export default function FrontierModelsPage() {
               rel="noreferrer"
             >
               xAI
+            </a>
+            <a
+              className="underline underline-offset-4"
+              href="https://thinkingmachines.ai/news/introducing-inkling/"
+              target="_blank"
+              rel="noreferrer"
+            >
+              Thinking Machines
             </a>
           </div>
         </div>

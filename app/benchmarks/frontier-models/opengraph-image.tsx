@@ -19,11 +19,13 @@ const MODEL_COLORS: Record<ModelKey, string> = {
   claude: '#f97316',
   muse: '#3b82f6',
   grok: '#737373',
+  inkling: '#10b981',
 }
 
 const CURRENT_ROWS = ALL_GROUPS.flatMap((group) => group.rows)
 const SINGLE_REPORT_ROWS = CURRENT_ROWS.filter(
-  (row) => MODEL_KEYS.filter((model) => row[model] !== 'NR').length === 1,
+  (row) =>
+    MODEL_KEYS.filter((model) => (row[model] ?? 'NR') !== 'NR').length === 1,
 ).length
 const SINGLE_REPORT_PERCENT = Math.round(
   (SINGLE_REPORT_ROWS / CURRENT_ROWS.length) * 100,
@@ -146,7 +148,7 @@ export default function Image() {
             }}
           >
             <div style={{ display: 'flex' }}>
-              Current matrix + July 2025-July 2026 history
+              Five current releases + July 2025-July 2026 history
             </div>
             <div style={{ display: 'flex', marginTop: 4, color: '#d4d4d4' }}>
               Reporting coverage is not model quality.
@@ -253,7 +255,7 @@ export default function Image() {
               }}
             >
               <div style={{ display: 'flex', fontSize: 24, fontWeight: 700 }}>
-                {ONE_REPORT_SAFETY_ROWS}/80
+                {ONE_REPORT_SAFETY_ROWS}/{SAFETY_EVALUATIONS.length}
               </div>
               <div
                 style={{
@@ -499,14 +501,15 @@ export default function Image() {
               key={model}
               style={{
                 display: 'flex',
-                width: '25%',
+                flex: 1,
+                minWidth: 0,
                 flexDirection: 'column',
                 borderTop: `5px solid ${MODEL_COLORS[model]}`,
-                marginLeft: index === 0 ? 0 : 18,
+                marginLeft: index === 0 ? 0 : 12,
                 paddingTop: 7,
               }}
             >
-              <div style={{ display: 'flex', fontSize: 17, fontWeight: 700 }}>
+              <div style={{ display: 'flex', fontSize: 15, fontWeight: 700 }}>
                 {MODEL_LABELS[model].name}
               </div>
               <div

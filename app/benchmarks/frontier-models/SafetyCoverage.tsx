@@ -37,12 +37,35 @@ const MODEL_STYLES: Record<
     check: 'text-zinc-950 dark:text-zinc-100',
     soft: 'bg-zinc-100 dark:bg-zinc-800',
   },
+  inkling: {
+    border: 'border-emerald-600 dark:border-emerald-400',
+    check: 'text-emerald-700 dark:text-emerald-300',
+    soft: 'bg-emerald-50 dark:bg-emerald-500/10',
+  },
 }
 
 function reportedCount(model: ModelKey) {
   return SAFETY_EVALUATIONS.filter((evaluation) => evaluation.coverage[model])
     .length
 }
+
+const SAFETY_REPORTING_MODEL_COUNT = MODEL_KEYS.filter(
+  (model) => reportedCount(model) > 0,
+).length
+const SAFETY_SINGLE_REPORT_ROWS = SAFETY_EVALUATIONS.filter(
+  (evaluation) => Object.keys(evaluation.coverage).length === 1,
+).length
+const SAFETY_MAX_REPORT_COUNT = Math.max(
+  ...SAFETY_EVALUATIONS.map(
+    (evaluation) => Object.keys(evaluation.coverage).length,
+  ),
+)
+const SAFETY_MAX_REPORT_NAMES = SAFETY_EVALUATIONS.filter(
+  (evaluation) =>
+    Object.keys(evaluation.coverage).length === SAFETY_MAX_REPORT_COUNT,
+)
+  .map((evaluation) => evaluation.name)
+  .join(' and ')
 
 export function SafetyCoverage() {
   const [categoryFilter, setCategoryFilter] = useState<CategoryFilter>('all')
@@ -100,7 +123,9 @@ export function SafetyCoverage() {
           <dt className="text-xs text-zinc-500 uppercase dark:text-zinc-400">
             Release safety reports
           </dt>
-          <dd className="mt-1 text-2xl font-semibold tabular-nums">3 / 4</dd>
+          <dd className="mt-1 text-2xl font-semibold tabular-nums">
+            {SAFETY_REPORTING_MODEL_COUNT} / {MODEL_KEYS.length}
+          </dd>
         </div>
       </dl>
 
@@ -115,10 +140,11 @@ export function SafetyCoverage() {
           Safety takeaway
         </h3>
         <p className="mt-2 text-base text-zinc-600 dark:text-zinc-400">
-          Safety reporting is broad but highly fragmented. Of 80 normalized
-          evaluation rows, 71 appear in only one of the three current release
-          documents with quantified safety results. Only VCT and HealthBench
-          Professional appear in all three. These counts measure public
+          Safety reporting is broad but highly fragmented. Of{' '}
+          {SAFETY_EVALUATIONS.length} normalized evaluation rows,{' '}
+          {SAFETY_SINGLE_REPORT_ROWS} appear in only one current release
+          document. The widest overlap is {SAFETY_MAX_REPORT_COUNT} reports,
+          reached by {SAFETY_MAX_REPORT_NAMES}. These counts measure public
           disclosure overlap, not which model is safest or how much safety
           testing each lab performed.
         </p>
@@ -237,13 +263,13 @@ export function SafetyCoverage() {
 
       <div className="mt-5 overflow-x-auto border-y border-zinc-200 dark:border-zinc-800">
         <table
-          className="w-full min-w-[760px] table-fixed border-collapse text-[12px] leading-[1.25] sm:text-[13px]"
+          className="w-full min-w-[880px] table-fixed border-collapse text-[12px] leading-[1.25] sm:text-[13px]"
           aria-label="Safety evaluation reporting coverage for current frontier model releases"
         >
           <colgroup>
-            <col className="w-[46%]" />
+            <col className="w-[40%]" />
             {MODEL_KEYS.map((model) => (
-              <col key={model} className="w-[13.5%]" />
+              <col key={model} className="w-[12%]" />
             ))}
           </colgroup>
           <thead>
@@ -280,7 +306,7 @@ export function SafetyCoverage() {
               <tr>
                 <th
                   scope="rowgroup"
-                  colSpan={5}
+                  colSpan={MODEL_KEYS.length + 1}
                   className="border-y border-zinc-200 bg-zinc-100 px-2 py-1.5 text-left font-medium text-zinc-500 uppercase dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-400"
                 >
                   {group.label}
@@ -362,7 +388,9 @@ export function SafetyCoverage() {
             Policy sections; Meta&apos;s Advanced AI Scaling Framework,
             Adversarial Robustness, and Model Behavior scorecards; and the
             malicious-use, loss-of-control, and dual-use framing in xAI&apos;s
-            earlier Grok 4.20 system card.
+            earlier Grok 4.20 system card. Thinking Machines&apos; Inkling model
+            card adds quantified refusal and jailbreak tests alongside broader
+            dangerous-capability and human-impact testing.
           </p>
           <p>
             <strong className="font-medium text-zinc-800 dark:text-zinc-200">

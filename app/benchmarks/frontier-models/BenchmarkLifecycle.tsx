@@ -56,6 +56,14 @@ const LAB_STYLES: Record<
     badge:
       'border-zinc-300 bg-zinc-100 text-zinc-900 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-100',
   },
+  'thinking-machines': {
+    border: 'border-emerald-600 dark:border-emerald-400',
+    bar: 'bg-emerald-600 dark:bg-emerald-400',
+    reported:
+      'bg-emerald-100 text-emerald-800 dark:bg-emerald-500/20 dark:text-emerald-200',
+    badge:
+      'border-emerald-200 bg-emerald-50 text-emerald-800 dark:border-emerald-800 dark:bg-emerald-500/10 dark:text-emerald-200',
+  },
 }
 
 const CATEGORY_ORDER = new Map(
@@ -204,10 +212,10 @@ export function BenchmarkLifecycle() {
           Benchmark reporting history, July 2025 to July 2026
         </h2>
         <p className="mt-3 text-base text-zinc-600 dark:text-zinc-400">
-          An edition-level audit of 18 first-party flagship release bundles.
-          Each cell answers one question: did that release publicly report a
-          numeric result for this benchmark edition? Run details remain attached
-          to every reported cell.
+          An edition-level audit of {RELEASE_REPORTS.length} first-party
+          flagship release bundles. Each cell answers one question: did that
+          release publicly report a numeric result for this benchmark edition?
+          Run details remain attached to every reported cell.
         </p>
       </header>
 
@@ -240,7 +248,7 @@ export function BenchmarkLifecycle() {
 
       <section className="mt-10" aria-labelledby="continuity-heading">
         <div className="flex flex-wrap items-end justify-between gap-3">
-          <div>
+          <div className="w-full sm:w-auto">
             <h3 id="continuity-heading" className="text-lg font-semibold">
               Release-to-release continuity
             </h3>
@@ -319,12 +327,12 @@ export function BenchmarkLifecycle() {
         </h3>
 
         <div className="mt-4 flex flex-wrap items-end gap-3 border-y border-zinc-200 py-4 dark:border-zinc-800">
-          <div>
+          <div className="w-full sm:w-auto">
             <span className="mb-1.5 block text-xs text-zinc-500 uppercase dark:text-zinc-400">
               Lab
             </span>
             <div
-              className="inline-flex border border-zinc-300 p-0.5 dark:border-zinc-700"
+              className="grid w-full grid-cols-3 border border-zinc-300 p-0.5 sm:inline-flex sm:w-auto dark:border-zinc-700"
               role="group"
               aria-label="Filter timeline by lab"
             >

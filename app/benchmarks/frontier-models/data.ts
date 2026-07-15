@@ -1,4 +1,4 @@
-export type ModelKey = 'gpt' | 'claude' | 'muse' | 'grok'
+export type ModelKey = 'gpt' | 'claude' | 'muse' | 'grok' | 'inkling'
 
 export type BenchmarkRow = {
   benchmark: string
@@ -6,6 +6,7 @@ export type BenchmarkRow = {
   claude: string
   muse: string
   grok: string
+  inkling?: string
   winner?: ModelKey
 }
 
@@ -14,7 +15,13 @@ export type BenchmarkGroup = {
   rows: BenchmarkRow[]
 }
 
-export const MODEL_KEYS: ModelKey[] = ['gpt', 'claude', 'muse', 'grok']
+export const MODEL_KEYS: ModelKey[] = [
+  'gpt',
+  'claude',
+  'muse',
+  'grok',
+  'inkling',
+]
 
 export const MODEL_LABELS: Record<ModelKey, { name: string; variant: string }> =
   {
@@ -22,6 +29,7 @@ export const MODEL_LABELS: Record<ModelKey, { name: string; variant: string }> =
     claude: { name: 'Claude 5', variant: 'Mythos / Fable' },
     muse: { name: 'Muse Spark', variant: '1.1' },
     grok: { name: 'Grok', variant: '4.5' },
+    inkling: { name: 'Inkling', variant: 'effort 0.99' },
   }
 
 export const LEFT_GROUPS: BenchmarkGroup[] = [
@@ -42,6 +50,7 @@ export const LEFT_GROUPS: BenchmarkGroup[] = [
         claude: '1759.6 F',
         muse: '1381',
         grok: 'NR',
+        inkling: '1238',
       },
       {
         benchmark: 'AA Intelligence Index v4.1',
@@ -105,6 +114,35 @@ export const LEFT_GROUPS: BenchmarkGroup[] = [
     ],
   },
   {
+    name: 'Forecasting',
+    rows: [
+      {
+        benchmark: 'ForecastBench (Brier Index, no search)*',
+        gpt: 'NR',
+        claude: 'NR',
+        muse: 'NR',
+        grok: 'NR',
+        inkling: '61.1 +/- 0.79',
+      },
+      {
+        benchmark: 'ForecastBench (Brier Index, with search)*',
+        gpt: 'NR',
+        claude: 'NR',
+        muse: 'NR',
+        grok: 'NR',
+        inkling: '63.7 +/- 0.82',
+      },
+      {
+        benchmark: 'Prophet Arena (Brier; lower is better)*',
+        gpt: 'NR',
+        claude: 'NR',
+        muse: 'NR',
+        grok: 'NR',
+        inkling: '0.1617',
+      },
+    ],
+  },
+  {
     name: 'Agents + tools',
     rows: [
       {
@@ -113,6 +151,7 @@ export const LEFT_GROUPS: BenchmarkGroup[] = [
         claude: '88.0 M',
         muse: 'NR',
         grok: 'NR',
+        inkling: '77.1*',
         winner: 'gpt',
       },
       {
@@ -128,7 +167,16 @@ export const LEFT_GROUPS: BenchmarkGroup[] = [
         claude: '83.3 F',
         muse: '88.1',
         grok: 'NR',
+        inkling: '74.1',
         winner: 'muse',
+      },
+      {
+        benchmark: 'Tau 3 Banking',
+        gpt: 'NR',
+        claude: 'NR',
+        muse: 'NR',
+        grok: 'NR',
+        inkling: '23.7',
       },
       {
         benchmark: 'Toolathlon',
@@ -188,11 +236,12 @@ export const LEFT_GROUPS: BenchmarkGroup[] = [
     name: 'Coding',
     rows: [
       {
-        benchmark: 'SWE-Bench Pro',
+        benchmark: 'SWE-Bench Pro (Public)',
         gpt: '64.6',
         claude: '80.3 M',
         muse: '61.5',
         grok: '64.7',
+        inkling: '54.3',
         winner: 'claude',
       },
       {
@@ -201,6 +250,7 @@ export const LEFT_GROUPS: BenchmarkGroup[] = [
         claude: '88.0 M',
         muse: '80.0',
         grok: '83.3',
+        inkling: '63.8*',
         winner: 'gpt',
       },
       {
@@ -241,6 +291,15 @@ export const LEFT_GROUPS: BenchmarkGroup[] = [
         claude: '95.5 M',
         muse: 'NR',
         grok: 'NR',
+        inkling: '77.6*',
+      },
+      {
+        benchmark: 'Design Arena Agentic Web Dev (Elo)',
+        gpt: 'NR',
+        claude: 'NR',
+        muse: 'NR',
+        grok: 'NR',
+        inkling: '1257',
       },
       {
         benchmark: 'FrontierCode Diamond',
@@ -324,6 +383,7 @@ export const RIGHT_GROUPS: BenchmarkGroup[] = [
         claude: '59.0 M',
         muse: '52.2',
         grok: 'NR',
+        inkling: '29.7*',
       },
       {
         benchmark: "Humanity's Last Exam (with tools)*",
@@ -331,6 +391,15 @@ export const RIGHT_GROUPS: BenchmarkGroup[] = [
         claude: '64.5 M',
         muse: '62.1',
         grok: 'NR',
+        inkling: '46.0',
+      },
+      {
+        benchmark: 'AIME 2026',
+        gpt: 'NR',
+        claude: 'NR',
+        muse: 'NR',
+        grok: 'NR',
+        inkling: '97.1',
       },
       {
         benchmark: 'GPQA Diamond',
@@ -338,6 +407,7 @@ export const RIGHT_GROUPS: BenchmarkGroup[] = [
         claude: '94.1 M',
         muse: 'NR',
         grok: 'NR',
+        inkling: '87.2',
         winner: 'gpt',
       },
       {
@@ -399,6 +469,43 @@ export const RIGHT_GROUPS: BenchmarkGroup[] = [
         claude: 'NR',
         muse: 'NR',
         grok: 'NR',
+      },
+    ],
+  },
+  {
+    name: 'Knowledge + chat',
+    rows: [
+      {
+        benchmark: 'SimpleQA Verified',
+        gpt: 'NR',
+        claude: 'NR',
+        muse: 'NR',
+        grok: 'NR',
+        inkling: '43.9',
+      },
+      {
+        benchmark: 'AA Omniscience',
+        gpt: 'NR',
+        claude: 'NR',
+        muse: 'NR',
+        grok: 'NR',
+        inkling: '2.1',
+      },
+      {
+        benchmark: 'IFBench',
+        gpt: 'NR',
+        claude: 'NR',
+        muse: 'NR',
+        grok: 'NR',
+        inkling: '79.8',
+      },
+      {
+        benchmark: 'Global-MMLU-Lite',
+        gpt: 'NR',
+        claude: 'NR',
+        muse: 'NR',
+        grok: 'NR',
+        inkling: '88.7',
       },
     ],
   },
@@ -489,6 +596,7 @@ export const RIGHT_GROUPS: BenchmarkGroup[] = [
         claude: '88.9 M',
         muse: 'NR',
         grok: 'NR',
+        inkling: '78.1',
       },
       {
         benchmark: 'CharXiv Reasoning (with tools)',
@@ -496,6 +604,7 @@ export const RIGHT_GROUPS: BenchmarkGroup[] = [
         claude: '93.5 M',
         muse: '88.4',
         grok: 'NR',
+        inkling: '82.0*',
         winner: 'claude',
       },
       {
@@ -513,11 +622,12 @@ export const RIGHT_GROUPS: BenchmarkGroup[] = [
         grok: 'NR',
       },
       {
-        benchmark: 'MMMU Pro (no tools)',
+        benchmark: 'MMMU Pro (no tools)*',
         gpt: '83.0',
         claude: 'NR',
         muse: 'NR',
         grok: 'NR',
+        inkling: '73.5 S10',
       },
       {
         benchmark: 'MMMU Pro (with tools)',
@@ -525,6 +635,30 @@ export const RIGHT_GROUPS: BenchmarkGroup[] = [
         claude: 'NR',
         muse: 'NR',
         grok: 'NR',
+      },
+      {
+        benchmark: 'Audio MC*',
+        gpt: 'NR',
+        claude: 'NR',
+        muse: 'NR',
+        grok: 'NR',
+        inkling: '56.6',
+      },
+      {
+        benchmark: 'MMAU',
+        gpt: 'NR',
+        claude: 'NR',
+        muse: 'NR',
+        grok: 'NR',
+        inkling: '77.2',
+      },
+      {
+        benchmark: 'VoiceBench*',
+        gpt: 'NR',
+        claude: 'NR',
+        muse: 'NR',
+        grok: 'NR',
+        inkling: '91.4',
       },
     ],
   },
@@ -578,9 +712,9 @@ export const ALL_GROUPS = [...LEFT_GROUPS, ...RIGHT_GROUPS]
 export const COVERAGE = MODEL_KEYS.reduce<Record<ModelKey, number>>(
   (counts, model) => {
     counts[model] = ALL_GROUPS.flatMap((group) => group.rows).filter(
-      (row) => row[model] !== 'NR',
+      (row) => (row[model] ?? 'NR') !== 'NR',
     ).length
     return counts
   },
-  { gpt: 0, claude: 0, muse: 0, grok: 0 },
+  { gpt: 0, claude: 0, muse: 0, grok: 0, inkling: 0 },
 )
