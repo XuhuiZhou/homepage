@@ -218,7 +218,13 @@ export default function FrontierModelsPage() {
           the same benchmark name can refer to multiple non-identical settings.
           I use public numbers from official releases or third-party sources
           when available, treating them as good-faith reports of the strongest
-          result each source chose to publish.
+          result each source chose to publish. I also assume labs often run many
+          internal evaluations that never appear in public launch materials.
+          This table is about what an outside reader can verify and compare from
+          public evidence. More public reporting would be useful even when
+          numbers are not perfectly compatible, as long as the harness, tools,
+          checkpoints, and other settings are clear enough to interpret the
+          result.
         </p>
       </details>
 
