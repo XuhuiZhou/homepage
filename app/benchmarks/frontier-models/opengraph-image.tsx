@@ -20,6 +20,7 @@ const MODEL_COLORS: Record<ModelKey, string> = {
   muse: '#3b82f6',
   grok: '#737373',
   inkling: '#10b981',
+  kimi: '#06b6d4',
 }
 
 const CURRENT_ROWS = ALL_GROUPS.flatMap((group) => group.rows)
@@ -148,7 +149,7 @@ export default function Image() {
             }}
           >
             <div style={{ display: 'flex' }}>
-              Five current releases + July 2025-July 2026 history
+              Six current releases + July 2025-July 2026 history
             </div>
             <div style={{ display: 'flex', marginTop: 4, color: '#d4d4d4' }}>
               Reporting coverage is not model quality.

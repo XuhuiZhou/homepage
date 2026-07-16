@@ -89,6 +89,11 @@ export const SAFETY_REPORTS: Record<
     url: 'https://thinkingmachines.ai/model-card/inkling/',
     note: 'Release-specific model card and safety evaluation table',
   },
+  kimi: {
+    label: 'Kimi K3 Launch Post',
+    url: 'https://www.kimi.com/blog/kimi-k3',
+    note: 'Qualitative limitations; no quantified safety results found',
+  },
 }
 
 export const PRIOR_GROK_SAFETY_REPORT =

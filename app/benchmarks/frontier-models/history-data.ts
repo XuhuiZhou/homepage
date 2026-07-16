@@ -4,6 +4,7 @@ export type LabKey =
   | 'meta'
   | 'xai'
   | 'thinking-machines'
+  | 'moonshot'
 
 export type BenchmarkCategory =
   | 'Professional'
@@ -30,6 +31,7 @@ export const LABS: Array<{
     name: 'Thinking Machines Lab',
     shortName: 'Inkling',
   },
+  { id: 'moonshot', name: 'Moonshot AI', shortName: 'Kimi' },
 ]
 
 export const BENCHMARK_FAMILIES = [
@@ -44,6 +46,11 @@ export const BENCHMARK_FAMILIES = [
   {
     id: 'aa-intelligence-index',
     name: 'AA Intelligence Index v4.1',
+    category: 'Professional',
+  },
+  {
+    id: 'aa-briefcase',
+    name: 'AA-Briefcase',
     category: 'Professional',
   },
   {
@@ -98,6 +105,16 @@ export const BENCHMARK_FAMILIES = [
   {
     id: 'spreadsheetbench',
     name: 'SpreadsheetBench',
+    category: 'Professional',
+  },
+  {
+    id: 'spreadsheetbench-2',
+    name: 'SpreadsheetBench 2',
+    category: 'Professional',
+  },
+  {
+    id: 'deck-bench',
+    name: 'DECK-Bench',
     category: 'Professional',
   },
   { id: 'vending-bench', name: 'Vending-Bench', category: 'Professional' },
@@ -157,6 +174,7 @@ export const BENCHMARK_FAMILIES = [
   },
   { id: 'openrca', name: 'OpenRCA', category: 'Agents + tools' },
   { id: 'programbench', name: 'ProgramBench', category: 'Agents + tools' },
+  { id: 'apex-agents', name: 'APEX-Agents', category: 'Agents + tools' },
 
   {
     id: 'swe-bench-verified',
@@ -223,6 +241,13 @@ export const BENCHMARK_FAMILIES = [
   { id: 'kernelgen', name: 'KernelGen 1P', category: 'Coding' },
   { id: 'nanogpt', name: 'NanoGPT', category: 'Coding' },
   { id: 'posttrainbench', name: 'PostTrainBench Lite', category: 'Coding' },
+  { id: 'posttrain-bench', name: 'PostTrain Bench', category: 'Coding' },
+  { id: 'mls-bench-lite', name: 'MLS Bench Lite', category: 'Coding' },
+  {
+    id: 'kimi-code-bench-2',
+    name: 'Kimi Code Bench 2.0',
+    category: 'Coding',
+  },
   { id: 'rsi-index', name: 'RSI Index', category: 'Coding' },
 
   { id: 'aime', name: 'AIME 2025', category: 'Reasoning' },
@@ -317,6 +342,13 @@ export const BENCHMARK_FAMILIES = [
   { id: 'chartqapro', name: 'ChartQAPro', category: 'Multimodal' },
   { id: 'chartmuseum', name: 'ChartMuseum', category: 'Multimodal' },
   { id: 'babyvision', name: 'BabyVision', category: 'Multimodal' },
+  { id: 'mathvision', name: 'MathVision', category: 'Multimodal' },
+  { id: 'worldvqa', name: 'WorldVQA', category: 'Multimodal' },
+  {
+    id: 'perceptionbench',
+    name: 'PerceptionBench',
+    category: 'Multimodal',
+  },
   { id: 'simplevqa', name: 'SimpleVQA', category: 'Multimodal' },
   { id: 'benchcad', name: 'BenchCAD', category: 'Multimodal' },
   { id: 'audio-mc', name: 'Audio MC', category: 'Multimodal' },
@@ -1070,6 +1102,48 @@ export const RELEASE_REPORTS = [
       'audio-mc': 'Audio MC',
       mmau: 'MMAU',
       voicebench: 'VoiceBench',
+    },
+  },
+  {
+    id: 'moonshot-kimi-k3',
+    lab: 'moonshot',
+    model: 'Kimi K3',
+    shortModel: 'K3',
+    date: '2026-07-16',
+    dateLabel: 'Jul 2026',
+    sourceUrl: 'https://www.kimi.com/blog/kimi-k3',
+    sourceLabel: 'Kimi K3 launch post; technical report pending',
+    benchmarks: {
+      'deep-swe-1-1': 'v1.1; KimiCode harness',
+      programbench: 'Program Bench',
+      'terminal-bench-2-1': 'KimiCode harness',
+      'frontier-swe': 'KimiCode harness; dominance score',
+      'swe-marathon': 'Claude Code harness',
+      'posttrain-bench': 'Official Harbor implementation; Claude Code harness',
+      'mls-bench-lite': 'MLS Bench Lite; KimiCode harness',
+      'kimi-code-bench-2': 'Internal Kimi Code Bench 2.0',
+      'gdpval-aa-v2': 'Artificial Analysis Elo score',
+      browsecomp: 'Context compaction at 300K tokens',
+      deepsearchqa: 'F1 score',
+      'toolathlon-verified': 'Toolathlon-Verified',
+      'mcp-atlas': '500-task public subset; 100-turn limit',
+      automationbench: '600-task public subset',
+      jobbench: 'Job Bench',
+      'aa-briefcase': 'Artificial Analysis Elo score',
+      'apex-agents': 'APEX-Agents',
+      'officeqa-pro': 'Claude Code harness',
+      'spreadsheetbench-2': 'Claude Code harness',
+      'deck-bench': 'Internal DECK-Bench',
+      gpqa: 'GPQA-Diamond',
+      hle: 'HLE-Full without tools and with tools',
+      'mmmu-pro': 'No tools and with Python',
+      charxiv: 'Reasoning questions; no tools and with Python',
+      mathvision: 'No tools and with Python',
+      babyvision: 'With Python',
+      zerobench: 'Main split pass@5; no tools and with Python',
+      worldvqa: 'ForceAnswer',
+      omnidocbench: 'OmniDocBench',
+      perceptionbench: 'In-house atomic visual-perception benchmark',
     },
   },
 ] satisfies ReleaseReport[]

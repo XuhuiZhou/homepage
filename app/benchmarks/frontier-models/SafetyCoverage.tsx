@@ -42,6 +42,11 @@ const MODEL_STYLES: Record<
     check: 'text-emerald-700 dark:text-emerald-300',
     soft: 'bg-emerald-50 dark:bg-emerald-500/10',
   },
+  kimi: {
+    border: 'border-cyan-600 dark:border-cyan-400',
+    check: 'text-cyan-700 dark:text-cyan-300',
+    soft: 'bg-cyan-50 dark:bg-cyan-500/10',
+  },
 }
 
 function reportedCount(model: ModelKey) {
@@ -263,13 +268,13 @@ export function SafetyCoverage() {
 
       <div className="mt-5 overflow-x-auto border-y border-zinc-200 dark:border-zinc-800">
         <table
-          className="w-full min-w-[880px] table-fixed border-collapse text-[12px] leading-[1.25] sm:text-[13px]"
+          className="w-full min-w-[980px] table-fixed border-collapse text-[12px] leading-[1.25] sm:text-[13px]"
           aria-label="Safety evaluation reporting coverage for current frontier model releases"
         >
           <colgroup>
-            <col className="w-[40%]" />
+            <col className="w-[34%]" />
             {MODEL_KEYS.map((model) => (
-              <col key={model} className="w-[12%]" />
+              <col key={model} className="w-[11%]" />
             ))}
           </colgroup>
           <thead>
@@ -390,7 +395,10 @@ export function SafetyCoverage() {
             malicious-use, loss-of-control, and dual-use framing in xAI&apos;s
             earlier Grok 4.20 system card. Thinking Machines&apos; Inkling model
             card adds quantified refusal and jailbreak tests alongside broader
-            dangerous-capability and human-impact testing.
+            dangerous-capability and human-impact testing. Kimi K3&apos;s launch
+            post lists qualitative limitations around thinking-history
+            sensitivity and excessive proactiveness, but no quantified safety
+            evaluation rows.
           </p>
           <p>
             <strong className="font-medium text-zinc-800 dark:text-zinc-200">
@@ -417,9 +425,9 @@ export function SafetyCoverage() {
           the current matrix are not duplicated here.
         </p>
         <p className="max-w-xl lg:text-right">
-          No quantified safety result was found in the audited Grok 4.5 launch
-          post; that does not show no safety testing occurred. xAI&apos;s
-          earlier{' '}
+          No quantified safety result was found in the audited Grok 4.5 or Kimi
+          K3 launch posts; that does not show no safety testing occurred.
+          xAI&apos;s earlier{' '}
           <a
             className="underline underline-offset-4"
             href={PRIOR_GROK_SAFETY_REPORT}
@@ -428,7 +436,9 @@ export function SafetyCoverage() {
           >
             Grok 4.20 system card
           </a>{' '}
-          did report safety evaluations; none are attributed to 4.5 here.
+          did report safety evaluations; none are attributed to 4.5 here. The
+          Kimi post records qualitative limitations rather than numeric safety
+          results.
         </p>
       </div>
     </section>

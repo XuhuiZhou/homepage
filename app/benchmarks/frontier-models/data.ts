@@ -1,4 +1,4 @@
-export type ModelKey = 'gpt' | 'claude' | 'muse' | 'grok' | 'inkling'
+export type ModelKey = 'gpt' | 'claude' | 'muse' | 'grok' | 'inkling' | 'kimi'
 
 export type BenchmarkRow = {
   benchmark: string
@@ -7,6 +7,7 @@ export type BenchmarkRow = {
   muse: string
   grok: string
   inkling?: string
+  kimi?: string
   winner?: ModelKey
 }
 
@@ -21,6 +22,7 @@ export const MODEL_KEYS: ModelKey[] = [
   'muse',
   'grok',
   'inkling',
+  'kimi',
 ]
 
 export const MODEL_LABELS: Record<ModelKey, { name: string; variant: string }> =
@@ -30,6 +32,7 @@ export const MODEL_LABELS: Record<ModelKey, { name: string; variant: string }> =
     muse: { name: 'Muse Spark', variant: '1.1' },
     grok: { name: 'Grok', variant: '4.5' },
     inkling: { name: 'Inkling', variant: 'effort 0.99' },
+    kimi: { name: 'Kimi', variant: 'K3 (max)' },
   }
 
 export const LEFT_GROUPS: BenchmarkGroup[] = [
@@ -51,6 +54,15 @@ export const LEFT_GROUPS: BenchmarkGroup[] = [
         muse: '1381',
         grok: 'NR',
         inkling: '1238',
+        kimi: '1668.0',
+      },
+      {
+        benchmark: 'AA-Briefcase (Elo)',
+        gpt: 'NR',
+        claude: 'NR',
+        muse: 'NR',
+        grok: 'NR',
+        kimi: '1548.0',
       },
       {
         benchmark: 'AA Intelligence Index v4.1',
@@ -89,6 +101,8 @@ export const LEFT_GROUPS: BenchmarkGroup[] = [
         claude: 'NR',
         muse: '54.7',
         grok: 'NR',
+        kimi: '52.9',
+        winner: 'muse',
       },
       {
         benchmark: 'OfficeQA Pro',
@@ -96,6 +110,24 @@ export const LEFT_GROUPS: BenchmarkGroup[] = [
         claude: '57.9 F',
         muse: 'NR',
         grok: 'NR',
+        kimi: '63.3',
+        winner: 'kimi',
+      },
+      {
+        benchmark: 'SpreadsheetBench 2',
+        gpt: 'NR',
+        claude: 'NR',
+        muse: 'NR',
+        grok: 'NR',
+        kimi: '34.8',
+      },
+      {
+        benchmark: 'DECK-Bench (internal)',
+        gpt: 'NR',
+        claude: 'NR',
+        muse: 'NR',
+        grok: 'NR',
+        kimi: '73.5',
       },
       {
         benchmark: 'Legal Agent (Harvey held-out)',
@@ -152,7 +184,8 @@ export const LEFT_GROUPS: BenchmarkGroup[] = [
         muse: 'NR',
         grok: 'NR',
         inkling: '77.1*',
-        winner: 'gpt',
+        kimi: '91.2',
+        winner: 'kimi',
       },
       {
         benchmark: 'BrowseComp multi-agent*',
@@ -168,6 +201,7 @@ export const LEFT_GROUPS: BenchmarkGroup[] = [
         muse: '88.1',
         grok: 'NR',
         inkling: '74.1',
+        kimi: '84.2',
         winner: 'muse',
       },
       {
@@ -192,6 +226,8 @@ export const LEFT_GROUPS: BenchmarkGroup[] = [
         claude: 'NR',
         muse: '75.6',
         grok: 'NR',
+        kimi: '73.2',
+        winner: 'muse',
       },
       {
         benchmark: 'AutomationBench',
@@ -199,7 +235,16 @@ export const LEFT_GROUPS: BenchmarkGroup[] = [
         claude: '17.4 F',
         muse: 'NR',
         grok: 'NR',
-        winner: 'gpt',
+        kimi: '30.8',
+        winner: 'kimi',
+      },
+      {
+        benchmark: 'APEX-Agents',
+        gpt: 'NR',
+        claude: 'NR',
+        muse: 'NR',
+        grok: 'NR',
+        kimi: '37.6',
       },
       {
         benchmark: 'OSWorld 2.0*',
@@ -229,12 +274,22 @@ export const LEFT_GROUPS: BenchmarkGroup[] = [
         claude: '94.2 M',
         muse: '84.9',
         grok: 'NR',
+        kimi: '95.0',
+        winner: 'kimi',
       },
     ],
   },
   {
     name: 'Coding',
     rows: [
+      {
+        benchmark: 'Program Bench',
+        gpt: 'NR',
+        claude: 'NR',
+        muse: 'NR',
+        grok: 'NR',
+        kimi: '77.8',
+      },
       {
         benchmark: 'SWE-Bench Pro (Public)',
         gpt: '64.6',
@@ -251,6 +306,7 @@ export const LEFT_GROUPS: BenchmarkGroup[] = [
         muse: '80.0',
         grok: '83.3',
         inkling: '63.8*',
+        kimi: '88.3',
         winner: 'gpt',
       },
       {
@@ -259,6 +315,7 @@ export const LEFT_GROUPS: BenchmarkGroup[] = [
         claude: '69.7 F',
         muse: '53.3',
         grok: '53.0',
+        kimi: '67.5*',
         winner: 'gpt',
       },
       {
@@ -275,7 +332,32 @@ export const LEFT_GROUPS: BenchmarkGroup[] = [
         claude: '24.0 F',
         muse: 'NR',
         grok: '29.0',
-        winner: 'grok',
+        kimi: '42.0',
+        winner: 'kimi',
+      },
+      {
+        benchmark: 'FrontierSWE',
+        gpt: 'NR',
+        claude: 'NR',
+        muse: 'NR',
+        grok: 'NR',
+        kimi: '81.2',
+      },
+      {
+        benchmark: 'MLS Bench Lite',
+        gpt: 'NR',
+        claude: 'NR',
+        muse: 'NR',
+        grok: 'NR',
+        kimi: '48.3',
+      },
+      {
+        benchmark: 'Kimi Code Bench 2.0 (internal)',
+        gpt: 'NR',
+        claude: 'NR',
+        muse: 'NR',
+        grok: 'NR',
+        kimi: '72.9',
       },
       {
         benchmark: 'AA Coding Agent Index v1.1',
@@ -363,6 +445,14 @@ export const LEFT_GROUPS: BenchmarkGroup[] = [
         grok: 'NR',
       },
       {
+        benchmark: 'PostTrain Bench',
+        gpt: 'NR',
+        claude: 'NR',
+        muse: 'NR',
+        grok: 'NR',
+        kimi: '36.6',
+      },
+      {
         benchmark: 'RSI Index',
         gpt: '57.9',
         claude: 'NR',
@@ -384,6 +474,7 @@ export const RIGHT_GROUPS: BenchmarkGroup[] = [
         muse: '52.2',
         grok: 'NR',
         inkling: '29.7*',
+        kimi: '43.5',
       },
       {
         benchmark: "Humanity's Last Exam (with tools)*",
@@ -392,6 +483,7 @@ export const RIGHT_GROUPS: BenchmarkGroup[] = [
         muse: '62.1',
         grok: 'NR',
         inkling: '46.0',
+        kimi: '56.0',
       },
       {
         benchmark: 'AIME 2026',
@@ -408,6 +500,7 @@ export const RIGHT_GROUPS: BenchmarkGroup[] = [
         muse: 'NR',
         grok: 'NR',
         inkling: '87.2',
+        kimi: '93.5',
         winner: 'gpt',
       },
       {
@@ -597,6 +690,8 @@ export const RIGHT_GROUPS: BenchmarkGroup[] = [
         muse: 'NR',
         grok: 'NR',
         inkling: '78.1',
+        kimi: '84.8',
+        winner: 'claude',
       },
       {
         benchmark: 'CharXiv Reasoning (with tools)',
@@ -605,6 +700,7 @@ export const RIGHT_GROUPS: BenchmarkGroup[] = [
         muse: '88.4',
         grok: 'NR',
         inkling: '82.0*',
+        kimi: '91.3',
         winner: 'claude',
       },
       {
@@ -613,6 +709,8 @@ export const RIGHT_GROUPS: BenchmarkGroup[] = [
         claude: 'NR',
         muse: '76.3',
         grok: 'NR',
+        kimi: '85.7',
+        winner: 'kimi',
       },
       {
         benchmark: 'Blueprint-Bench 2',
@@ -628,6 +726,8 @@ export const RIGHT_GROUPS: BenchmarkGroup[] = [
         muse: 'NR',
         grok: 'NR',
         inkling: '73.5 S10',
+        kimi: '81.6',
+        winner: 'gpt',
       },
       {
         benchmark: 'MMMU Pro (with tools)',
@@ -635,6 +735,64 @@ export const RIGHT_GROUPS: BenchmarkGroup[] = [
         claude: 'NR',
         muse: 'NR',
         grok: 'NR',
+        kimi: '83.4',
+        winner: 'gpt',
+      },
+      {
+        benchmark: 'MathVision (no tools)',
+        gpt: 'NR',
+        claude: 'NR',
+        muse: 'NR',
+        grok: 'NR',
+        kimi: '94.3',
+      },
+      {
+        benchmark: 'MathVision (with Python)',
+        gpt: 'NR',
+        claude: 'NR',
+        muse: 'NR',
+        grok: 'NR',
+        kimi: '97.8',
+      },
+      {
+        benchmark: 'ZeroBench_main (pass@5)',
+        gpt: 'NR',
+        claude: 'NR',
+        muse: 'NR',
+        grok: 'NR',
+        kimi: '23.0',
+      },
+      {
+        benchmark: 'ZeroBench_main + Python (pass@5)',
+        gpt: 'NR',
+        claude: 'NR',
+        muse: 'NR',
+        grok: 'NR',
+        kimi: '41.0',
+      },
+      {
+        benchmark: 'WorldVQA ForceAnswer',
+        gpt: 'NR',
+        claude: 'NR',
+        muse: 'NR',
+        grok: 'NR',
+        kimi: '51.0',
+      },
+      {
+        benchmark: 'OmniDocBench',
+        gpt: 'NR',
+        claude: 'NR',
+        muse: 'NR',
+        grok: 'NR',
+        kimi: '91.1',
+      },
+      {
+        benchmark: 'PerceptionBench (in-house)',
+        gpt: 'NR',
+        claude: 'NR',
+        muse: 'NR',
+        grok: 'NR',
+        kimi: '58.5',
       },
       {
         benchmark: 'Audio MC*',
@@ -716,5 +874,5 @@ export const COVERAGE = MODEL_KEYS.reduce<Record<ModelKey, number>>(
     ).length
     return counts
   },
-  { gpt: 0, claude: 0, muse: 0, grok: 0, inkling: 0 },
+  { gpt: 0, claude: 0, muse: 0, grok: 0, inkling: 0, kimi: 0 },
 )

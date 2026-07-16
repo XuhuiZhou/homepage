@@ -1,10 +1,8 @@
 import type { Metadata } from 'next'
 import {
   ALL_GROUPS,
-  LEFT_GROUPS,
   MODEL_KEYS,
   MODEL_LABELS,
-  RIGHT_GROUPS,
   type BenchmarkGroup,
   type ModelKey,
 } from './data'
@@ -80,6 +78,11 @@ const MODEL_STYLES: Record<ModelKey, { header: string; winner: string }> = {
     winner:
       'bg-emerald-50 font-medium shadow-[inset_3px_0_0_#059669] dark:bg-emerald-500/10',
   },
+  kimi: {
+    header: 'border-cyan-600 dark:border-cyan-400',
+    winner:
+      'bg-cyan-50 font-medium shadow-[inset_3px_0_0_#0891b2] dark:bg-cyan-500/10',
+  },
 }
 
 function BenchmarkTable({
@@ -92,13 +95,13 @@ function BenchmarkTable({
   return (
     <div className="overflow-x-auto">
       <table
-        className="w-full min-w-[700px] table-fixed border-collapse text-[12px] leading-[1.25] sm:text-[13px] xl:min-w-0"
+        className="w-full min-w-[820px] table-fixed border-collapse text-[12px] leading-[1.25] sm:text-[13px]"
         aria-label={label}
       >
         <colgroup>
-          <col className="w-[37.5%]" />
+          <col className="w-[34%]" />
           {MODEL_KEYS.map((model) => (
-            <col key={model} className="w-[12.5%]" />
+            <col key={model} className="w-[11%]" />
           ))}
         </colgroup>
         <thead>
@@ -168,16 +171,16 @@ export default function FrontierModelsPage() {
     <main className="mx-auto w-full max-w-[1500px] px-4 pt-10 pb-16 sm:px-6 sm:pt-14">
       <header className="mb-8 border-b border-zinc-200 pb-7 dark:border-zinc-800">
         <p className="mb-2 text-sm text-zinc-500 dark:text-zinc-400">
-          Audited July 15, 2026
+          Audited July 16, 2026
         </p>
         <h1 className="text-3xl font-semibold sm:text-4xl">
           Frontier Model Benchmark Matrix
         </h1>
         <p className="mt-3 max-w-4xl text-base text-zinc-600 dark:text-zinc-400">
           Public numeric capability results for GPT-5.6 Sol, Claude Mythos and
-          Fable 5, Muse Spark 1.1, Grok 4.5, and Thinking Machines&apos;
-          Inkling. NR means no public numeric result was found in the audited
-          sources.
+          Fable 5, Muse Spark 1.1, Grok 4.5, Thinking Machines&apos; Inkling,
+          and Kimi K3. NR means no public numeric result was found in the
+          audited sources.
         </p>
         <p className="mt-3 max-w-4xl text-base text-zinc-600 dark:text-zinc-400">
           A benchmark is only one projection of model behavior. Increasingly, a
@@ -243,8 +246,9 @@ export default function FrontierModelsPage() {
             For {CURRENT_BENCHMARK_ROWS.length} capability benchmark rows in the
             current matrix, {CURRENT_SINGLE_REPORT_ROWS} are unique;{' '}
             {CURRENT_SHARED_ROWS} appear in two or more releases; only{' '}
-            {CURRENT_ALL_REPORT_ROWS} appear in all {MODEL_KEYS.length}. Safety
-            reporting is even more fragmented:{' '}
+            {CURRENT_ALL_REPORT_ROWS}{' '}
+            {CURRENT_ALL_REPORT_ROWS === 1 ? 'appears' : 'appear'} in all{' '}
+            {MODEL_KEYS.length}. Safety reporting is even more fragmented:{' '}
             {CURRENT_SAFETY_SINGLE_REPORT_ROWS} of {SAFETY_EVALUATIONS.length}{' '}
             normalized rows appear once in the current {MODEL_KEYS.length}{' '}
             releases.
@@ -273,8 +277,9 @@ export default function FrontierModelsPage() {
           <div>
             <h2 className="text-2xl font-semibold">Current releases</h2>
             <p className="mt-2 max-w-3xl text-sm leading-relaxed text-zinc-600 dark:text-zinc-400">
-              Public numeric results from the five current release bundles. NR
-              means no public numeric result was found in the audited source.
+              Public numeric results from the {MODEL_KEYS.length} current
+              release bundles. NR means no public numeric result was found in
+              the audited source.
             </p>
           </div>
           <p className="text-sm leading-relaxed text-zinc-600 lg:text-right dark:text-zinc-400">
@@ -307,16 +312,10 @@ export default function FrontierModelsPage() {
           ))}
         </dl>
 
-        <div className="grid items-start gap-6 xl:grid-cols-2">
-          <BenchmarkTable
-            groups={LEFT_GROUPS}
-            label="Professional, forecasting, agent, coding, and AI self-improvement benchmarks"
-          />
-          <BenchmarkTable
-            groups={RIGHT_GROUPS}
-            label="Reasoning, knowledge, chat, science, health, multimodal, and cybersecurity benchmarks"
-          />
-        </div>
+        <BenchmarkTable
+          groups={ALL_GROUPS}
+          label="Current-release capability benchmark matrix"
+        />
       </section>
 
       <SafetyCoverage />
@@ -330,8 +329,12 @@ export default function FrontierModelsPage() {
             marks the best directly comparable score. * indicates a different
             setup, metric, checkpoint, or leaderboard snapshot. Inkling results
             use effort 0.99; its forecasting rows use a nearby pre-release
-            checkpoint. S10 denotes MMMU Pro Standard 10. M/F denotes Claude
-            Mythos/Fable; U denotes GPT-5.6 Sol Ultra.
+            checkpoint. Kimi K3 uses max reasoning, and its launch table
+            discloses benchmark-specific agent harnesses. Its DeepSWE score uses
+            KimiCode on the v1.1 tasks; Kimi also reports 67.3 with
+            mini-SWE-agent. Kimi says a fuller technical report will follow; no
+            report was linked at audit time. S10 denotes MMMU Pro Standard 10.
+            M/F denotes Claude Mythos/Fable; U denotes GPT-5.6 Sol Ultra.
           </p>
           <div className="flex flex-wrap gap-x-4 gap-y-2 lg:justify-end">
             <a
@@ -373,6 +376,14 @@ export default function FrontierModelsPage() {
               rel="noreferrer"
             >
               Thinking Machines
+            </a>
+            <a
+              className="underline underline-offset-4"
+              href="https://www.kimi.com/blog/kimi-k3"
+              target="_blank"
+              rel="noreferrer"
+            >
+              Kimi
             </a>
           </div>
         </div>

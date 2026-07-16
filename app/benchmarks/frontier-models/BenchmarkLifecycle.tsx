@@ -64,6 +64,14 @@ const LAB_STYLES: Record<
     badge:
       'border-emerald-200 bg-emerald-50 text-emerald-800 dark:border-emerald-800 dark:bg-emerald-500/10 dark:text-emerald-200',
   },
+  moonshot: {
+    border: 'border-cyan-600 dark:border-cyan-400',
+    bar: 'bg-cyan-600 dark:bg-cyan-400',
+    reported:
+      'bg-cyan-100 text-cyan-800 dark:bg-cyan-500/20 dark:text-cyan-200',
+    badge:
+      'border-cyan-200 bg-cyan-50 text-cyan-800 dark:border-cyan-800 dark:bg-cyan-500/10 dark:text-cyan-200',
+  },
 }
 
 const CATEGORY_ORDER = new Map(

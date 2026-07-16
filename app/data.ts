@@ -79,10 +79,10 @@ export const BLOG_POSTS: BlogPost[] = [
   {
     title: 'Frontier Model Benchmark Matrix',
     description:
-      'A source-audited comparison of public benchmark results for GPT-5.6, Claude 5, Muse Spark 1.1, and Grok 4.5.',
+      'A source-audited comparison of public benchmark reporting across six current frontier-model releases, including Kimi K3.',
     link: '/benchmarks/frontier-models',
     uid: 'benchmark-1',
-    date: '2026-07-09',
+    date: '2026-07-16',
   },
   {
     title: 'Thinking in RL',
