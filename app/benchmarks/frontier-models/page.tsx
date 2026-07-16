@@ -204,6 +204,24 @@ export default function FrontierModelsPage() {
         </nav>
       </header>
 
+      <aside className="mb-8 rounded-md border border-zinc-200 bg-zinc-50/70 p-4 text-sm leading-relaxed text-zinc-600 dark:border-zinc-800 dark:bg-zinc-900/40 dark:text-zinc-400">
+        <h2 className="text-sm font-medium text-zinc-900 dark:text-zinc-100">
+          How to read this table
+        </h2>
+        <p className="mt-2">
+          These numbers are not a clean apples-to-apples leaderboard. Labs and
+          third-party evaluators often use different harnesses, tool access,
+          prompts, checkpoints, compute budgets, and reporting conventions; even
+          the same benchmark name can refer to multiple non-identical settings.
+          I use public numbers from official releases or third-party sources
+          when available, treating them as good-faith reports of the strongest
+          result each source chose to publish. The goal is to make public
+          evidence easier to inspect side by side, not to make a definitive
+          model ranking. NR means I did not find a compatible public number, not
+          that the model was not evaluated or performed poorly.
+        </p>
+      </aside>
+
       <section
         className="mb-10 border-y border-zinc-200 py-5 dark:border-zinc-800"
         aria-labelledby="tldr-heading"
