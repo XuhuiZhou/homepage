@@ -220,6 +220,14 @@ export default function FrontierModelsPage() {
           model ranking. NR means I did not find a compatible public number, not
           that the model was not evaluated or performed poorly.
         </p>
+        <p className="mt-2">
+          I also assume labs often run many internal evaluations that never
+          appear in public launch materials. This table is about what an outside
+          reader can verify and compare from public evidence. More public
+          reporting would be useful even when numbers are not perfectly
+          compatible, as long as the harness, tools, checkpoints, and other
+          settings are clear enough to interpret the result.
+        </p>
       </aside>
 
       <section
