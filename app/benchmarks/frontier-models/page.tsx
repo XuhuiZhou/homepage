@@ -385,6 +385,18 @@ export default function FrontierModelsPage() {
           </a>
           ; corrections are welcome and I will update the page.
         </p>
+        <p className="mt-3 max-w-5xl">
+          Thanks to{' '}
+          <a
+            className="underline underline-offset-4"
+            href="https://mars-tin.github.io/"
+            target="_blank"
+            rel="noreferrer"
+          >
+            Martin Ziqiao Ma
+          </a>{' '}
+          for helpful input on benchmark comparability and reporting caveats.
+        </p>
       </footer>
     </main>
   )
