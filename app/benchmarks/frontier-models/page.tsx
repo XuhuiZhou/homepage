@@ -215,10 +215,9 @@ export default function FrontierModelsPage() {
           the same benchmark name can refer to multiple non-identical settings.
           I use public numbers from official releases or third-party sources
           when available, treating them as good-faith reports of the strongest
-          result each source chose to publish. The goal is to make public
-          evidence easier to inspect side by side, not to make a definitive
-          model ranking. NR means I did not find a compatible public number, not
-          that the model was not evaluated or performed poorly.
+          result each source chose to publish. NR means I did not find a
+          compatible public number, not that the model was not evaluated or
+          performed poorly.
         </p>
         <p className="mt-2">
           I also assume labs often run many internal evaluations that never
