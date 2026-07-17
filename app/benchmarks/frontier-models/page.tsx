@@ -85,6 +85,50 @@ const MODEL_STYLES: Record<ModelKey, { header: string; winner: string }> = {
   },
 }
 
+const MODEL_LOGOS: Record<
+  ModelKey,
+  { src: string; darkSrc?: string; className?: string }
+> = {
+  gpt: {
+    src: '/benchmarks/model-logos/openai.svg',
+    className: 'dark:invert',
+  },
+  claude: { src: '/benchmarks/model-logos/anthropic.ico' },
+  muse: { src: '/benchmarks/model-logos/meta.svg' },
+  grok: { src: '/benchmarks/model-logos/xai.ico' },
+  inkling: { src: '/benchmarks/model-logos/thinking-machines.png' },
+  kimi: {
+    src: '/benchmarks/model-logos/kimi-dark.ico',
+    darkSrc: '/benchmarks/model-logos/kimi.ico',
+  },
+}
+
+function ModelLogo({ model }: { model: ModelKey }) {
+  const logo = MODEL_LOGOS[model]
+  const label = `${MODEL_LABELS[model].name} ${MODEL_LABELS[model].variant}`
+
+  return (
+    <span
+      className="inline-flex h-5 w-5 items-center justify-center"
+      title={label}
+      aria-hidden="true"
+    >
+      <img
+        src={logo.src}
+        alt=""
+        className={`h-4 w-4 object-contain ${logo.darkSrc ? 'dark:hidden' : ''} ${logo.className ?? ''}`}
+      />
+      {logo.darkSrc ? (
+        <img
+          src={logo.darkSrc}
+          alt=""
+          className="hidden h-4 w-4 object-contain dark:block"
+        />
+      ) : null}
+    </span>
+  )
+}
+
 function BenchmarkTable({
   groups,
   label,
@@ -124,14 +168,23 @@ function BenchmarkTable({
         </thead>
         {groups.map((group) => (
           <tbody key={group.name}>
-            <tr>
+            <tr className="bg-zinc-100 dark:bg-zinc-900">
               <th
                 scope="rowgroup"
-                colSpan={MODEL_KEYS.length + 1}
-                className="border-y border-zinc-200 bg-zinc-100 px-2 py-1.5 text-left font-medium text-zinc-500 uppercase dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-400"
+                className="border-y border-zinc-200 px-2 py-1.5 text-left font-medium text-zinc-500 uppercase dark:border-zinc-800 dark:text-zinc-400"
               >
                 {group.name}
               </th>
+              {MODEL_KEYS.map((model) => (
+                <td
+                  key={model}
+                  className="border-y border-l border-zinc-200 px-1 py-1 text-center dark:border-zinc-800"
+                  title={`${MODEL_LABELS[model].name} ${MODEL_LABELS[model].variant}`}
+                  aria-label={`${MODEL_LABELS[model].name} ${MODEL_LABELS[model].variant}`}
+                >
+                  <ModelLogo model={model} />
+                </td>
+              ))}
             </tr>
             {group.rows.map((row) => (
               <tr
