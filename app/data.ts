@@ -79,10 +79,10 @@ export const BLOG_POSTS: BlogPost[] = [
   {
     title: 'Policy Gradient From One Answer',
     description:
-      'A visual derivation of policy gradient for language models, starting from one prompt, one sampled answer, and one final reward.',
+      'A visual derivation of policy gradient for language models, walking from terminal reward to return, Q-value, and advantage.',
     link: '/blog/policy-gradient-from-one-action',
     uid: 'blog-4',
-    date: '2026-07-16',
+    date: '2026-07-17',
   },
   {
     title: 'Frontier Model Benchmark Matrix',

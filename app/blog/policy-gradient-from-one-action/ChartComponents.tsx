@@ -6,21 +6,20 @@ export const OneStepTrajectory = dynamic(() => import('./OneStepTrajectory'), {
   ssr: false,
 })
 
-export const ScoreFunctionPlayground = dynamic(
-  () => import('./ScoreFunctionPlayground'),
+export const ReturnDecomposition = dynamic(
+  () => import('./ReturnDecomposition'),
   { ssr: false },
 )
 
-export const TokenCreditAssignment = dynamic(
-  () => import('./TokenCreditAssignment'),
+export const QExpectationDemo = dynamic(() => import('./QExpectationDemo'), {
+  ssr: false,
+})
+
+export const AdvantageBaselineDemo = dynamic(
+  () => import('./AdvantageBaselineDemo'),
   { ssr: false },
 )
 
-export const BaselineVarianceDemo = dynamic(
-  () => import('./BaselineVarianceDemo'),
-  { ssr: false },
-)
-
-export const AlgorithmMap = dynamic(() => import('./AlgorithmMap'), {
+export const GradientLadder = dynamic(() => import('./GradientLadder'), {
   ssr: false,
 })
