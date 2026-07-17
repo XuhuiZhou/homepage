@@ -1,0 +1,442 @@
+import {
+  OneStepTrajectory,
+  ScoreFunctionPlayground,
+  TokenCreditAssignment,
+  BaselineVarianceDemo,
+  AlgorithmMap,
+} from './ChartComponents'
+
+export const metadata = {
+  title: 'Policy Gradient From One Answer',
+  description:
+    'A visual, step-by-step derivation of policy gradient for language models, starting from one prompt, one sampled answer, and one final reward.',
+  date: '2026-07-16',
+  authors: [{ name: 'Xuhui Zhou' }],
+  openGraph: {
+    title: 'Policy Gradient From One Answer',
+    description:
+      'Start with one LLM response and derive REINFORCE, baselines, advantages, PPO-style ratios, and GRPO-style group advantages.',
+    type: 'article',
+    publishedTime: '2026-07-16',
+    authors: ['Xuhui Zhou'],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Policy Gradient From One Answer',
+    description:
+      'A visual derivation of policy gradient from one prompt, one answer, and one reward.',
+    creator: '@nlpxuhui',
+  },
+}
+
+# Policy Gradient From One Answer
+
+<div className="not-prose mb-8 border-b border-zinc-200 pb-6">
+  <div className="text-sm text-zinc-500">By Xuhui Zhou · Jul 16, 2026</div>
+  <div className="mt-1 text-sm text-zinc-400 italic">
+    One prompt, one answer, one reward, and the whole policy-gradient machine.
+  </div>
+</div>
+
+Policy gradient looks scarier than it is because it usually arrives wearing too many hats:
+trajectories, value functions, advantage estimates, PPO ratios, KL penalties, clipped objectives.
+This post starts from the smallest possible LLM RL story and adds those hats one at a time.
+
+The smallest story is this:
+
+<Figure id="one-step">
+  <OneStepTrajectory />
+</Figure>
+
+A prompt $x$ arrives. The model samples a full answer $y$. A judge gives one final reward
+$R(x,y)$. There is no intermediate reward, no environment state changing under our feet, and no
+tool call. For now, the whole answer is one action.
+
+The question is: **how do we change the model so answers with high reward become more likely?**
+
+## The objective
+
+For a fixed prompt $x$, the policy is the model distribution $\pi_\theta(y \mid x)$.
+Our goal is to make the expected reward large:
+
+$$
+J(\theta \mid x)
+=
+\mathbb{E}_{y \sim \pi_\theta(\cdot \mid x)}
+\left[R(x,y)\right].
+$$
+
+If the answer space were tiny, we could write the expectation as a sum:
+
+$$
+J(\theta \mid x)
+=
+\sum_y \pi_\theta(y \mid x) R(x,y).
+$$
+
+This equation says something extremely plain: each possible answer has a probability and a score.
+Expected reward is probability times score, added over possible answers.
+
+Now we want the gradient:
+
+$$
+\nabla_\theta J(\theta \mid x)
+=
+\nabla_\theta \sum_y \pi_\theta(y \mid x) R(x,y).
+$$
+
+The reward model or checker may be nondifferentiable. It may be a unit test, a human label, or an
+LLM judge. So the gradient cannot usually flow _through_ $R(x,y)$. The only differentiable object we
+control is the probability of sampling $y$.
+
+That gives:
+
+$$
+\nabla_\theta J(\theta \mid x)
+=
+\sum_y \nabla_\theta \pi_\theta(y \mid x) R(x,y).
+$$
+
+So far, nothing clever.
+
+## The tiny magic trick
+
+The trick is this identity:
+
+$$
+\nabla_\theta \pi_\theta(y \mid x)
+=
+\pi_\theta(y \mid x)\nabla_\theta \log \pi_\theta(y \mid x).
+$$
+
+It is just the chain rule, because
+$\nabla_\theta \log p = \frac{1}{p}\nabla_\theta p$.
+
+Plug it in:
+
+$$
+\begin{aligned}
+\nabla_\theta J(\theta \mid x)
+&=
+\sum_y
+\pi_\theta(y \mid x)
+\nabla_\theta \log \pi_\theta(y \mid x)
+R(x,y) \\
+&=
+\mathbb{E}_{y \sim \pi_\theta(\cdot \mid x)}
+\left[
+R(x,y)\nabla_\theta \log \pi_\theta(y \mid x)
+\right].
+\end{aligned}
+$$
+
+This is the basic policy-gradient estimator, often called REINFORCE.
+
+Read the raw version like a child's rule for a model:
+
+1. Sample an answer from yourself.
+2. See how much reward it gets.
+3. Larger reward gives a stronger push toward that sampled answer.
+4. Soon we subtract a baseline, so below-expectation answers can be pushed down.
+
+The gradient does not ask, "How do I differentiate the judge?" It asks, "Which sampled behavior
+should become more or less likely?"
+
+<Figure id="score-playground">
+  <ScoreFunctionPlayground />
+</Figure>
+
+In the figure, the selected answer is the one we actually sampled. The update touches
+$\log \pi_\theta(y \mid x)$ for that sampled answer. The other answers matter only indirectly,
+because increasing one probability forces the normalized distribution to move.
+
+## The Monte Carlo version
+
+In real LLM training, we do not sum over all possible answers. There are too many. We sample.
+
+For a batch of prompts and sampled answers, the one-step estimator becomes:
+
+$$
+\nabla_\theta J(\theta)
+\approx
+\frac{1}{B}
+\sum_{i=1}^{B}
+R(x_i,y_i)
+\nabla_\theta \log \pi_\theta(y_i \mid x_i),
+\quad
+y_i \sim \pi_\theta(\cdot \mid x_i).
+$$
+
+This is Monte Carlo learning: try a few answers, score them, and use those scored samples as a noisy
+estimate of the true expectation.
+
+It is noisy because one answer is only one answer. If the model got lucky, the gradient may over-credit
+it. If it got unlucky, the gradient may over-punish it. This is why baselines and advantages matter.
+
+## The whole answer is secretly many token actions
+
+Counting the full response as one action is a clean way to derive the math. For an autoregressive
+language model, the full-response probability factors into token probabilities:
+
+$$
+\pi_\theta(y \mid x)
+=
+\prod_{t=1}^{T}
+\pi_\theta(y_t \mid x, y_{\lt t}).
+$$
+
+Taking logs turns the product into a sum:
+
+$$
+\log \pi_\theta(y \mid x)
+=
+\sum_{t=1}^{T}
+\log \pi_\theta(y_t \mid x, y_{\lt t}).
+$$
+
+So the same one-step gradient can be written token-by-token:
+
+$$
+R(x,y)\nabla_\theta \log \pi_\theta(y \mid x)
+=
+R(x,y)
+\sum_{t=1}^{T}
+\nabla_\theta \log \pi_\theta(y_t \mid x, y_{\lt t}).
+$$
+
+This is why a terminal reward in math or code RL gets copied across all generated tokens.
+The model receives one final sticker, and every token in the sampled answer gets trained with that
+same sticker.
+
+<Figure id="token-credit">
+  <TokenCreditAssignment />
+</Figure>
+
+This is valid, but it creates the classic credit-assignment problem. Maybe the final answer is wrong
+because of one arithmetic token. The terminal reward does not know that. It pushes on the whole
+sampled string.
+
+## Baselines: the first sanity upgrade
+
+Suppose a model gets reward $0.6$. Is that good? It depends. If most answers for this prompt get
+$0.1$, then $0.6$ is great. If most answers get $0.9$, then $0.6$ is bad.
+
+Policy gradient should care about **better than expected**, not just absolutely high.
+
+So we subtract a baseline $b(x)$:
+
+$$
+\nabla_\theta J(\theta)
+=
+\mathbb{E}
+\left[
+\bigl(R(x,y)-b(x)\bigr)
+\nabla_\theta \log \pi_\theta(y \mid x)
+\right].
+$$
+
+Why is this allowed? Because if $b(x)$ does not depend on the sampled answer $y$, it adds zero in
+expectation:
+
+$$
+\begin{aligned}
+\mathbb{E}_{y \sim \pi_\theta}
+\left[
+b(x)\nabla_\theta \log \pi_\theta(y \mid x)
+\right]
+&=
+b(x)
+\sum_y
+\pi_\theta(y \mid x)
+\nabla_\theta \log \pi_\theta(y \mid x) \\
+&=
+b(x)
+\sum_y
+\nabla_\theta \pi_\theta(y \mid x) \\
+&=
+b(x)
+\nabla_\theta
+\sum_y
+\pi_\theta(y \mid x) \\
+&=
+b(x)\nabla_\theta 1 \\
+&=0.
+\end{aligned}
+$$
+
+The baseline does not change the expected gradient. It only makes the sample estimate less noisy.
+
+<Figure id="baseline">
+  <BaselineVarianceDemo />
+</Figure>
+
+The new multiplier is called the advantage:
+
+$$
+A(x,y)=R(x,y)-b(x).
+$$
+
+Plain meaning:
+
+- $A(x,y) > 0$: this answer was better than expected, so push it up.
+- $A(x,y) < 0$: this answer was worse than expected, so push it down.
+- $A(x,y) \approx 0$: this answer was ordinary, so do not learn much from it.
+
+## Advantage in the one-step world
+
+In a one-step LLM trajectory, the action is the full answer $y$.
+The action-value function is just the expected final reward after choosing that answer:
+
+$$
+Q(x,y)=R(x,y).
+$$
+
+The value function is the expected reward before seeing which answer we sampled:
+
+$$
+V(x)=
+\mathbb{E}_{y \sim \pi_\theta(\cdot \mid x)}
+\left[R(x,y)\right].
+$$
+
+So the advantage is:
+
+$$
+A(x,y)=Q(x,y)-V(x)=R(x,y)-V(x).
+$$
+
+This is the cleanest possible meaning of advantage: **how much better was this answer than the
+model's usual answer for the same prompt?**
+
+## From one answer to a real trajectory
+
+Now expand the world back into normal RL. A trajectory is:
+
+$$
+\tau=(s_1,a_1,r_1,s_2,a_2,r_2,\ldots,s_T,a_T,r_T).
+$$
+
+The policy-gradient theorem gives the same skeleton:
+
+$$
+\nabla_\theta J(\theta)
+=
+\mathbb{E}_{\tau \sim \pi_\theta}
+\left[
+\sum_{t=1}^{T}
+\nabla_\theta \log \pi_\theta(a_t \mid s_t)
+A^\pi(s_t,a_t)
+\right].
+$$
+
+All the earlier pieces are still there:
+
+- $\nabla_\theta \log \pi_\theta(a_t \mid s_t)$ says what behavior to change.
+- $A^\pi(s_t,a_t)$ says whether that behavior was better or worse than expected.
+- The expectation says we learn by sampling trajectories from the policy.
+
+For language models, the state $s_t$ is usually the prompt plus previous tokens, and the action
+$a_t$ is the next token. If we treat the whole response as one action, $T=1$. If we treat each token
+as an action, $T$ is the response length.
+
+## Where PPO and GRPO enter
+
+The equation above assumes samples come from the current policy $\pi_\theta$. In practice, we
+usually sample a batch once from an old snapshot $\pi_{\text{old}}$, then perform several mini-updates
+on that same batch. After the first update, the policy being optimized is no longer exactly the
+policy that produced the data.
+
+That is why PPO-style methods use an importance ratio:
+
+$$
+r_t(\theta)
+=
+\frac{
+\pi_\theta(a_t \mid s_t)
+}{
+\pi_{\text{old}}(a_t \mid s_t)
+}.
+$$
+
+The unclipped surrogate is:
+
+$$
+\mathcal{L}(\theta)
+=
+\mathbb{E}
+\left[
+r_t(\theta)A_t
+\right].
+$$
+
+PPO clips the ratio so one batch cannot drag the policy too far:
+
+$$
+\mathcal{L}_{\text{PPO}}(\theta)
+=
+\mathbb{E}
+\left[
+\min
+\left(
+r_t(\theta)A_t,
+\operatorname{clip}(r_t(\theta), 1-\epsilon, 1+\epsilon)A_t
+\right)
+\right].
+$$
+
+GRPO keeps the same policy-gradient skeleton but changes the baseline. Instead of learning a critic
+$V(s)$, it samples a group of answers for the same prompt and compares each answer to the group:
+
+$$
+A_i
+=
+\frac{
+R_i-\operatorname{mean}(R_1,\ldots,R_G)
+}{
+\operatorname{std}(R_1,\ldots,R_G)
+}.
+$$
+
+So the idea is still simple: make better-than-peer answers more likely, and worse-than-peer answers
+less likely.
+
+<Figure id="algorithm-map">
+  <AlgorithmMap />
+</Figure>
+
+## The one sentence to keep
+
+Policy gradient does not need to differentiate the reward. It differentiates the probability of the
+sampled behavior.
+
+The whole thing is:
+
+$$
+\boxed{
+\nabla_\theta J
+\approx
+\text{advantage}
+\times
+\nabla_\theta \log \text{probability of the sampled action}
+}
+$$
+
+In math notation:
+
+$$
+\boxed{
+\nabla_\theta J(\theta)
+\approx
+\frac{1}{B}
+\sum_i
+A_i
+\nabla_\theta
+\log \pi_\theta(y_i \mid x_i)
+}
+$$
+
+In LLM words: sample an answer, score it, compare it to what was expected, and move the model toward
+or away from the exact tokens it sampled.
+
+Everything else - critic, group baseline, PPO ratio, clipping, KL regularization - is engineering
+around this one sentence so the update is less noisy and less destructive.

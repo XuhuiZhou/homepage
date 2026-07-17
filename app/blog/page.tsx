@@ -2,6 +2,7 @@
 import { motion } from 'motion/react'
 import Link from 'next/link'
 import { AnimatedBackground } from '@/components/ui/animated-background'
+import { formatDateOnly } from '@/lib/utils'
 import { BLOG_POSTS } from '../data'
 
 const VARIANTS_CONTAINER = {
@@ -51,20 +52,12 @@ export default function Blog() {
               >
                 <div className="flex flex-col space-y-1">
                   <div className="flex items-center gap-2">
-                    <h4 className="font-normal">
-                      {post.title}
-                    </h4>
+                    <h4 className="font-normal">{post.title}</h4>
                     <span className="text-xs text-zinc-400">
-                      {new Date(post.date).toLocaleDateString('en-US', {
-                        month: 'short',
-                        day: 'numeric',
-                        year: 'numeric',
-                      })}
+                      {formatDateOnly(post.date)}
                     </span>
                   </div>
-                  <p className="text-zinc-500">
-                    {post.description}
-                  </p>
+                  <p className="text-zinc-500">{post.description}</p>
                 </div>
               </Link>
             ))}

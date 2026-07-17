@@ -77,6 +77,14 @@ export const WORK_EXPERIENCE: WorkExperience[] = [
 
 export const BLOG_POSTS: BlogPost[] = [
   {
+    title: 'Policy Gradient From One Answer',
+    description:
+      'A visual derivation of policy gradient for language models, starting from one prompt, one sampled answer, and one final reward.',
+    link: '/blog/policy-gradient-from-one-action',
+    uid: 'blog-4',
+    date: '2026-07-16',
+  },
+  {
     title: 'Frontier Model Benchmark Matrix',
     description:
       'A source-audited comparison of public benchmark reporting across six current frontier-model releases, including Kimi K3.',
@@ -86,21 +94,24 @@ export const BLOG_POSTS: BlogPost[] = [
   },
   {
     title: 'Thinking in RL',
-    description: 'An opinionated tour through the algorithm tree of modern LLM RL — PPO, GRPO, REINFORCE, REINFORCE++, DPO, and the theoretical ideas that tie them together.',
+    description:
+      'An opinionated tour through the algorithm tree of modern LLM RL — PPO, GRPO, REINFORCE, REINFORCE++, DPO, and the theoretical ideas that tie them together.',
     link: '/blog/thinking-in-rl',
     uid: 'blog-3',
     date: '2026-04-13',
   },
   {
     title: 'The Quest of User-Effective AI Agents',
-    description: 'Exploring what makes AI agents truly effective for users, beyond benchmark performance.',
+    description:
+      'Exploring what makes AI agents truly effective for users, beyond benchmark performance.',
     link: '/blog/on-the-quest-of-user-effective-ai-agents',
     uid: 'blog-2',
     date: '2025-11-02',
   },
   {
     title: 'The overlooked "bad" word list ☠️',
-    description: 'Stop using outdated bad word lists. Use ToxicTrig instead for better toxic language analysis.',
+    description:
+      'Stop using outdated bad word lists. Use ToxicTrig instead for better toxic language analysis.',
     link: '/blog/the-overlooked-bad-word-list',
     uid: 'blog-1',
     date: '2024-12-15',
