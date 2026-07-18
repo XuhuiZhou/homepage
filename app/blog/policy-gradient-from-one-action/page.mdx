@@ -580,7 +580,26 @@ They have the same expectation in the gradient, but $Q$ is less noisy if you can
 
 ## From Q to advantage
 
-Now we do one more legal replacement.
+This step uses two expectation scopes, and the notation often hides the switch between them.
+
+We begin at the **outer scope**:
+
+$$
+\nabla_\theta J(\theta)
+=
+\mathbb{E}_{\tau\sim p_\theta}
+\left[
+\sum_{t=1}^{T}
+Q^\pi(s_t,a_t)Z_t
+\right],
+\qquad
+Z_t=\nabla_\theta\log\pi_\theta(a_t\mid s_t).
+$$
+
+This expectation still samples complete trajectories. A full trajectory determines which states are
+visited, which actions are sampled there, and which futures occur.
+
+### Temporarily zoom into one fixed state
 
 The value function is the policy's average action-value at state $s$:
 
@@ -593,6 +612,30 @@ Q^\pi(s,a)
 \right].
 $$
 
+This action-only expectation is a **conditional slice of the trajectory distribution**, not a new
+training sampler. We pause full trajectories that reached the same state $s$ and ask which action they
+take next.
+
+There are two nested averages hiding inside $V$:
+
+$$
+\begin{aligned}
+V^\pi(s)
+&=
+\mathbb{E}[G_t\mid s_t=s] \\
+&=
+\mathbb{E}_{a_t\sim\pi(\cdot\mid s)}
+\left[
+\underbrace{
+\mathbb{E}[G_t\mid s_t=s,a_t]
+}_{Q^\pi(s,a_t)}
+\right].
+\end{aligned}
+$$
+
+$Q(s,a)$ first averages the possible futures after a fixed state-action pair. Then $V(s)$ averages
+those $Q$ values over the actions the policy might choose at the fixed state.
+
 The advantage is:
 
 $$
@@ -601,8 +644,8 @@ A^\pi(s,a)
 Q^\pi(s,a)-V^\pi(s).
 $$
 
-Why can $Q$ be replaced by $A$? Because $V^\pi(s_t)$ is a baseline that depends on the state but not
-on the sampled action. For any fixed state $s$:
+Why can $Q$ be replaced by $A$? Because $V^\pi(s)$ is fixed while we average the possible actions at
+that state. For any fixed $s$:
 
 $$
 \begin{aligned}
@@ -627,26 +670,82 @@ V^\pi(s)
 \end{aligned}
 $$
 
-Therefore:
+Writing $Z(s,a)=\nabla_\theta\log\pi_\theta(a\mid s)$, this proves a **local statement inside one
+state bucket**:
 
 $$
 \begin{aligned}
-\mathbb{E}
+\mathbb{E}_{a\sim\pi(\cdot\mid s)}
 \left[
-Q^\pi(s_t,a_t)
-\nabla_\theta \log \pi_\theta(a_t\mid s_t)
+Q^\pi(s,a)
+Z(s,a)
 \right]
 &=
-\mathbb{E}
+\mathbb{E}_{a\sim\pi(\cdot\mid s)}
 \left[
-\bigl(Q^\pi(s_t,a_t)-V^\pi(s_t)\bigr)
-\nabla_\theta \log \pi_\theta(a_t\mid s_t)
+\bigl(Q^\pi(s,a)-V^\pi(s)\bigr)
+Z(s,a)
 \right] \\
 &=
-\mathbb{E}
+\mathbb{E}_{a\sim\pi(\cdot\mid s)}
 \left[
-A^\pi(s_t,a_t)
-\nabla_\theta \log \pi_\theta(a_t\mid s_t)
+A^\pi(s,a)
+Z(s,a)
+\right].
+\end{aligned}
+$$
+
+### Now put the state buckets back together
+
+Let $d_t^\pi$ be the distribution of states reached at time $t$ by full trajectories from the policy.
+The baseline contribution under the outer trajectory expectation is:
+
+$$
+\begin{aligned}
+\mathbb{E}_{\tau\sim p_\theta}
+\left[
+\sum_{t=1}^{T}V^\pi(s_t)Z_t
+\right]
+&=
+\sum_{t=1}^{T}
+\mathbb{E}_{s_t\sim d_t^\pi}
+\left[
+\mathbb{E}_{a_t\sim\pi(\cdot\mid s_t)}
+\left[
+V^\pi(s_t)Z_t\mid s_t
+\right]
+\right] \\
+&=
+\sum_{t=1}^{T}
+\mathbb{E}_{s_t\sim d_t^\pi}
+\left[
+V^\pi(s_t)\cdot 0
+\right] \\
+&=0.
+\end{aligned}
+$$
+
+This is the missing return trip. We first prove that the baseline vanishes while holding one state
+fixed. Then the tower property averages those zero-valued state buckets using how often full
+trajectories visit each state.
+
+Therefore, back at the outer scope:
+
+$$
+\begin{aligned}
+\mathbb{E}_{\tau\sim p_\theta}
+\left[
+\sum_t Q^\pi(s_t,a_t)Z_t
+\right]
+&=
+\mathbb{E}_{\tau\sim p_\theta}
+\left[
+\sum_t \bigl(Q^\pi(s_t,a_t)-V^\pi(s_t)\bigr)Z_t
+\right] \\
+&=
+\mathbb{E}_{\tau\sim p_\theta}
+\left[
+\sum_t A^\pi(s_t,a_t)Z_t
 \right].
 \end{aligned}
 $$
@@ -657,13 +756,22 @@ $$
 \begin{aligned}
 \nabla_\theta J(\theta)
 &=
-\mathbb{E}_{\tau\sim\pi_\theta}\left[
+\mathbb{E}_{\tau\sim p_\theta}\left[
 \sum_{t=1}^{T}
 A^\pi(s_t,a_t)
 \nabla_\theta \log \pi_\theta(a_t\mid s_t)
 \right].
 \end{aligned}
 $$
+
+In actual training there is no separate action-only rollout phase:
+
+1. Sample one complete trajectory $\tau$.
+2. For every visited $(s_t,a_t)$, estimate $Q(s_t,a_t)$ and $V(s_t)$.
+3. Form $A_t=Q(s_t,a_t)-V(s_t)$ and multiply it by that action's log-probability gradient.
+
+The action expectation appears in the **proof and in the definition of $V$**. The training sample is
+still the full trajectory.
 
 <Figure id="advantage-baseline">
   <AdvantageBaselineDemo />
