@@ -208,8 +208,29 @@ $$
 
 This is the first raw trajectory formula. It says: attach the total return $G_1$ to every action.
 
-But this is wasteful. Action $a_3$ should not get credit for reward $r_1$, because $r_1$ already
-happened before $a_3$ was chosen. That is where reward-to-go enters.
+But should an action receive credit for rewards that happened before the action was chosen?
+
+Before touching the algebra, imagine a game. An agent arrives at a checkpoint with **10 coins already
+in its pocket**. It must now choose left or right:
+
+- Left leads to 2 more coins, for 12 total.
+- Right leads to 5 more coins, for 15 total.
+
+The 10 old coins change both totals, but they do not help us decide between left and right. Adding the
+same 10 to both choices preserves their difference: right is better by 3 either way. The current action
+cannot travel backward and collect, lose, or deserve credit for those 10 coins.
+
+<Figure id="return-decomposition">
+  <ReturnDecomposition />
+</Figure>
+
+That is the intuition behind reward-to-go: when training the action chosen at time $t$, keep rewards
+that can still depend on that action and drop rewards that were already settled.
+
+For a language model trained with **only one terminal reward**, this particular simplification changes
+nothing numerically. Before every token, the accumulated reward is zero; the entire reward still lies
+in the future. Thus $G_t=G_1=R(x,y)$ for every token. We need the general argument because other
+environments can have intermediate rewards, costs, tool outcomes, or safety penalties.
 
 ## From total return to reward-to-go
 
@@ -249,8 +270,27 @@ $$
 
 because the past part has zero expectation when multiplied by the score function.
 
-Here is the conditional proof. Let $H_t=(s_1,a_1,r_1,\ldots,s_t)$ be the history before sampling
-$a_t$. The past reward prefix is already fixed once $H_t$ is fixed:
+### Why does $H_t$ suddenly appear?
+
+It would be tempting to say, "the past is a constant, so delete it." That is not quite legal. Across
+different sampled trajectories, the agent may arrive at time $t$ through different states, actions,
+and rewards. The past return is therefore still a random variable in the outer expectation.
+
+We need a smaller experiment where the past really is fixed. Define
+
+$$
+H_t=(s_1,a_1,r_1,\ldots,s_{t-1},a_{t-1},r_{t-1},s_t).
+$$
+
+$H_t$ is everything observed **immediately before** sampling $a_t$. It includes the current state
+$s_t$, but not the current action or anything after it. In an autoregressive language model, $H_t$ is
+the prompt plus all previously generated tokens; that prefix determines the state from which the next
+token is sampled.
+
+Conditioning on $H_t$ is like pausing the game at one exact checkpoint. Among repeated copies of that
+paused situation, the history, current state, and old coins are identical. The only thing we resample
+right now is $a_t$. This makes the past reward prefix a genuine constant inside the conditional
+expectation:
 
 $$
 \text{Past}_t
@@ -258,7 +298,25 @@ $$
 \sum_{k=1}^{t-1} r_k.
 $$
 
-Then:
+Let the score of the current action be
+
+$$
+Z_t=\nabla_\theta\log\pi_\theta(a_t\mid s_t).
+$$
+
+First apply the tower property: average within each fixed-history bucket, then average over buckets.
+
+$$
+\mathbb{E}[\text{Past}_t Z_t]
+=
+\mathbb{E}_{H_t}
+\left[
+\mathbb{E}[\text{Past}_t Z_t\mid H_t]
+\right].
+$$
+
+Inside one bucket, $\text{Past}_t$ is fixed and can be pulled out. The current action is still sampled
+from $\pi_\theta(\cdot\mid s_t)$, so:
 
 $$
 \begin{aligned}
@@ -289,7 +347,37 @@ $$
 \end{aligned}
 $$
 
-That is the whole reason we can replace $G_1$ by $G_t$ in the $t$-th term:
+The cancellation does **not** say that every action has zero score. It says that, at a fixed history,
+the probability-weighted average score over all possible current actions is zero. Multiplying every
+choice by the same already-earned reward cannot favor one choice over another.
+
+Since the inner conditional expectation is zero for every possible $H_t$, its outer expectation is
+also zero:
+
+$$
+\mathbb{E}[\text{Past}_t Z_t]
+=
+\mathbb{E}_{H_t}[0]
+=0.
+$$
+
+Now the replacement is explicit:
+
+$$
+\begin{aligned}
+\mathbb{E}[G_1Z_t]
+&=
+\mathbb{E}[(\text{Past}_t+G_t)Z_t] \\
+&=
+\underbrace{\mathbb{E}[\text{Past}_tZ_t]}_{0}
++
+\mathbb{E}[G_tZ_t] \\
+&=
+\mathbb{E}[G_tZ_t].
+\end{aligned}
+$$
+
+Applying that equality to every timestep gives:
 
 $$
 \begin{aligned}
@@ -302,13 +390,6 @@ G_t
 \right].
 \end{aligned}
 $$
-
-<Figure id="return-decomposition">
-  <ReturnDecomposition />
-</Figure>
-
-Intuition: action $a_t$ cannot reach backward in time and change rewards that already happened.
-Those past rewards are like a constant baseline for this action. Score functions erase constants.
 
 If using discounting, define:
 
