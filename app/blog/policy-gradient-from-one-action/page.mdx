@@ -4,6 +4,7 @@ import {
   ExpectationWorlds,
   QExpectationDemo,
   AdvantageBaselineDemo,
+  BaselineCancellationDemo,
   GradientLadder,
 } from './ChartComponents'
 
@@ -644,8 +645,69 @@ A^\pi(s,a)
 Q^\pi(s,a)-V^\pi(s).
 $$
 
-Why can $Q$ be replaced by $A$? Because $V^\pi(s)$ is fixed while we average the possible actions at
-that state. For any fixed $s$:
+### First, watch the cancellation in one state
+
+Suppose a policy reaches one state $s$ and can go **left** or **right**. Let
+
+$$
+\pi_\theta(\text{left}\mid s)=p=0.4,
+\qquad
+\pi_\theta(\text{right}\mid s)=1-p=0.6,
+$$
+
+and suppose $Q(s,\text{left})=12$ while $Q(s,\text{right})=8$. The value of the state is the
+policy-weighted average:
+
+$$
+V(s)=0.4(12)+0.6(8)=9.6.
+$$
+
+Let $\theta$ be the logit that controls the probability of going left. The two possible score terms
+point in opposite directions:
+
+$$
+Z(\text{left})=\frac{\partial}{\partial\theta}\log p=1-p=0.6,
+\qquad
+Z(\text{right})=\frac{\partial}{\partial\theta}\log(1-p)=-p=-0.4.
+$$
+
+Now keep only the baseline part of the expected gradient. It contributes
+
+$$
+\begin{aligned}
+\mathbb{E}_{a\sim\pi(\cdot\mid s)}[V(s)Z(s,a)]
+&=0.4(9.6)(0.6)+0.6(9.6)(-0.4) \\
+&=2.304-2.304 \\
+&=0.
+\end{aligned}
+$$
+
+The baseline says "add the same $9.6$ no matter which action happened." But increasing the left
+logit moves probability mass from right to left: the left branch pushes up exactly as much as the
+right branch pushes down after weighting by how often each branch occurs.
+
+<Figure id="baseline-cancellation">
+  <BaselineCancellationDemo />
+</Figure>
+
+Subtracting the baseline therefore changes the numbers attached to individual samples, but not their
+expected gradient:
+
+$$
+\begin{aligned}
+\mathbb{E}[QZ]
+&=0.4(12)(0.6)+0.6(8)(-0.4)=0.96, \\
+A(\text{left})&=12-9.6=2.4, \\
+A(\text{right})&=8-9.6=-1.6, \\
+\mathbb{E}[AZ]
+&=0.4(2.4)(0.6)+0.6(-1.6)(-0.4)=0.96.
+\end{aligned}
+$$
+
+### The same fact as a general proof
+
+The numbers above are not a coincidence. Because $V^\pi(s)$ is fixed while we average the possible
+actions at that state, for any fixed $s$:
 
 $$
 \begin{aligned}
@@ -698,7 +760,21 @@ $$
 ### Now put the state buckets back together
 
 Let $d_t^\pi$ be the distribution of states reached at time $t$ by full trajectories from the policy.
-The baseline contribution under the outer trajectory expectation is:
+The baseline contribution under the outer trajectory expectation is zero too. Here is the proof in
+slow motion:
+
+1. **Move the sum outside.** Expectation is linear, so we can handle one timestep at a time.
+2. **Regroup trajectories by their state.** At time $t$, a full trajectory first determines
+   $s_t\sim d_t^\pi$; conditional on that state, its current action has distribution
+   $a_t\sim\pi(\cdot\mid s_t)$. This is the tower property, not a different data sampler.
+3. **Freeze the state inside the inner average.** Once $s_t$ is fixed, $V^\pi(s_t)$ is a constant and
+   can be pulled in front of the action expectation.
+4. **Use the local result.** The mean score over possible actions is zero:
+   $\mathbb{E}[Z_t\mid s_t]=0$.
+5. **Average the state buckets.** Every state contributes zero, so any weighted average of those
+   buckets is still zero.
+
+Written as one chain:
 
 $$
 \begin{aligned}
@@ -725,9 +801,14 @@ V^\pi(s_t)\cdot 0
 \end{aligned}
 $$
 
-This is the missing return trip. We first prove that the baseline vanishes while holding one state
-fixed. Then the tower property averages those zero-valued state buckets using how often full
-trajectories visit each state.
+For example, if full trajectories reach our two-action state $80\%$ of the time, that state contributes
+$0.8\times 0=0$ to the outer average. Another state might be visited $20\%$ of the time, but its own
+action branches cancel inside its bucket as well. The outer trajectory expectation is just a weighted
+average of these zeros.
+
+This is the missing return trip: we temporarily zoom into the actions available at one fixed state to
+prove the cancellation, then use the state-visitation probabilities induced by complete trajectories
+to put all the state buckets back together.
 
 Therefore, back at the outer scope:
 

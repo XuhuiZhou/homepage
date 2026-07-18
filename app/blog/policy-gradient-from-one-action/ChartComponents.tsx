@@ -24,6 +24,11 @@ export const AdvantageBaselineDemo = dynamic(
   { ssr: false },
 )
 
+export const BaselineCancellationDemo = dynamic(
+  () => import('./BaselineCancellationDemo'),
+  { ssr: false },
+)
+
 export const GradientLadder = dynamic(() => import('./GradientLadder'), {
   ssr: false,
 })
