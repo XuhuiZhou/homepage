@@ -1,6 +1,7 @@
 'use client'
 
-import { useState } from 'react'
+import { Play } from 'lucide-react'
+import { useEffect, useRef, useState } from 'react'
 
 const trajectories = [
   { id: 'tau-1', label: 'τ₁', history: 'A', action: 'left', future: 'F₁' },
@@ -16,7 +17,23 @@ const steps = [
   { id: 0, label: '1. Sample rollouts' },
   { id: 1, label: '2. Freeze one prefix' },
   { id: 2, label: '3. Read the next draw' },
+  { id: 3, label: '4. Try the sampler' },
 ] as const
+
+type History = 'A' | 'B'
+type Action = 'left' | 'right'
+
+type Sample = {
+  id: number
+  history: History
+  action: Action
+  future: string
+}
+
+const actionPolicies = {
+  A: { left: 0.4, right: 0.6 },
+  B: { left: 0.7, right: 0.3 },
+} as const
 
 function TrajectoryRows({
   freezeHistory = false,
@@ -161,6 +178,213 @@ function ActionZoom() {
   )
 }
 
+function FrequencyRow({
+  history,
+  total,
+  left,
+}: {
+  history: History
+  total: number
+  left: number
+}) {
+  const target = actionPolicies[history].left
+  const observed = total > 0 ? left / total : 0
+
+  return (
+    <div className="grid gap-2 sm:grid-cols-[7.5rem_1fr_auto] sm:items-center">
+      <div className="text-sm font-medium text-zinc-900 dark:text-zinc-100">
+        Given H<sub>t</sub> = {history}
+      </div>
+      <div
+        className="relative h-3 overflow-hidden rounded-sm bg-zinc-200 dark:bg-zinc-800"
+        role="img"
+        aria-label={
+          total > 0
+            ? `${Math.round(observed * 100)} percent of ${total} sampled actions were left; the policy probability is ${Math.round(target * 100)} percent`
+            : `No samples yet; the policy probability of left is ${Math.round(target * 100)} percent`
+        }
+      >
+        <div
+          className="h-full bg-amber-500 transition-[width] duration-300 dark:bg-amber-400"
+          style={{ width: `${observed * 100}%` }}
+        />
+        <div
+          className="absolute inset-y-0 w-0.5 bg-zinc-950 dark:bg-zinc-50"
+          style={{ left: `${target * 100}%` }}
+          aria-hidden="true"
+        />
+      </div>
+      <div className="text-sm text-zinc-600 sm:text-right dark:text-zinc-400">
+        {total > 0 ? `${left}/${total} left` : 'no samples'} · target{' '}
+        {Math.round(target * 100)}%
+      </div>
+    </div>
+  )
+}
+
+function RolloutSampler() {
+  const [sample, setSample] = useState<Sample | null>(null)
+  const [phase, setPhase] = useState(0)
+  const [sampleCount, setSampleCount] = useState(0)
+  const [counts, setCounts] = useState({
+    A: { total: 0, left: 0 },
+    B: { total: 0, left: 0 },
+  })
+  const timers = useRef<Array<ReturnType<typeof setTimeout>>>([])
+
+  useEffect(() => {
+    return () => timers.current.forEach(clearTimeout)
+  }, [])
+
+  const sampleTrajectory = () => {
+    timers.current.forEach(clearTimeout)
+
+    const history: History = Math.random() < 0.5 ? 'A' : 'B'
+    const action: Action =
+      Math.random() < actionPolicies[history].left ? 'left' : 'right'
+    const nextSample: Sample = {
+      id: sampleCount + 1,
+      history,
+      action,
+      future: `F${Math.floor(Math.random() * 9) + 1}`,
+    }
+
+    setSample(nextSample)
+    setPhase(1)
+
+    timers.current = [
+      setTimeout(() => setPhase(2), 350),
+      setTimeout(() => {
+        setPhase(3)
+        setSampleCount((value) => value + 1)
+        setCounts((current) => ({
+          ...current,
+          [history]: {
+            total: current[history].total + 1,
+            left: current[history].left + (action === 'left' ? 1 : 0),
+          },
+        }))
+      }, 700),
+    ]
+  }
+
+  const isSampling = phase > 0 && phase < 3
+
+  return (
+    <div>
+      <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
+        <button
+          type="button"
+          onClick={sampleTrajectory}
+          disabled={isSampling}
+          className="inline-flex items-center gap-2 rounded-md bg-zinc-900 px-3 py-2 text-sm font-medium text-white transition hover:bg-zinc-700 disabled:cursor-wait disabled:opacity-60 dark:bg-zinc-100 dark:text-zinc-950 dark:hover:bg-zinc-300"
+        >
+          <Play className="h-4 w-4" aria-hidden="true" />
+          {isSampling ? 'Sampling…' : 'Sample one complete trajectory'}
+        </button>
+        <div
+          className="text-sm text-zinc-600 dark:text-zinc-400"
+          aria-live="polite"
+        >
+          {sampleCount} complete {sampleCount === 1 ? 'sample' : 'samples'}
+        </div>
+      </div>
+
+      <div
+        className="grid gap-3 sm:grid-cols-[1fr_auto_1fr_auto_1fr] sm:items-stretch"
+        aria-live="polite"
+        aria-label="Currently sampled trajectory"
+      >
+        <div
+          className={`rounded-lg bg-emerald-100 p-4 text-emerald-950 transition-opacity dark:bg-emerald-950/60 dark:text-emerald-100 ${
+            phase >= 1 ? 'opacity-100' : 'opacity-35'
+          }`}
+        >
+          <div className="text-xs font-semibold tracking-[0.12em] uppercase opacity-70">
+            first: prefix
+          </div>
+          <div className="mt-2 text-lg font-semibold">
+            {phase >= 1 && sample ? (
+              <>
+                H<sub>t</sub> = {sample.history}
+              </>
+            ) : (
+              '?'
+            )}
+          </div>
+          <div className="mt-1 text-sm">
+            {phase >= 1 ? 'drawn from full rollouts' : 'waiting'}
+          </div>
+        </div>
+
+        <div
+          className="hidden items-center text-zinc-400 sm:flex"
+          aria-hidden="true"
+        >
+          →
+        </div>
+
+        <div
+          className={`rounded-lg bg-amber-100 p-4 text-amber-950 transition-opacity dark:bg-amber-950/60 dark:text-amber-100 ${
+            phase >= 2 ? 'opacity-100' : 'opacity-35'
+          }`}
+        >
+          <div className="text-xs font-semibold tracking-[0.12em] uppercase opacity-70">
+            then: action
+          </div>
+          <div className="mt-2 text-lg font-semibold">
+            {phase >= 2 && sample ? sample.action : '?'}
+          </div>
+          <div className="mt-1 text-sm">
+            {phase >= 2 && sample
+              ? `from π(· | H=${sample.history})`
+              : 'waiting for prefix'}
+          </div>
+        </div>
+
+        <div
+          className="hidden items-center text-zinc-400 sm:flex"
+          aria-hidden="true"
+        >
+          →
+        </div>
+
+        <div
+          className={`rounded-lg bg-sky-100 p-4 text-sky-950 transition-opacity dark:bg-sky-950/60 dark:text-sky-100 ${
+            phase >= 3 ? 'opacity-100' : 'opacity-35'
+          }`}
+        >
+          <div className="text-xs font-semibold tracking-[0.12em] uppercase opacity-70">
+            later: future
+          </div>
+          <div className="mt-2 text-lg font-semibold">
+            {phase >= 3 && sample ? sample.future : '?'}
+          </div>
+          <div className="mt-1 text-sm">
+            {phase >= 3 ? 'trajectory complete' : 'waiting for action'}
+          </div>
+        </div>
+      </div>
+
+      <div className="mt-6 space-y-4 border-t border-zinc-200 pt-5 dark:border-zinc-800">
+        <div className="flex flex-wrap items-center gap-3 text-xs text-zinc-500">
+          <span className="h-3 w-8 rounded-sm bg-amber-500 dark:bg-amber-400" />
+          <span>observed fraction of left actions</span>
+          <span className="h-3 w-0.5 bg-zinc-950 dark:bg-zinc-50" />
+          <span>policy probability of left</span>
+        </div>
+        <FrequencyRow history="A" {...counts.A} />
+        <FrequencyRow history="B" {...counts.B} />
+      </div>
+
+      <div className="mt-5 rounded-lg bg-zinc-900 p-4 text-sm leading-6 text-zinc-50 dark:bg-black">
+        Every click samples one full τ. Repeating the experiment reveals the
+        action distribution inside each fixed history.
+      </div>
+    </div>
+  )
+}
+
 export default function ExpectationWorlds() {
   const [step, setStep] = useState(0)
 
@@ -168,6 +392,7 @@ export default function ExpectationWorlds() {
     'A complete rollout samples the history, the current action, and everything after it.',
     'Conditioning on one history means comparing only rollouts that reached the same exact prefix.',
     'With the prefix fixed, the current action in those rollouts is distributed exactly as the policy.',
+    'Sample complete trajectories and watch their conditional action frequencies emerge.',
   ]
 
   return (
@@ -207,6 +432,7 @@ export default function ExpectationWorlds() {
         {step === 0 && <TrajectoryRows />}
         {step === 1 && <TrajectoryRows freezeHistory />}
         {step === 2 && <ActionZoom />}
+        {step === 3 && <RolloutSampler />}
       </div>
     </figure>
   )
