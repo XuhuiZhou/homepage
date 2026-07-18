@@ -5,6 +5,7 @@ import {
   QExpectationDemo,
   AdvantageBaselineDemo,
   BaselineCancellationDemo,
+  TrajectoryRegroupingDemo,
   GradientLadder,
 } from './ChartComponents'
 
@@ -759,22 +760,119 @@ $$
 
 ### Now put the state buckets back together
 
-Let $d_t^\pi$ be the distribution of states reached at time $t$ by full trajectories from the policy.
-The baseline contribution under the outer trajectory expectation is zero too. Here is the proof in
-slow motion:
+This is where the notation can create a false picture. It may look as if we first sampled a trajectory,
+threw it away, sampled a state, and then sampled an action. **That does not happen.**
 
-1. **Move the sum outside.** Expectation is linear, so we can handle one timestep at a time.
-2. **Regroup trajectories by their state.** At time $t$, a full trajectory first determines
-   $s_t\sim d_t^\pi$; conditional on that state, its current action has distribution
-   $a_t\sim\pi(\cdot\mid s_t)$. This is the tower property, not a different data sampler.
-3. **Freeze the state inside the inner average.** Once $s_t$ is fixed, $V^\pi(s_t)$ is a constant and
-   can be pulled in front of the action expectation.
-4. **Use the local result.** The mean score over possible actions is zero:
-   $\mathbb{E}[Z_t\mid s_t]=0$.
-5. **Average the state buckets.** Every state contributes zero, so any weighted average of those
-   buckets is still zero.
+Fix one timestep $t$. A complete trajectory is a row containing many columns:
 
-Written as one chain:
+$$
+\tau
+=
+(\underbrace{\text{past}}_{\text{before }t},\ s_t,\ a_t,\
+\underbrace{\text{future}}_{\text{after }t}).
+$$
+
+Sampling one row automatically samples every column in that row. If we later ignore every column
+except $(s_t,a_t)$, we have not drawn anything new. We have only **projected** each full-trajectory
+sample down to two of its coordinates.
+
+<Figure id="trajectory-regrouping">
+  <TrajectoryRegroupingDemo />
+</Figure>
+
+The six-row toy table makes the operation literal. Averaging a function $F(s_t,a_t)$ row by row gives
+
+$$
+\frac{8+8+2+4+6+6}{6}=5.67.
+$$
+
+Putting the same rows into state buckets and then action buckets gives
+
+$$
+\frac{3}{6}
+\left[
+\frac{2}{3}(8)+\frac{1}{3}(2)
+\right]
++
+\frac{3}{6}
+\left[
+\frac{1}{3}(4)+\frac{2}{3}(6)
+\right]
+=5.67.
+$$
+
+The numbers did not change. Only the parentheses changed.
+
+### The exact probability proof
+
+For one fixed $t$, start from the full-trajectory expectation:
+
+$$
+\mathbb{E}_{\tau\sim p_\theta}[F(s_t,a_t)]
+=
+\sum_\tau p_\theta(\tau)F(s_t(\tau),a_t(\tau)).
+$$
+
+Now partition the set of complete trajectories by the state and action appearing in their $t$-th
+columns:
+
+$$
+\begin{aligned}
+\sum_\tau p_\theta(\tau)F(s_t(\tau),a_t(\tau))
+&=
+\sum_s\sum_a
+\left[
+\sum_{\tau:\,s_t=s,\,a_t=a}p_\theta(\tau)
+\right]F(s,a) \\
+&=
+\sum_s\sum_a
+\Pr(s_t=s,a_t=a)F(s,a).
+\end{aligned}
+$$
+
+The probability in brackets is the total probability mass of **all full trajectories** whose row has
+that state-action pair. By the ordinary product rule of probability,
+
+$$
+\Pr(s_t=s,a_t=a)
+=
+\underbrace{\Pr(s_t=s)}_{d_t^\pi(s)}
+\underbrace{\Pr(a_t=a\mid s_t=s)}_{\pi_\theta(a\mid s)}.
+$$
+
+The second factor is $\pi_\theta(a\mid s)$ because the policy is exactly the mechanism that chooses
+the current action after seeing the current state. For an autoregressive language model, $s_t$ is the
+entire prompt-plus-token prefix, so it contains everything the next-token policy conditions on.
+
+Substitute that product into the previous sum:
+
+$$
+\begin{aligned}
+\mathbb{E}_{\tau\sim p_\theta}[F(s_t,a_t)]
+&=
+\sum_s d_t^\pi(s)
+\sum_a \pi_\theta(a\mid s)F(s,a) \\
+&=
+\mathbb{E}_{s_t\sim d_t^\pi}
+\left[
+\mathbb{E}_{a_t\sim\pi_\theta(\cdot\mid s_t)}
+[F(s_t,a_t)\mid s_t]
+\right].
+\end{aligned}
+$$
+
+So the right-hand side is not a recipe for collecting different data. It is the same full-trajectory
+expectation after grouping its probability mass first by state and then by action. This is the tower
+property of expectation.
+
+Finally choose
+
+$$
+F(s_t,a_t)=V^\pi(s_t)Z_t
+$$
+
+and use linearity to sum over timesteps. Inside each fixed-state bucket,
+$V^\pi(s_t)$ is constant and $\mathbb{E}[Z_t\mid s_t]=0$. Therefore:
 
 $$
 \begin{aligned}
@@ -801,14 +899,8 @@ V^\pi(s_t)\cdot 0
 \end{aligned}
 $$
 
-For example, if full trajectories reach our two-action state $80\%$ of the time, that state contributes
-$0.8\times 0=0$ to the outer average. Another state might be visited $20\%$ of the time, but its own
-action branches cancel inside its bucket as well. The outer trajectory expectation is just a weighted
-average of these zeros.
-
-This is the missing return trip: we temporarily zoom into the actions available at one fixed state to
-prove the cancellation, then use the state-visitation probabilities induced by complete trajectories
-to put all the state buckets back together.
+Every state bucket contributes zero. The outer trajectory expectation merely weights those buckets by
+how often full trajectories reach them, so it is a weighted average of zeros.
 
 Therefore, back at the outer scope:
 

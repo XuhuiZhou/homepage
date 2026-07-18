@@ -29,6 +29,11 @@ export const BaselineCancellationDemo = dynamic(
   { ssr: false },
 )
 
+export const TrajectoryRegroupingDemo = dynamic(
+  () => import('./TrajectoryRegroupingDemo'),
+  { ssr: false },
+)
+
 export const GradientLadder = dynamic(() => import('./GradientLadder'), {
   ssr: false,
 })
