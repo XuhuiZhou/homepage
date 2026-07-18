@@ -283,95 +283,57 @@ $$
 \sum_w P(w)X(w).
 $$
 
-In reinforcement learning, a possible world is indeed one **complete trajectory** sampled from
-$p_\theta(\tau)$. The expectation has not secretly changed from trajectories to actions.
+In reinforcement learning, one possible world is indeed one **complete trajectory**
+$\tau\sim p_\theta(\tau)$. We never stop sampling complete trajectories.
 
-To focus on timestep $t$, split each complete trajectory into three pieces:
-
-$$
-\tau=(H_t,a_t,F_t),
-$$
-
-where $H_t$ is the prefix before the current action, $a_t$ is the current action, and $F_t$ is the
-entire suffix after it. The trajectory probability factors the same way:
+The key is that one complete trajectory is generated **in order**. By time $t$, the rollout has already
+produced a history $H_t$. From that history, its next random draw is
 
 $$
-p_\theta(\tau)
+a_t\sim\pi_\theta(\cdot\mid s_t).
+$$
+
+So the action sample is not a new experiment that replaces the trajectory sample. It is one draw
+**inside** the trajectory we already sampled. Equivalently:
+
+$$
+P_\theta(a_t=a\mid H_t=h)
 =
-p_\theta(H_t)
-\pi_\theta(a_t\mid s_t)
-p_\theta(F_t\mid H_t,a_t).
+\pi_\theta(a\mid s(h)).
 $$
 
-Therefore any trajectory expectation can be expanded as:
-
-$$
-\mathbb{E}_{\tau\sim p_\theta}[X(\tau)]
-=
-\sum_h p_\theta(h)
-\sum_a \pi_\theta(a\mid s(h))
-\sum_f p_\theta(f\mid h,a)X(h,a,f).
-$$
-
-The action probability did not replace $p_\theta(\tau)$. It appeared because it is the **current-action
-factor inside the trajectory probability**.
-
-Now consider the particular quantity $X(\tau)=\text{Past}_tZ_t$. It depends on the prefix and current
-action, but not on the future suffix. We can therefore pull it outside the sum over $f$:
-
-$$
-\begin{aligned}
-\mathbb{E}_{\tau}[\text{Past}_tZ_t]
-&=
-\sum_h p_\theta(h)
-\sum_a \pi_\theta(a\mid s(h))
-\text{Past}(h)Z(h,a)
-\underbrace{\sum_f p_\theta(f\mid h,a)}_{1}.
-\end{aligned}
-$$
-
-We have not discarded the future trajectories. We summed over every possible future, and their
-conditional probabilities add to 1. The four rows in the visual below are therefore **families of full
-trajectories** that share one $(H_t,a_t)$ pair.
-
-This collapse is specific to the past-reward term. Later, for $G_tZ_t$, the return $G_t$ does depend
-on the future, so the suffix cannot disappear. Averaging those futures will produce
-$Q^\pi(s_t,a_t)$.
-
-The past reward is also **not** one global constant across trajectories. One rollout may reach the
-checkpoint with 2 coins and another may reach it with 10.
-
-A conditional expectation simply makes a smaller comparison group. Instead of averaging every world,
-$\mathbb{E}[X\mid H_t=h]$ averages only worlds that share the exact same history $h$. Nothing mystical
-happened; we filtered the replays into a bucket and averaged within that bucket.
-
-The fourth panel below also previews the **policy score**. In this binary example, read it as the push
-on the "go left" logit: a sampled left action pushes up, while a sampled right action pushes down. The
-exact identity behind those numbers is derived shortly below.
+The picture below shows this without the probability bookkeeping. Start with complete rollouts, pause
+them at one shared prefix, and inspect which action each rollout takes next.
 
 <Figure id="expectation-worlds">
   <ExpectationWorlds />
 </Figure>
 
-The **tower property** says that these two procedures agree:
-
-1. Average all worlds at once.
-2. Average within each history bucket, then average the bucket answers using the probability of each
-   history.
-
-In symbols:
+This is what conditioning does. For a quantity such as
+$Z_t=\nabla_\theta\log\pi_\theta(a_t\mid s_t)$, which is determined once the history and current action
+are known, the same trajectory average can be written in two stages:
 
 $$
-\mathbb{E}[X]
+\mathbb{E}_{\tau\sim p_\theta}[Z_t]
 =
 \mathbb{E}_{H_t}
 \left[
-\mathbb{E}[X\mid H_t]
+\mathbb{E}_{a_t\sim\pi_\theta(\cdot\mid s_t)}
+\left[Z_t\mid H_t\right]
 \right].
 $$
 
-This is the same arithmetic as computing the average score in each class and then weighting each class
-by its number of students.
+Read this from right to left: fix the prefix, average over the action that comes next, and then average
+over all prefixes. That produces the same average as sampling complete trajectories directly. This is
+the **tower property**.
+
+In actual Monte Carlo training, we do not need to resample the action separately. One sampled
+trajectory already gives one sampled $H_t$ and one sampled $a_t$. Across many trajectories, those
+observed actions estimate the inner action average.
+
+The past reward is not one global constant across trajectories: one rollout may arrive with 2 coins
+and another with 10. But after fixing one exact $H_t$, its past is fixed. This is why conditioning lets
+us ask whether that shared past can influence the action sampled next.
 
 ### Four legal moves inside an expectation
 
@@ -390,7 +352,7 @@ $\mathbb{E}[YX\mid H]=Y\mathbb{E}[X\mid H]$.
 **Average the groups back together.** Use the tower property. If the inner average is zero in every
 group, the outer average is an average of zeros and is also zero.
 
-### Now $H_t$ has a job
+### Freeze the prefix, then average its next actions
 
 Define the history immediately before sampling the current action:
 
@@ -435,6 +397,19 @@ $$
 $$
 
 **3. Average the score over the possible current actions:**
+
+This is the algebraic version of the last visual panel. The sum over $a$ does **not** mean that the
+training procedure stopped sampling trajectories. It lists the possible next-action branches inside
+one fixed history. A single rollout takes one branch; many rollouts estimate their weighted average.
+
+In words:
+
+$$
+\text{conditional mean score}
+=
+\sum_{\text{next actions}}
+(\text{action probability})(\text{score if sampled}).
+$$
 
 $$
 \begin{aligned}

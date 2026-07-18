@@ -2,270 +2,160 @@
 
 import { useState } from 'react'
 
-const worlds = [
-  {
-    id: 'a-left',
-    history: 'A',
-    historyProbability: 0.5,
-    past: 2,
-    action: 'left',
-    actionProbability: 0.4,
-    worldProbability: 0.2,
-    score: 0.6,
-  },
-  {
-    id: 'a-right',
-    history: 'A',
-    historyProbability: 0.5,
-    past: 2,
-    action: 'right',
-    actionProbability: 0.6,
-    worldProbability: 0.3,
-    score: -0.4,
-  },
-  {
-    id: 'b-left',
-    history: 'B',
-    historyProbability: 0.5,
-    past: 10,
-    action: 'left',
-    actionProbability: 0.7,
-    worldProbability: 0.35,
-    score: 0.3,
-  },
-  {
-    id: 'b-right',
-    history: 'B',
-    historyProbability: 0.5,
-    past: 10,
-    action: 'right',
-    actionProbability: 0.3,
-    worldProbability: 0.15,
-    score: -0.7,
-  },
+const trajectories = [
+  { id: 'tau-1', label: 'τ₁', history: 'A', action: 'left', future: 'F₁' },
+  { id: 'tau-2', label: 'τ₂', history: 'A', action: 'left', future: 'F₂' },
+  { id: 'tau-3', label: 'τ₃', history: 'A', action: 'right', future: 'F₃' },
+  { id: 'tau-4', label: 'τ₄', history: 'A', action: 'right', future: 'F₄' },
+  { id: 'tau-5', label: 'τ₅', history: 'A', action: 'right', future: 'F₅' },
+  { id: 'tau-6', label: 'τ₆', history: 'B', action: 'left', future: 'F₆' },
+  { id: 'tau-7', label: 'τ₇', history: 'B', action: 'right', future: 'F₇' },
 ] as const
 
 const steps = [
-  { id: 0, label: '1. Split trajectory' },
-  { id: 1, label: '2. Sum out future' },
-  { id: 2, label: '3. Group by history' },
-  { id: 3, label: '4. Cancel the past' },
+  { id: 0, label: '1. Sample rollouts' },
+  { id: 1, label: '2. Freeze one prefix' },
+  { id: 2, label: '3. Read the next draw' },
 ] as const
 
-const historyStyles = {
-  A: {
-    bar: 'bg-emerald-500 dark:bg-emerald-400',
-    soft: 'bg-emerald-50 dark:bg-emerald-950/30',
-    border: 'border-emerald-200 dark:border-emerald-900/70',
-  },
-  B: {
-    bar: 'bg-sky-500 dark:bg-sky-400',
-    soft: 'bg-sky-50 dark:bg-sky-950/30',
-    border: 'border-sky-200 dark:border-sky-900/70',
-  },
-} as const
-
-const percentage = (value: number) => `${Math.round(value * 100)}%`
-const signed = (value: number) => `${value >= 0 ? '+' : ''}${value.toFixed(1)}`
-
-function TrajectoryAnatomy() {
+function TrajectoryRows({
+  freezeHistory = false,
+}: {
+  freezeHistory?: boolean
+}) {
   return (
     <div>
-      <div className="grid divide-y divide-zinc-200 border-y border-zinc-200 sm:grid-cols-3 sm:divide-x sm:divide-y-0 dark:divide-zinc-800 dark:border-zinc-800">
-        <div className="py-4 sm:pr-4">
-          <div className="text-xs font-semibold tracking-[0.14em] text-zinc-500 uppercase">
-            prefix
-          </div>
-          <div className="mt-2 font-semibold text-zinc-900 dark:text-zinc-100">
-            history H<sub>t</sub>
-          </div>
-          <div className="mt-1 text-sm leading-6 text-zinc-600 dark:text-zinc-400">
-            Everything before the current action
-          </div>
-          <div className="mt-2 font-mono text-sm text-zinc-900 dark:text-zinc-100">
-            probability p(H<sub>t</sub>)
-          </div>
-        </div>
-
-        <div className="py-4 sm:px-4">
-          <div className="text-xs font-semibold tracking-[0.14em] text-zinc-500 uppercase">
-            current choice
-          </div>
-          <div className="mt-2 font-semibold text-zinc-900 dark:text-zinc-100">
-            action a<sub>t</sub>
-          </div>
-          <div className="mt-1 text-sm leading-6 text-zinc-600 dark:text-zinc-400">
-            Sampled from the policy at this history
-          </div>
-          <div className="mt-2 font-mono text-sm text-zinc-900 dark:text-zinc-100">
-            probability π(a<sub>t</sub> | s<sub>t</sub>)
-          </div>
-        </div>
-
-        <div className="py-4 sm:pl-4">
-          <div className="text-xs font-semibold tracking-[0.14em] text-zinc-500 uppercase">
-            suffix
-          </div>
-          <div className="mt-2 font-semibold text-zinc-900 dark:text-zinc-100">
-            future F<sub>t</sub>
-          </div>
-          <div className="mt-1 text-sm leading-6 text-zinc-600 dark:text-zinc-400">
-            Later rewards, states, and actions
-          </div>
-          <div className="mt-2 font-mono text-sm text-zinc-900 dark:text-zinc-100">
-            probability p(F<sub>t</sub> | H<sub>t</sub>, a<sub>t</sub>)
-          </div>
-        </div>
+      <div className="mb-2 grid grid-cols-[2.5rem_1.2fr_0.8fr_1fr] gap-2 px-2 text-xs font-semibold tracking-[0.08em] text-zinc-500 uppercase">
+        <span className="text-center">τ</span>
+        <span>history</span>
+        <span>action</span>
+        <span>future</span>
       </div>
 
-      <div className="mt-5 rounded-lg bg-zinc-900 p-4 text-sm leading-6 text-zinc-50 dark:bg-black">
-        One complete trajectory τ = (H<sub>t</sub>, a<sub>t</sub>, F<sub>t</sub>
-        )
-        <br />
-        p(τ) = p(H<sub>t</sub>) × π(a<sub>t</sub> | s<sub>t</sub>) × p(F
-        <sub>t</sub> | H<sub>t</sub>, a<sub>t</sub>)
-      </div>
-    </div>
-  )
-}
-
-function CollapsedFamilies() {
-  return (
-    <div>
-      <div className="mb-4 text-sm leading-6 text-zinc-600 dark:text-zinc-400">
-        Each row below represents a family of complete trajectories with the
-        same history and current action. Their different futures have been
-        summed together.
-      </div>
-
-      <div className="mb-3 text-right font-mono text-xs text-zinc-500">
-        Σ<sub>F</sub> p(F | H, a) = 1
-      </div>
-
-      <div className="mb-5 flex h-8 overflow-hidden rounded-sm bg-zinc-100 dark:bg-zinc-900">
-        {worlds.map((world) => (
-          <div
-            key={world.id}
-            className={`${historyStyles[world.history].bar} flex items-center justify-center border-r border-white/60 text-xs font-semibold text-white last:border-r-0 dark:border-zinc-950/60 dark:text-zinc-950`}
-            style={{ width: percentage(world.worldProbability) }}
-            aria-label={`${percentage(world.worldProbability)} of trajectories have history ${world.history} and current action ${world.action} after summing over futures`}
-          >
-            {percentage(world.worldProbability)}
-          </div>
-        ))}
-      </div>
-
-      <div className="divide-y divide-zinc-200 border-y border-zinc-200 dark:divide-zinc-800 dark:border-zinc-800">
-        {worlds.map((world) => (
-          <div
-            key={world.id}
-            className="grid grid-cols-[auto_1fr_auto] items-center gap-3 py-3 text-sm"
-          >
-            <span
-              className={`h-3 w-3 rounded-sm ${historyStyles[world.history].bar}`}
-              aria-hidden="true"
-            />
-            <span className="text-zinc-700 dark:text-zinc-300">
-              H = {world.history}, a = {world.action}
-            </span>
-            <span className="text-right font-mono text-zinc-900 dark:text-zinc-100">
-              {world.historyProbability.toFixed(1)} ×{' '}
-              {world.actionProbability.toFixed(1)} × 1 ={' '}
-              {percentage(world.worldProbability)}
-            </span>
-          </div>
-        ))}
-      </div>
-
-      <div className="mt-5 rounded-lg bg-zinc-900 p-4 text-sm leading-6 text-zinc-50 dark:bg-black">
-        These four percentages still came from p(τ). We only combined
-        trajectories whose future no longer affects the quantity being averaged.
-      </div>
-    </div>
-  )
-}
-
-function HistoryGroups({ showScores }: { showScores: boolean }) {
-  return (
-    <div>
-      <div className="grid gap-4 sm:grid-cols-2">
-        {(['A', 'B'] as const).map((history) => {
-          const group = worlds.filter((world) => world.history === history)
-          const { past, historyProbability } = group[0]
+      <div className="space-y-2" aria-label="Example complete trajectories">
+        {trajectories.map((trajectory) => {
+          const selected = !freezeHistory || trajectory.history === 'A'
 
           return (
-            <section
-              key={history}
-              className={`rounded-lg border p-4 ${historyStyles[history].border} ${historyStyles[history].soft}`}
-              aria-label={`History ${history} bucket`}
+            <div
+              key={trajectory.id}
+              className={`grid grid-cols-[2.5rem_1.2fr_0.8fr_1fr] items-stretch gap-2 transition-opacity ${
+                selected ? 'opacity-100' : 'opacity-20'
+              }`}
             >
-              <div className="flex items-start justify-between gap-3">
-                <div>
-                  <div className="text-xs font-semibold tracking-[0.14em] text-zinc-500 uppercase dark:text-zinc-400">
-                    history {history}
-                  </div>
-                  <div className="mt-1 font-semibold text-zinc-900 dark:text-zinc-100">
-                    Past = {past} coins is fixed
-                  </div>
-                </div>
-                <div className="font-mono text-sm text-zinc-600 dark:text-zinc-300">
-                  P(H) = {historyProbability.toFixed(1)}
-                </div>
+              <div className="flex items-center justify-center font-mono text-xs text-zinc-500">
+                {trajectory.label}
               </div>
-
-              <div className="mt-4 divide-y divide-zinc-200/80 border-y border-zinc-200/80 dark:divide-zinc-700/80 dark:border-zinc-700/80">
-                {group.map((world) => (
-                  <div
-                    key={world.id}
-                    className="grid grid-cols-[1fr_auto] gap-3 py-3 text-sm"
-                  >
-                    <span className="text-zinc-700 dark:text-zinc-300">
-                      go {world.action}
-                    </span>
-                    <span className="text-right font-mono text-zinc-900 dark:text-zinc-100">
-                      {showScores
-                        ? `${world.actionProbability.toFixed(1)} × ${signed(world.score)}`
-                        : `P = ${world.actionProbability.toFixed(1)}`}
-                    </span>
-                  </div>
-                ))}
+              <div className="flex min-h-10 items-center rounded-md bg-emerald-100 px-3 text-sm font-medium text-emerald-950 dark:bg-emerald-950/60 dark:text-emerald-100">
+                H<sub>t</sub> = {trajectory.history}
               </div>
-
-              <div className="mt-4 text-sm leading-6 text-zinc-700 dark:text-zinc-300">
-                {showScores ? (
-                  <>
-                    Mean score = {group[0].actionProbability.toFixed(1)}(
-                    {signed(group[0].score)}) +{' '}
-                    {group[1].actionProbability.toFixed(1)}(
-                    {signed(group[1].score)}) = <strong>0</strong>
-                    <br />
-                    Past × mean score = {past} × 0 = <strong>0</strong>
-                  </>
-                ) : (
-                  <>
-                    Inside this bucket, only the current action is resampled.
-                    The old coin count does not change.
-                  </>
-                )}
+              <div className="flex min-h-10 items-center rounded-md bg-amber-100 px-3 text-sm font-medium text-amber-950 dark:bg-amber-950/60 dark:text-amber-100">
+                {trajectory.action}
               </div>
-            </section>
+              <div className="flex min-h-10 items-center rounded-md bg-sky-100 px-3 text-sm text-sky-950 dark:bg-sky-950/60 dark:text-sky-100">
+                {trajectory.future}
+              </div>
+            </div>
           )
         })}
       </div>
 
-      <div className="mt-5 rounded-lg bg-zinc-900 p-4 text-sm leading-6 text-zinc-50 dark:bg-black">
-        {showScores ? (
+      <div className="mt-5 flex flex-wrap items-center gap-x-3 gap-y-2 border-t border-zinc-200 pt-4 text-sm text-zinc-700 dark:border-zinc-800 dark:text-zinc-300">
+        {freezeHistory ? (
           <>
-            Outer average = 0.5(0) + 0.5(0) = <strong>0</strong>. Every history
-            bucket cancels before the buckets are recombined.
+            <span className="font-semibold text-zinc-900 dark:text-zinc-100">
+              Keep only replays with H<sub>t</sub> = A.
+            </span>
+            <span>The green prefix is now identical in every visible row.</span>
           </>
         ) : (
           <>
-            Average inside A, average inside B, then weight the two answers by
-            0.5. This gives the same result as averaging all four worlds at
-            once.
+            <span className="font-semibold text-zinc-900 dark:text-zinc-100">
+              Each row is one complete sampled trajectory.
+            </span>
+            <span>Its prefix, current action, and future arrive together.</span>
           </>
         )}
+      </div>
+    </div>
+  )
+}
+
+function ActionZoom() {
+  return (
+    <div>
+      <div className="grid items-center gap-5 sm:grid-cols-[1fr_auto_1.35fr]">
+        <div className="rounded-lg bg-emerald-100 p-4 text-emerald-950 dark:bg-emerald-950/60 dark:text-emerald-100">
+          <div className="text-xs font-semibold tracking-[0.12em] uppercase opacity-70">
+            frozen prefix
+          </div>
+          <div className="mt-2 text-lg font-semibold">
+            H<sub>t</sub> = A
+          </div>
+          <div className="mt-1 text-sm leading-6">
+            The state s<sub>t</sub> and all earlier rewards are already fixed.
+          </div>
+        </div>
+
+        <div
+          className="hidden text-2xl text-zinc-400 sm:block"
+          aria-hidden="true"
+        >
+          →
+        </div>
+
+        <div>
+          <div className="mb-3 text-xs font-semibold tracking-[0.12em] text-zinc-500 uppercase">
+            one remaining draw right now
+          </div>
+          <div className="grid grid-cols-5 gap-2">
+            <div className="col-span-2 rounded-lg bg-amber-100 p-4 text-amber-950 dark:bg-amber-950/60 dark:text-amber-100">
+              <div className="font-semibold">left</div>
+              <div className="mt-1 font-mono text-sm">π = 40%</div>
+              <div className="mt-3 text-sm">score +0.6</div>
+            </div>
+            <div className="col-span-3 rounded-lg bg-amber-100 p-4 text-amber-950 dark:bg-amber-950/60 dark:text-amber-100">
+              <div className="font-semibold">right</div>
+              <div className="mt-1 font-mono text-sm">π = 60%</div>
+              <div className="mt-3 text-sm">score −0.4</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="mt-5 grid gap-3 border-t border-zinc-200 pt-5 sm:grid-cols-[1fr_auto_1fr] sm:items-center dark:border-zinc-800">
+        <div>
+          <div className="text-xs font-semibold tracking-[0.12em] text-zinc-500 uppercase">
+            data collection
+          </div>
+          <div className="mt-1 font-mono text-sm text-zinc-900 dark:text-zinc-100">
+            τ ∼ pθ(τ)
+          </div>
+          <div className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">
+            Still sample the complete rollout.
+          </div>
+        </div>
+
+        <div className="hidden text-zinc-400 sm:block" aria-hidden="true">
+          →
+        </div>
+
+        <div>
+          <div className="text-xs font-semibold tracking-[0.12em] text-zinc-500 uppercase">
+            inside that rollout
+          </div>
+          <div className="mt-1 font-mono text-sm text-zinc-900 dark:text-zinc-100">
+            a<sub>t</sub> ∼ πθ(· | s<sub>t</sub>)
+          </div>
+          <div className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">
+            Its current action is already a policy sample.
+          </div>
+        </div>
+      </div>
+
+      <div className="mt-5 rounded-lg bg-zinc-900 p-4 text-sm leading-6 text-zinc-50 dark:bg-black">
+        We did not switch samplers. We paused the same full rollouts at one
+        prefix and looked at which action came next.
       </div>
     </div>
   )
@@ -275,17 +165,16 @@ export default function ExpectationWorlds() {
   const [step, setStep] = useState(0)
 
   const descriptions = [
-    'A possible world in reinforcement learning is one complete trajectory: prefix, current action, and future.',
-    'For the past-reward term, all future branches can be combined because their probabilities sum to one.',
-    'Conditional expectation reorganizes trajectory families into buckets that share a fixed history.',
-    'Within each history bucket, the policy score averages to zero, so shared past reward contributes zero.',
+    'A complete rollout samples the history, the current action, and everything after it.',
+    'Conditioning on one history means comparing only rollouts that reached the same exact prefix.',
+    'With the prefix fixed, the current action in those rollouts is distributed exactly as the policy.',
   ]
 
   return (
-    <figure className="not-prose my-10 overflow-hidden rounded-xl border border-zinc-200 bg-white shadow-sm dark:border-zinc-800 dark:bg-zinc-950">
+    <figure className="not-prose my-10 overflow-hidden rounded-lg border border-zinc-200 bg-white shadow-sm dark:border-zinc-800 dark:bg-zinc-950">
       <div className="border-b border-zinc-200 bg-zinc-50 px-5 py-4 dark:border-zinc-800 dark:bg-zinc-900/60">
         <div className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">
-          One trajectory expectation, reorganized four ways
+          Zooming from a full trajectory into one action
         </div>
         <div className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">
           {descriptions[step]}
@@ -296,7 +185,7 @@ export default function ExpectationWorlds() {
         <div
           className="mb-6 flex flex-wrap gap-2"
           role="group"
-          aria-label="Expectation explanation steps"
+          aria-label="Trajectory conditioning steps"
         >
           {steps.map((item) => (
             <button
@@ -304,7 +193,7 @@ export default function ExpectationWorlds() {
               type="button"
               onClick={() => setStep(item.id)}
               aria-pressed={step === item.id}
-              className={`rounded-lg border px-3 py-2 text-sm font-medium transition ${
+              className={`rounded-md border px-3 py-2 text-sm font-medium transition ${
                 step === item.id
                   ? 'border-zinc-900 bg-zinc-900 text-white dark:border-zinc-100 dark:bg-zinc-100 dark:text-zinc-950'
                   : 'border-zinc-200 text-zinc-700 hover:border-zinc-400 dark:border-zinc-800 dark:text-zinc-300'
@@ -315,10 +204,9 @@ export default function ExpectationWorlds() {
           ))}
         </div>
 
-        {step === 0 && <TrajectoryAnatomy />}
-        {step === 1 && <CollapsedFamilies />}
-        {step === 2 && <HistoryGroups showScores={false} />}
-        {step === 3 && <HistoryGroups showScores />}
+        {step === 0 && <TrajectoryRows />}
+        {step === 1 && <TrajectoryRows freezeHistory />}
+        {step === 2 && <ActionZoom />}
       </div>
     </figure>
   )
