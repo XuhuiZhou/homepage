@@ -283,15 +283,69 @@ $$
 \sum_w P(w)X(w).
 $$
 
-For a trajectory, a possible world contains the entire sampled rollout: its states, actions, and
-rewards. The past reward is **not** one global constant across these worlds. One rollout may reach the
+In reinforcement learning, a possible world is indeed one **complete trajectory** sampled from
+$p_\theta(\tau)$. The expectation has not secretly changed from trajectories to actions.
+
+To focus on timestep $t$, split each complete trajectory into three pieces:
+
+$$
+\tau=(H_t,a_t,F_t),
+$$
+
+where $H_t$ is the prefix before the current action, $a_t$ is the current action, and $F_t$ is the
+entire suffix after it. The trajectory probability factors the same way:
+
+$$
+p_\theta(\tau)
+=
+p_\theta(H_t)
+\pi_\theta(a_t\mid s_t)
+p_\theta(F_t\mid H_t,a_t).
+$$
+
+Therefore any trajectory expectation can be expanded as:
+
+$$
+\mathbb{E}_{\tau\sim p_\theta}[X(\tau)]
+=
+\sum_h p_\theta(h)
+\sum_a \pi_\theta(a\mid s(h))
+\sum_f p_\theta(f\mid h,a)X(h,a,f).
+$$
+
+The action probability did not replace $p_\theta(\tau)$. It appeared because it is the **current-action
+factor inside the trajectory probability**.
+
+Now consider the particular quantity $X(\tau)=\text{Past}_tZ_t$. It depends on the prefix and current
+action, but not on the future suffix. We can therefore pull it outside the sum over $f$:
+
+$$
+\begin{aligned}
+\mathbb{E}_{\tau}[\text{Past}_tZ_t]
+&=
+\sum_h p_\theta(h)
+\sum_a \pi_\theta(a\mid s(h))
+\text{Past}(h)Z(h,a)
+\underbrace{\sum_f p_\theta(f\mid h,a)}_{1}.
+\end{aligned}
+$$
+
+We have not discarded the future trajectories. We summed over every possible future, and their
+conditional probabilities add to 1. The four rows in the visual below are therefore **families of full
+trajectories** that share one $(H_t,a_t)$ pair.
+
+This collapse is specific to the past-reward term. Later, for $G_tZ_t$, the return $G_t$ does depend
+on the future, so the suffix cannot disappear. Averaging those futures will produce
+$Q^\pi(s_t,a_t)$.
+
+The past reward is also **not** one global constant across trajectories. One rollout may reach the
 checkpoint with 2 coins and another may reach it with 10.
 
 A conditional expectation simply makes a smaller comparison group. Instead of averaging every world,
 $\mathbb{E}[X\mid H_t=h]$ averages only worlds that share the exact same history $h$. Nothing mystical
 happened; we filtered the replays into a bucket and averaged within that bucket.
 
-The final panel below also previews the **policy score**. In this binary example, read it as the push
+The fourth panel below also previews the **policy score**. In this binary example, read it as the push
 on the "go left" logit: a sampled left action pushes up, while a sampled right action pushes down. The
 exact identity behind those numbers is derived shortly below.
 

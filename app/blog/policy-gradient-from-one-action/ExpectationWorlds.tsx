@@ -46,9 +46,10 @@ const worlds = [
 ] as const
 
 const steps = [
-  { id: 0, label: '1. Average worlds' },
-  { id: 1, label: '2. Group by history' },
-  { id: 2, label: '3. Cancel the past' },
+  { id: 0, label: '1. Split trajectory' },
+  { id: 1, label: '2. Sum out future' },
+  { id: 2, label: '3. Group by history' },
+  { id: 3, label: '4. Cancel the past' },
 ] as const
 
 const historyStyles = {
@@ -67,16 +68,87 @@ const historyStyles = {
 const percentage = (value: number) => `${Math.round(value * 100)}%`
 const signed = (value: number) => `${value >= 0 ? '+' : ''}${value.toFixed(1)}`
 
-function WorldAverage() {
+function TrajectoryAnatomy() {
   return (
     <div>
+      <div className="grid divide-y divide-zinc-200 border-y border-zinc-200 sm:grid-cols-3 sm:divide-x sm:divide-y-0 dark:divide-zinc-800 dark:border-zinc-800">
+        <div className="py-4 sm:pr-4">
+          <div className="text-xs font-semibold tracking-[0.14em] text-zinc-500 uppercase">
+            prefix
+          </div>
+          <div className="mt-2 font-semibold text-zinc-900 dark:text-zinc-100">
+            history H<sub>t</sub>
+          </div>
+          <div className="mt-1 text-sm leading-6 text-zinc-600 dark:text-zinc-400">
+            Everything before the current action
+          </div>
+          <div className="mt-2 font-mono text-sm text-zinc-900 dark:text-zinc-100">
+            probability p(H<sub>t</sub>)
+          </div>
+        </div>
+
+        <div className="py-4 sm:px-4">
+          <div className="text-xs font-semibold tracking-[0.14em] text-zinc-500 uppercase">
+            current choice
+          </div>
+          <div className="mt-2 font-semibold text-zinc-900 dark:text-zinc-100">
+            action a<sub>t</sub>
+          </div>
+          <div className="mt-1 text-sm leading-6 text-zinc-600 dark:text-zinc-400">
+            Sampled from the policy at this history
+          </div>
+          <div className="mt-2 font-mono text-sm text-zinc-900 dark:text-zinc-100">
+            probability π(a<sub>t</sub> | s<sub>t</sub>)
+          </div>
+        </div>
+
+        <div className="py-4 sm:pl-4">
+          <div className="text-xs font-semibold tracking-[0.14em] text-zinc-500 uppercase">
+            suffix
+          </div>
+          <div className="mt-2 font-semibold text-zinc-900 dark:text-zinc-100">
+            future F<sub>t</sub>
+          </div>
+          <div className="mt-1 text-sm leading-6 text-zinc-600 dark:text-zinc-400">
+            Later rewards, states, and actions
+          </div>
+          <div className="mt-2 font-mono text-sm text-zinc-900 dark:text-zinc-100">
+            probability p(F<sub>t</sub> | H<sub>t</sub>, a<sub>t</sub>)
+          </div>
+        </div>
+      </div>
+
+      <div className="mt-5 rounded-lg bg-zinc-900 p-4 text-sm leading-6 text-zinc-50 dark:bg-black">
+        One complete trajectory τ = (H<sub>t</sub>, a<sub>t</sub>, F<sub>t</sub>
+        )
+        <br />
+        p(τ) = p(H<sub>t</sub>) × π(a<sub>t</sub> | s<sub>t</sub>) × p(F
+        <sub>t</sub> | H<sub>t</sub>, a<sub>t</sub>)
+      </div>
+    </div>
+  )
+}
+
+function CollapsedFamilies() {
+  return (
+    <div>
+      <div className="mb-4 text-sm leading-6 text-zinc-600 dark:text-zinc-400">
+        Each row below represents a family of complete trajectories with the
+        same history and current action. Their different futures have been
+        summed together.
+      </div>
+
+      <div className="mb-3 text-right font-mono text-xs text-zinc-500">
+        Σ<sub>F</sub> p(F | H, a) = 1
+      </div>
+
       <div className="mb-5 flex h-8 overflow-hidden rounded-sm bg-zinc-100 dark:bg-zinc-900">
         {worlds.map((world) => (
           <div
             key={world.id}
             className={`${historyStyles[world.history].bar} flex items-center justify-center border-r border-white/60 text-xs font-semibold text-white last:border-r-0 dark:border-zinc-950/60 dark:text-zinc-950`}
             style={{ width: percentage(world.worldProbability) }}
-            aria-label={`${percentage(world.worldProbability)} of worlds have history ${world.history} and go ${world.action}`}
+            aria-label={`${percentage(world.worldProbability)} of trajectories have history ${world.history} and current action ${world.action} after summing over futures`}
           >
             {percentage(world.worldProbability)}
           </div>
@@ -94,18 +166,20 @@ function WorldAverage() {
               aria-hidden="true"
             />
             <span className="text-zinc-700 dark:text-zinc-300">
-              History {world.history}, then go {world.action}
+              H = {world.history}, a = {world.action}
             </span>
             <span className="text-right font-mono text-zinc-900 dark:text-zinc-100">
-              {percentage(world.worldProbability)} × {world.past} coins
+              {world.historyProbability.toFixed(1)} ×{' '}
+              {world.actionProbability.toFixed(1)} × 1 ={' '}
+              {percentage(world.worldProbability)}
             </span>
           </div>
         ))}
       </div>
 
       <div className="mt-5 rounded-lg bg-zinc-900 p-4 text-sm leading-6 text-zinc-50 dark:bg-black">
-        Expected past coins = 0.20(2) + 0.30(2) + 0.35(10) + 0.15(10) ={' '}
-        <strong>6</strong>.
+        These four percentages still came from p(τ). We only combined
+        trajectories whose future no longer affects the quantity being averaged.
       </div>
     </div>
   )
@@ -201,16 +275,17 @@ export default function ExpectationWorlds() {
   const [step, setStep] = useState(0)
 
   const descriptions = [
-    'Expectation is a probability-weighted average over every way the experiment could unfold.',
-    'Conditional expectation reorganizes the same worlds into buckets that share a fixed history.',
-    'Within each bucket, the policy score averages to zero, so a shared past reward contributes zero.',
+    'A possible world in reinforcement learning is one complete trajectory: prefix, current action, and future.',
+    'For the past-reward term, all future branches can be combined because their probabilities sum to one.',
+    'Conditional expectation reorganizes trajectory families into buckets that share a fixed history.',
+    'Within each history bucket, the policy score averages to zero, so shared past reward contributes zero.',
   ]
 
   return (
     <figure className="not-prose my-10 overflow-hidden rounded-xl border border-zinc-200 bg-white shadow-sm dark:border-zinc-800 dark:bg-zinc-950">
       <div className="border-b border-zinc-200 bg-zinc-50 px-5 py-4 dark:border-zinc-800 dark:bg-zinc-900/60">
         <div className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">
-          One average, reorganized three ways
+          One trajectory expectation, reorganized four ways
         </div>
         <div className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">
           {descriptions[step]}
@@ -240,9 +315,10 @@ export default function ExpectationWorlds() {
           ))}
         </div>
 
-        {step === 0 && <WorldAverage />}
-        {step === 1 && <HistoryGroups showScores={false} />}
-        {step === 2 && <HistoryGroups showScores />}
+        {step === 0 && <TrajectoryAnatomy />}
+        {step === 1 && <CollapsedFamilies />}
+        {step === 2 && <HistoryGroups showScores={false} />}
+        {step === 3 && <HistoryGroups showScores />}
       </div>
     </figure>
   )
