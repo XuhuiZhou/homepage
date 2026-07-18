@@ -1,6 +1,7 @@
 import {
   OneStepTrajectory,
   ReturnDecomposition,
+  ExpectationWorlds,
   QExpectationDemo,
   AdvantageBaselineDemo,
   GradientLadder,
@@ -270,98 +271,147 @@ $$
 
 because the past part has zero expectation when multiplied by the score function.
 
-### Why does $H_t$ suddenly appear?
+### Expectation is just an average over possible worlds
 
-It would be tempting to say, "the past is a constant, so delete it." That is not quite legal. Across
-different sampled trajectories, the agent may arrive at time $t$ through different states, actions,
-and rewards. The past return is therefore still a random variable in the outer expectation.
+The expectation symbol can make a simple operation look mysterious. Imagine replaying the random
+experiment many times. Each replay produces one possible world $w$ and one value $X(w)$. The
+expectation is the long-run average:
 
-We need a smaller experiment where the past really is fixed. Define
+$$
+\mathbb{E}[X]
+=
+\sum_w P(w)X(w).
+$$
+
+For a trajectory, a possible world contains the entire sampled rollout: its states, actions, and
+rewards. The past reward is **not** one global constant across these worlds. One rollout may reach the
+checkpoint with 2 coins and another may reach it with 10.
+
+A conditional expectation simply makes a smaller comparison group. Instead of averaging every world,
+$\mathbb{E}[X\mid H_t=h]$ averages only worlds that share the exact same history $h$. Nothing mystical
+happened; we filtered the replays into a bucket and averaged within that bucket.
+
+The final panel below also previews the **policy score**. In this binary example, read it as the push
+on the "go left" logit: a sampled left action pushes up, while a sampled right action pushes down. The
+exact identity behind those numbers is derived shortly below.
+
+<Figure id="expectation-worlds">
+  <ExpectationWorlds />
+</Figure>
+
+The **tower property** says that these two procedures agree:
+
+1. Average all worlds at once.
+2. Average within each history bucket, then average the bucket answers using the probability of each
+   history.
+
+In symbols:
+
+$$
+\mathbb{E}[X]
+=
+\mathbb{E}_{H_t}
+\left[
+\mathbb{E}[X\mid H_t]
+\right].
+$$
+
+This is the same arithmetic as computing the average score in each class and then weighting each class
+by its number of students.
+
+### Four legal moves inside an expectation
+
+Most expectation manipulations in this post use four rules:
+
+**Split sums.** Expectation is linear, so
+$\mathbb{E}[X+Y]=\mathbb{E}[X]+\mathbb{E}[Y]$.
+
+**Pull out what is fixed.** If $c$ does not vary over the worlds currently being averaged, then
+$\mathbb{E}[cX]=c\mathbb{E}[X]$. Always ask: _fixed with respect to which randomness?_
+
+**Condition to freeze information.** A quantity may vary globally but become fixed inside a
+conditional expectation. If $Y$ is completely determined by $H$, then
+$\mathbb{E}[YX\mid H]=Y\mathbb{E}[X\mid H]$.
+
+**Average the groups back together.** Use the tower property. If the inner average is zero in every
+group, the outer average is an average of zeros and is also zero.
+
+### Now $H_t$ has a job
+
+Define the history immediately before sampling the current action:
 
 $$
 H_t=(s_1,a_1,r_1,\ldots,s_{t-1},a_{t-1},r_{t-1},s_t).
 $$
 
-$H_t$ is everything observed **immediately before** sampling $a_t$. It includes the current state
-$s_t$, but not the current action or anything after it. In an autoregressive language model, $H_t$ is
-the prompt plus all previously generated tokens; that prefix determines the state from which the next
-token is sampled.
+In an autoregressive language model, this is the prompt plus the previously generated tokens. It
+contains $s_t$, but not $a_t$ or anything that happens after $a_t$.
 
-Conditioning on $H_t$ is like pausing the game at one exact checkpoint. Among repeated copies of that
-paused situation, the history, current state, and old coins are identical. The only thing we resample
-right now is $a_t$. This makes the past reward prefix a genuine constant inside the conditional
-expectation:
+Also name the two quantities we care about:
 
 $$
-\text{Past}_t
-=
-\sum_{k=1}^{t-1} r_k.
-$$
-
-Let the score of the current action be
-
-$$
+\text{Past}_t=\sum_{k=1}^{t-1}r_k,
+\qquad
 Z_t=\nabla_\theta\log\pi_\theta(a_t\mid s_t).
 $$
 
-First apply the tower property: average within each fixed-history bucket, then average over buckets.
+$\text{Past}_t$ varies across full trajectories, so we cannot pull it out of the outer expectation.
+But once we condition on one exact $H_t$, the past is already written and becomes fixed. Only the
+current action is resampled.
+
+Now follow the picture.
+
+**1. Group by history using the tower property:**
 
 $$
-\mathbb{E}[\text{Past}_t Z_t]
+\mathbb{E}[\text{Past}_tZ_t]
 =
 \mathbb{E}_{H_t}
 \left[
-\mathbb{E}[\text{Past}_t Z_t\mid H_t]
+\mathbb{E}[\text{Past}_tZ_t\mid H_t]
 \right].
 $$
 
-Inside one bucket, $\text{Past}_t$ is fixed and can be pulled out. The current action is still sampled
-from $\pi_\theta(\cdot\mid s_t)$, so:
+**2. Inside one history bucket, pull out the fixed past:**
+
+$$
+\mathbb{E}[\text{Past}_tZ_t\mid H_t]
+=
+\text{Past}_t\,\mathbb{E}[Z_t\mid H_t].
+$$
+
+**3. Average the score over the possible current actions:**
 
 $$
 \begin{aligned}
-\mathbb{E}
-\left[
-\text{Past}_t
-\nabla_\theta \log \pi_\theta(a_t\mid s_t)
-\mid H_t
-\right]
+\mathbb{E}[Z_t\mid H_t]
 &=
-\text{Past}_t
-\sum_{a}
-\pi_\theta(a\mid s_t)
-\nabla_\theta \log \pi_\theta(a\mid s_t) \\
+\sum_a \pi_\theta(a\mid s_t)
+\nabla_\theta\log\pi_\theta(a\mid s_t) \\
 &=
-\text{Past}_t
-\sum_{a}
-\nabla_\theta \pi_\theta(a\mid s_t) \\
+\sum_a \nabla_\theta\pi_\theta(a\mid s_t) \\
 &=
-\text{Past}_t
-\nabla_\theta
-\sum_a
-\pi_\theta(a\mid s_t) \\
+\nabla_\theta\sum_a\pi_\theta(a\mid s_t) \\
 &=
-\text{Past}_t
 \nabla_\theta 1 \\
 &=0.
 \end{aligned}
 $$
 
-The cancellation does **not** say that every action has zero score. It says that, at a fixed history,
-the probability-weighted average score over all possible current actions is zero. Multiplying every
-choice by the same already-earned reward cannot favor one choice over another.
+Why should this be zero? The action probabilities must always sum to 1. Increasing some probabilities
+forces others down; the policy cannot create or destroy total probability mass. The score of each
+individual action is generally not zero, but its probability-weighted average is.
 
-Since the inner conditional expectation is zero for every possible $H_t$, its outer expectation is
-also zero:
+**4. Recombine the history buckets:**
 
 $$
-\mathbb{E}[\text{Past}_t Z_t]
+\mathbb{E}[\text{Past}_tZ_t]
 =
-\mathbb{E}_{H_t}[0]
+\mathbb{E}_{H_t}[\text{Past}_t\cdot 0]
 =0.
 $$
 
-Now the replacement is explicit:
+Finally, use linearity to split total return into past and future:
 
 $$
 \begin{aligned}
@@ -376,6 +426,10 @@ $$
 \mathbb{E}[G_tZ_t].
 \end{aligned}
 $$
+
+That is why $G_1$ may be replaced by $G_t$ in the $t$-th gradient term. We did not assume that past
+reward was globally constant. We grouped trajectories until it became locally constant, proved that
+its contribution was zero in every group, and then averaged the groups back together.
 
 Applying that equality to every timestep gives:
 

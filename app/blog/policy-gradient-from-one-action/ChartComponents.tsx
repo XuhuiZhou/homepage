@@ -11,6 +11,10 @@ export const ReturnDecomposition = dynamic(
   { ssr: false },
 )
 
+export const ExpectationWorlds = dynamic(() => import('./ExpectationWorlds'), {
+  ssr: false,
+})
+
 export const QExpectationDemo = dynamic(() => import('./QExpectationDemo'), {
   ssr: false,
 })
