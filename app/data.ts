@@ -77,6 +77,14 @@ export const WORK_EXPERIENCE: WorkExperience[] = [
 
 export const BLOG_POSTS: BlogPost[] = [
   {
+    title: 'Beyond Softmax: When Context Becomes a Learner',
+    description:
+      'An interactive path from KV caches and linear attention to delta rules, fast weights, and test-time learning.',
+    link: '/blog/beyond-softmax-context-as-learning',
+    uid: 'blog-5',
+    date: '2026-07-20',
+  },
+  {
     title: 'Policy Gradient From One Answer',
     description:
       'A visual derivation of policy gradient for language models, walking from terminal reward to return, Q-value, and advantage.',

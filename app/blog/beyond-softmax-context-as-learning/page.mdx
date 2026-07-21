@@ -1,0 +1,304 @@
+import {
+  MemoryScalingDemo,
+  ReassociationDemo,
+  AssociativeMemoryLab,
+  ComputeScheduleDemo,
+  ResearchMap,
+} from './ChartComponents'
+
+export const metadata = {
+  title: 'Beyond Softmax: When Context Becomes a Learner',
+  description:
+    'An interactive path from KV caches and linear attention to delta rules, fast weights, and test-time learning.',
+  date: '2026-07-20',
+  authors: [{ name: 'Xuhui Zhou' }],
+  openGraph: {
+    title: 'Beyond Softmax: When Context Becomes a Learner',
+    description:
+      'A visual guide to linear attention, delta rules, fast weights, and test-time learning.',
+    type: 'article',
+    publishedTime: '2026-07-20',
+    authors: ['Xuhui Zhou'],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Beyond Softmax: When Context Becomes a Learner',
+    description:
+      'A visual guide to linear attention, delta rules, fast weights, and test-time learning.',
+    creator: '@nlpxuhui',
+  },
+}
+
+# Beyond Softmax: When Context Becomes a Learner
+
+<div className="not-prose mb-8 border-b border-zinc-200 pb-6">
+  <div className="text-sm text-zinc-500">By Xuhui Zhou · Jul 20, 2026</div>
+  <div className="mt-1 text-sm text-zinc-400 italic">
+    From a growing memory bank to a small model that learns while it reads.
+  </div>
+</div>
+
+<aside className="not-prose my-8 rounded-lg border border-red-200 bg-red-50 px-5 py-4 text-sm leading-6 text-red-950">
+  <div className="font-semibold">Source and credit</div>
+  <p className="mt-1">
+    This essay began as an interactive, blog-like companion to Jia-Bin Huang's
+    video{' '}
+    <a
+      href="https://www.youtube.com/watch?v=pUCWwGR5WmQ"
+      target="_blank"
+      rel="noreferrer"
+      className="font-semibold underline decoration-red-300 underline-offset-4"
+    >
+      Beyond Softmax: The Future of Attention Mechanisms.
+    </a>{' '}
+    The video supplies the narrative seed and is the place to see the original
+    presentation. I reconstructed the derivations, added the interactive
+    examples and caveats, and extended its closing research trail through
+    related 2026 work.
+  </p>
+</aside>
+
+Imagine that an LLM has read one million tokens. What should it carry into token one million and one?
+
+One answer is: **everything**. Keep every past key and value in a searchable cabinet. When a new query arrives, open the cabinet, compare the query with every key, and blend the most relevant values. This is the familiar softmax-attention story.
+
+Another answer is stranger: **do not keep the examples; keep what they taught you**. Fold the past into a fixed-size state. Let each new token update that state, then ask the updated state to answer the next query.
+
+That second view connects linear attention, recurrent sequence models, fast weights, the delta rule, and test-time training. The math begins with a change in parentheses. The conceptual destination is much bigger: context itself becomes training data for a small model living inside the forward pass.
+
+## Two ways to remember a conversation
+
+For one attention head, standard causal softmax attention computes
+
+$$
+o_t
+=
+\sum_{j \le t}
+\frac{\exp(q_t^\top k_j)}{\sum_{i \le t}\exp(q_t^\top k_i)}v_j.
+$$
+
+During autoregressive decoding, the old keys $k_j$ and values $v_j$ do not change. Recomputing them would be wasteful, so an implementation caches them. At the next token it appends one new key-value pair and reads across the growing cache.
+
+The cache is useful precisely because it is literal. Token 7 remains token 7. A future query can still point directly at it. But that literalness has a price: the stored key-value tensors grow linearly with context length, even though generation happens one token at a time.
+
+<Figure id="memory-scaling">
+  <MemoryScalingDemo />
+</Figure>
+
+The recurrent alternative keeps a matrix whose shape depends on feature dimensions, not sequence length. Decoding memory can therefore remain constant with respect to the number of past tokens.<Cite id="linear-rnn">[Katharopoulos et al., 2020](https://arxiv.org/abs/2006.16236) showed how kernelized attention can be evaluated recurrently, exposing the connection between linear Transformers and RNNs.</Cite> But the matrix is a summary. If two facts demand the same limited representational slot, they can interfere. **Constant memory means bounded memory.**
+
+## The algebraic trapdoor
+
+Temporarily remove softmax and consider plain dot-product linear attention:
+
+$$
+o_t
+=
+\sum_{j \le t}(q_t^\top k_j)v_j.
+$$
+
+The query $q_t$ is the same in every term. Matrix multiplication is associative, so we can move it outside the sum:
+
+$$
+\begin{aligned}
+o_t
+&=
+\sum_{j \le t}q_t^\top(k_jv_j^\top) \\
+&=
+q_t^\top\left(\sum_{j \le t}k_jv_j^\top\right).
+\end{aligned}
+$$
+
+Name the parenthesized matrix $S_t$:
+
+$$
+S_t=\sum_{j \le t}k_jv_j^\top.
+$$
+
+It immediately has a recurrence:
+
+$$
+S_t=S_{t-1}+k_tv_t^\top,
+\qquad
+o_t=q_t^\top S_t.
+$$
+
+This is the whole trapdoor. The original order says: **compare the query with every key, then combine values**. The reassociated order says: **combine the key-value pairs once, then query their shared state**.
+
+<Figure id="reassociation">
+  <ReassociationDemo />
+</Figure>
+
+Nothing was approximated in that toy equation; only the evaluation order changed. But the qualification matters. Softmax couples all scores through a query-dependent normalization, so one cannot generally delete it and claim the same model. Linear-attention methods use a different attention rule or a feature map that makes a related reassociation possible. The speedup comes with a changed inductive bias, not a free identity for arbitrary softmax attention.
+
+## One equation, three execution plans
+
+The recurrent form is ideal for decoding: update one state, emit one output, move on. It is awkward for training because every $S_t$ appears to depend on $S_{t-1}$, creating a long sequential path.
+
+The fully parallel form exposes all token interactions to matrix multiplication, which GPUs love, but returns to a quadratic causal interaction table. The practical compromise is **chunkwise parallelism**:
+
+1. split the sequence into short chunks;
+2. pass a recurrent boundary state from chunk to chunk;
+3. compute interactions within each chunk using dense parallel matrix operations.
+
+<Figure id="schedules">
+  <ComputeScheduleDemo />
+</Figure>
+
+For the relevant recurrences, the chunkwise form is an exact rearrangement, not a shorter-context approximation. The hard systems work lies in deriving a form that avoids materializing every intermediate state and maps the structured recurrence onto efficient kernels. Gated Linear Attention made this hardware-aware trade especially explicit.<Cite id="gla">[Yang et al., 2023](https://arxiv.org/abs/2312.06635) developed a chunkwise, I/O-aware algorithm and extended linear attention with data-dependent gates.</Cite>
+
+## A state that only adds eventually forgets how to remember
+
+The basic recurrence
+
+$$
+S_t=S_{t-1}+k_tv_t^\top
+$$
+
+has a suspicious personality: it writes forever and erases never. Old associations remain at full strength, and repeated or conflicting keys pile their values into the same directions.
+
+A gate introduces forgetting:
+
+$$
+S_t=\gamma_t \odot S_{t-1}+k_tv_t^\top.
+$$
+
+If $\gamma_t$ is a scalar, the model can dim the whole memory. If it is a vector or more structured object, different channels can decay at different rates. Gating gives recency and capacity management, but it is still a broad eraser. What if we want to edit one association without washing away everything else?
+
+## The state is a tiny model
+
+Read the matrix $S$ as a function:
+
+$$
+f_S(k)=S^\top k.
+$$
+
+Now the context prefix is a stream of training examples:
+
+$$
+(k_1,v_1),(k_2,v_2),\ldots,(k_t,v_t).
+$$
+
+The query asks the learned function for a prediction. Keys are inputs, values are targets, and $S$ contains the parameters of a tiny linear regressor. Linear attention's additive outer-product rule is therefore also a **fast-weight programming rule**.<Cite id="fast-weights">[Schlag, Irie, and Schmidhuber, 2021](https://proceedings.mlr.press/v139/schlag21a.html) formalized the equivalence between linearized self-attention and fast-weight programmers, and highlighted the finite-memory problem of purely additive writes.</Cite>
+
+There are now two timescales:
+
+- **Slow weights** are the ordinary model parameters learned across the training corpus. They produce the keys, values, queries, gates, and even the update rule.
+- **Fast weights** are $S_t$. They are created for the current sequence, updated while that sequence is processed, and normally reset for the next independent sequence.
+
+The outer model learns _how the inner model should learn_.
+
+## The delta rule, one line at a time
+
+Suppose the current pair says that key $k_t$ should map to target $v_t$. Give the inner model a squared-error loss:
+
+$$
+\ell_t(S)
+=
+\frac{1}{2}\left\|S^\top k_t-v_t\right\|^2.
+$$
+
+Before writing anything, the state makes its old prediction:
+
+$$
+\hat v_t=S_{t-1}^\top k_t.
+$$
+
+The prediction error is
+
+$$
+e_t=v_t-\hat v_t.
+$$
+
+Differentiate the loss with respect to the matrix:
+
+$$
+\nabla_S\ell_t(S_{t-1})
+=
+k_t(\hat v_t-v_t)^\top
+=
+-k_te_t^\top.
+$$
+
+One gradient-descent step with rate $\beta_t$ gives
+
+$$
+\begin{aligned}
+S_t
+&=S_{t-1}-\beta_t\nabla_S\ell_t(S_{t-1}) \\
+&=S_{t-1}+\beta_tk_t(v_t-S_{t-1}^\top k_t)^\top.
+\end{aligned}
+$$
+
+That is the delta rule. In words:
+
+1. **Read** what the memory currently predicts at this key.
+2. **Compare** it with the desired value.
+3. **Write only the error** back along the key direction.
+
+If the key has unit length and $\beta_t=1$, querying the updated state with that same key returns the new target exactly. The old prediction is canceled before the replacement is written. That is far more surgical than blind addition.
+
+<Figure id="delta-lab">
+  <AssociativeMemoryLab />
+</Figure>
+
+Gated DeltaNet combines the two controls: a gate can clear stale memory broadly, while the delta rule can correct a particular key-value association.<Cite id="gated-delta">[Yang, Kautz, and Hatamizadeh, 2024](https://arxiv.org/abs/2412.06464) introduced the gated delta rule and an efficient parallel training algorithm; the paper was accepted at ICLR 2025.</Cite> This is a useful mental split: **forgetting manages capacity; prediction error manages precision**.
+
+## From one gradient step to test-time training
+
+Once $S_t$ is allowed to be a learned function updated by an optimizer, linear regression is only the first point in a much larger design space. We can change:
+
+- the **function class**: a matrix, a multilayer perceptron, or another neural memory;
+- the **objective**: which parts of the token predict which other parts;
+- the **optimizer**: one SGD step, several structured steps, momentum, a closed-form update, or an iterative solver;
+- the **update schedule**: every token, a small chunk, or a very large chunk;
+- the **memory control**: scalar decay, channel-wise decay, or separate erase and write gates.
+
+This is the sequence-modeling meaning of **test-time training**: some fast state or subset of weights is optimized on the current test sequence as part of inference. It is not a post-deployment fine-tune of the whole foundation model, and it does not require labels from a human. The context supplies a self-supervised learning problem.<Cite id="ttt">[Sun et al., 2024](https://arxiv.org/abs/2407.04620) instantiate this idea with linear and MLP hidden-state models. [Wang, Shi, and Fox, 2025](https://arxiv.org/abs/2501.12352) cast memorization as regression and organize many sequence layers by their regressor, weights, and test-time optimizer.</Cite>
+
+The progression is easier to see as a set of questions than as a parade of model names.
+
+## A research map
+
+<Figure id="research-map">
+  <ResearchMap />
+</Figure>
+
+Several branches are especially worth keeping in view:
+
+- **Optimization gets richer.** Longhorn derives a closed-form online-learning update; DeltaProduct takes several structured correction steps per token; MesaNet spends additional inference compute to solve a local in-context objective more completely.<Cite id="optimizers">See [Longhorn](https://arxiv.org/abs/2407.14207), [DeltaProduct](https://arxiv.org/abs/2502.10297), and [MesaNet](https://arxiv.org/abs/2506.05233). They make different tradeoffs between the quality of the inner optimization and its cost.</Cite>
+- **The learner gets richer.** TTT layers replace the matrix with an MLP; Titans adds a learned neural long-term memory; large-chunk TTT makes substantially larger nonlinear fast-weight states more hardware-friendly.<Cite id="richer-learners">See [Titans](https://arxiv.org/abs/2501.00663) and [Test-Time Training Done Right](https://arxiv.org/abs/2505.23884).</Cite>
+- **Hybrids matter.** Gated DeltaNet and Kimi Linear mix recurrent memory with local or full attention rather than insisting that one mechanism solve every timescale.<Cite id="hybrids">[Kimi Linear](https://arxiv.org/abs/2510.26692) uses a layerwise hybrid of Kimi Delta Attention and Multi-Head Latent Attention; its reported efficiency and quality claims are specific to that architecture and training comparison.</Cite>
+- **The interpretation is still moving.** A 2026 analysis shows that a broad class of KV-binding TTT architectures can be rewritten as learned linear-attention operators. That does not make the learning view useless, but it warns us not to confuse an appealing implementation story with a unique mathematical explanation.<Cite id="ttt-reframe">[Liu et al., 2026](https://arxiv.org/abs/2602.21204), _Test-Time Training with KV Binding Is Secretly Linear Attention_. [Gated DeltaNet-2](https://arxiv.org/abs/2605.22791) separately refines the memory edit by decoupling erase and write gates.</Cite>
+
+## What the elegant story hides
+
+The phrase "the model learns from context" is powerful enough to become misleading. Four caveats keep it honest.
+
+**First, fixed state is a bottleneck.** A KV cache preserves individual items and can retrieve one sharply. A fixed matrix or neural state compresses them. Better update rules reduce interference; they do not repeal finite capacity.
+
+**Second, constant decoding memory is not automatically cheap training.** The recurrent formula may be simple while an efficient parallel implementation requires careful chunking, structured matrix identities, and custom kernels. FLOPs, memory traffic, and wall-clock speed are different questions.
+
+**Third, "linear attention" names a neighborhood, not one equation.** Feature maps, normalization, gates, state-transition structures, local attention, and convolutional branches differ across models. The plain recurrence in this post is the cleanest doorway, not a full specification of every architecture behind it.
+
+**Fourth, learning and retrieval are complementary metaphors.** Softmax attention looks like explicit retrieval. Recurrent state looks like compression or online learning. Modern hybrids use both because recent exact details and long-lived abstractions are different memory jobs.
+
+## The sentence to keep
+
+Softmax attention asks:
+
+> **Which past items should this query read?**
+
+The test-time-learning view asks:
+
+> **What small model should the past have trained by now?**
+
+The distance between those questions is the conceptual journey from a KV cache to a fast-weight learner. It starts with moving parentheses in a sum. It ends with a new way to design sequence models: choose the memory, choose what it predicts, choose how context updates it, and teach the outer network to make that inner learning useful.
+
+<Citation
+  author="Xuhui Zhou"
+  title="Beyond Softmax: When Context Becomes a Learner"
+  year="2026"
+  url="https://xuhuiz.com/blog/beyond-softmax-context-as-learning"
+  bibtexKey="zhou2026beyondsoftmax"
+/>
