@@ -1,12 +1,7 @@
 import type { Metadata } from 'next'
-import {
-  ALL_GROUPS,
-  MODEL_KEYS,
-  MODEL_LABELS,
-  type BenchmarkGroup,
-  type ModelKey,
-} from './data'
+import { ALL_GROUPS, MODEL_KEYS } from './data'
 import { BenchmarkLifecycle } from './BenchmarkLifecycle'
+import { CurrentReleaseMatrix } from './CurrentReleaseMatrix'
 import { RELEASE_REPORTS } from './history-data'
 import { SafetyCoverage } from './SafetyCoverage'
 import { SAFETY_EVALUATIONS } from './safety-data'
@@ -50,173 +45,6 @@ export const metadata: Metadata = {
     description: `An ${CURRENT_BENCHMARK_ROWS.length}-row current-release capability matrix, ${SAFETY_EVALUATIONS.length} safety-evaluation rows, and ${RELEASE_REPORTS.length} release bundles of reporting history.`,
     creator: '@nlpxuhui',
   },
-}
-
-const MODEL_STYLES: Record<ModelKey, { header: string; winner: string }> = {
-  gpt: {
-    header: 'border-violet-600 dark:border-violet-400',
-    winner:
-      'bg-violet-50 font-medium shadow-[inset_3px_0_0_#7c3aed] dark:bg-violet-500/10',
-  },
-  claude: {
-    header: 'border-orange-600 dark:border-orange-400',
-    winner:
-      'bg-orange-50 font-medium shadow-[inset_3px_0_0_#ea580c] dark:bg-orange-500/10',
-  },
-  muse: {
-    header: 'border-blue-600 dark:border-blue-400',
-    winner:
-      'bg-blue-50 font-medium shadow-[inset_3px_0_0_#2563eb] dark:bg-blue-500/10',
-  },
-  grok: {
-    header: 'border-zinc-950 dark:border-zinc-100',
-    winner:
-      'bg-zinc-100 font-medium shadow-[inset_3px_0_0_#18181b] dark:bg-zinc-800 dark:shadow-[inset_3px_0_0_#f4f4f5]',
-  },
-  inkling: {
-    header: 'border-emerald-600 dark:border-emerald-400',
-    winner:
-      'bg-emerald-50 font-medium shadow-[inset_3px_0_0_#059669] dark:bg-emerald-500/10',
-  },
-  kimi: {
-    header: 'border-cyan-600 dark:border-cyan-400',
-    winner:
-      'bg-cyan-50 font-medium shadow-[inset_3px_0_0_#0891b2] dark:bg-cyan-500/10',
-  },
-}
-
-const MODEL_LOGOS: Record<
-  ModelKey,
-  { src: string; darkSrc?: string; className?: string }
-> = {
-  gpt: {
-    src: '/benchmarks/model-logos/openai.svg',
-    className: 'dark:invert',
-  },
-  claude: { src: '/benchmarks/model-logos/anthropic.ico' },
-  muse: { src: '/benchmarks/model-logos/meta.svg' },
-  grok: { src: '/benchmarks/model-logos/xai.ico' },
-  inkling: { src: '/benchmarks/model-logos/thinking-machines.png' },
-  kimi: {
-    src: '/benchmarks/model-logos/kimi-dark.ico',
-    darkSrc: '/benchmarks/model-logos/kimi.ico',
-  },
-}
-
-function ModelLogo({ model }: { model: ModelKey }) {
-  const logo = MODEL_LOGOS[model]
-  const label = `${MODEL_LABELS[model].name} ${MODEL_LABELS[model].variant}`
-
-  return (
-    <span
-      className="inline-flex h-5 w-5 items-center justify-center"
-      title={label}
-      aria-hidden="true"
-    >
-      <img
-        src={logo.src}
-        alt=""
-        className={`h-4 w-4 object-contain ${logo.darkSrc ? 'dark:hidden' : ''} ${logo.className ?? ''}`}
-      />
-      {logo.darkSrc ? (
-        <img
-          src={logo.darkSrc}
-          alt=""
-          className="hidden h-4 w-4 object-contain dark:block"
-        />
-      ) : null}
-    </span>
-  )
-}
-
-function BenchmarkTable({
-  groups,
-  label,
-}: {
-  groups: BenchmarkGroup[]
-  label: string
-}) {
-  return (
-    <div className="overflow-x-auto">
-      <table
-        className="w-full min-w-[820px] table-fixed border-collapse text-[12px] leading-[1.25] sm:text-[13px]"
-        aria-label={label}
-      >
-        <colgroup>
-          <col className="w-[34%]" />
-          {MODEL_KEYS.map((model) => (
-            <col key={model} className="w-[11%]" />
-          ))}
-        </colgroup>
-        <thead>
-          <tr>
-            <th className="border-t-4 border-zinc-300 px-2 py-2 text-left font-medium dark:border-zinc-700">
-              Benchmark
-            </th>
-            {MODEL_KEYS.map((model) => (
-              <th
-                key={model}
-                className={`border-t-4 px-1 py-2 text-center font-medium ${MODEL_STYLES[model].header}`}
-              >
-                <span className="block">{MODEL_LABELS[model].name}</span>
-                <span className="mt-0.5 block font-normal text-zinc-500 dark:text-zinc-400">
-                  {MODEL_LABELS[model].variant}
-                </span>
-              </th>
-            ))}
-          </tr>
-        </thead>
-        {groups.map((group) => (
-          <tbody key={group.name}>
-            <tr className="bg-zinc-100 dark:bg-zinc-900">
-              <th
-                scope="rowgroup"
-                className="border-y border-zinc-200 px-2 py-1.5 text-left font-medium text-zinc-500 uppercase dark:border-zinc-800 dark:text-zinc-400"
-              >
-                {group.name}
-              </th>
-              {MODEL_KEYS.map((model) => (
-                <td
-                  key={model}
-                  className="border-y border-l border-zinc-200 px-1 py-1 text-center dark:border-zinc-800"
-                  title={`${MODEL_LABELS[model].name} ${MODEL_LABELS[model].variant}`}
-                  aria-label={`${MODEL_LABELS[model].name} ${MODEL_LABELS[model].variant}`}
-                >
-                  <ModelLogo model={model} />
-                </td>
-              ))}
-            </tr>
-            {group.rows.map((row) => (
-              <tr
-                key={row.benchmark}
-                className="border-b border-zinc-200 dark:border-zinc-800"
-              >
-                <th
-                  scope="row"
-                  className="px-2 py-1.5 text-left font-normal break-words"
-                >
-                  {row.benchmark}
-                </th>
-                {MODEL_KEYS.map((model) => {
-                  const value = row[model] ?? 'NR'
-                  return (
-                    <td
-                      key={model}
-                      className={`px-1 py-1.5 text-center break-words tabular-nums ${
-                        value === 'NR' ? 'text-zinc-400 dark:text-zinc-600' : ''
-                      } ${row.winner === model ? MODEL_STYLES[model].winner : ''}`}
-                    >
-                      {value}
-                    </td>
-                  )
-                })}
-              </tr>
-            ))}
-          </tbody>
-        ))}
-      </table>
-    </div>
-  )
 }
 
 export default function FrontierModelsPage() {
@@ -365,10 +193,7 @@ export default function FrontierModelsPage() {
           ))}
         </dl>
 
-        <BenchmarkTable
-          groups={ALL_GROUPS}
-          label="Current-release capability benchmark matrix"
-        />
+        <CurrentReleaseMatrix />
       </section>
 
       <SafetyCoverage />
