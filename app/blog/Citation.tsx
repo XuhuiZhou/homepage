@@ -65,7 +65,7 @@ export default function Citation({
             </button>
           </div>
           <div className="rounded-lg bg-zinc-50 p-4">
-            <pre className="overflow-x-auto text-sm text-zinc-800">
+            <pre className="whitespace-pre-wrap break-words text-sm text-zinc-800">
               <code>{bibtexContent}</code>
             </pre>
           </div>
