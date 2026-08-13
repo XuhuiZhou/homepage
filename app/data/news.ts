@@ -6,7 +6,7 @@ export type NewsItem = {
 export const NEWS_ITEMS: NewsItem[] = [
   {
     date: '2026-08-12',
-    content: 'I defended my PhD! <a href="/defense-slides.pdf" target="_blank" rel="noopener noreferrer" class="font-medium text-zinc-900 underline decoration-zinc-300 underline-offset-2 dark:text-zinc-50 dark:decoration-zinc-700">[Slides]</a>',
+    content: 'I defended my PhD! <a href="/xuhui-zhou-phd-thesis-defense.pdf" target="_blank" rel="noopener noreferrer" class="font-medium text-zinc-900 underline decoration-zinc-300 underline-offset-2 dark:text-zinc-50 dark:decoration-zinc-700">[Slides]</a>',
   },
   {
     date: '2026-07-08',
