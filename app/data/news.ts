@@ -5,6 +5,10 @@ export type NewsItem = {
 
 export const NEWS_ITEMS: NewsItem[] = [
   {
+    date: '2026-08-12',
+    content: 'I defended my PhD! <a href="/xuhui-zhou-phd-thesis-defense.pdf" target="_blank" rel="noopener noreferrer" class="font-medium text-zinc-900 underline decoration-zinc-300 underline-offset-2 dark:text-zinc-50 dark:decoration-zinc-700">[Slides]</a>',
+  },
+  {
     date: '2026-07-08',
     content: 'Excited that five papers were accepted to <a href="https://colmweb.org/" target="_blank" rel="noopener noreferrer" class="font-medium text-zinc-900 underline decoration-zinc-300 underline-offset-2 dark:text-zinc-50 dark:decoration-zinc-700">COLM 2026</a>: <a href="https://arxiv.org/abs/2603.11245" target="_blank" rel="noopener noreferrer" class="font-medium text-zinc-900 underline decoration-zinc-300 underline-offset-2 dark:text-zinc-50 dark:decoration-zinc-700">Mind the Sim2Real Gap in User Simulation for Agentic Tasks</a>, <a href="https://arxiv.org/abs/2605.02307" target="_blank" rel="noopener noreferrer" class="font-medium text-zinc-900 underline decoration-zinc-300 underline-offset-2 dark:text-zinc-50 dark:decoration-zinc-700">SOTOPIA-TOM</a>, <a href="https://arxiv.org/abs/2509.00559" target="_blank" rel="noopener noreferrer" class="font-medium text-zinc-900 underline decoration-zinc-300 underline-offset-2 dark:text-zinc-50 dark:decoration-zinc-700">Social World Models</a>, <a href="https://arxiv.org/abs/2604.11924" target="_blank" rel="noopener noreferrer" class="font-medium text-zinc-900 underline decoration-zinc-300 underline-offset-2 dark:text-zinc-50 dark:decoration-zinc-700">GoodPoint</a>, and <a href="https://arxiv.org/abs/2511.02208" target="_blank" rel="noopener noreferrer" class="font-medium text-zinc-900 underline decoration-zinc-300 underline-offset-2 dark:text-zinc-50 dark:decoration-zinc-700">Training Proactive and Personalized LLM Agents</a>.',
   },
@@ -14,7 +18,7 @@ export const NEWS_ITEMS: NewsItem[] = [
   },
   {
     date: '2026-04-09',
-    content: 'I am selected as a <a href="https://www.microsoft.com/en-us/research/academic-program/microsoft-research-fellowship/fellows/" target="_blank" rel="noopener noreferrer" class="font-medium text-zinc-900 underline decoration-zinc-300 underline-offset-2 dark:text-zinc-50 dark:decoration-zinc-700">Microsoft Research Fellow</a>!',
+    content: 'I received a <a href="https://www.microsoft.com/en-us/research/academic-program/microsoft-research-fellowship/fellows/" target="_blank" rel="noopener noreferrer" class="font-medium text-zinc-900 underline decoration-zinc-300 underline-offset-2 dark:text-zinc-50 dark:decoration-zinc-700">Microsoft PhD Fellowship</a>!',
   },
   {
     date: '2025-03-06',

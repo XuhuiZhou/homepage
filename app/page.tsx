@@ -96,7 +96,7 @@ export default function Personal() {
         {/* Bio Content with Text Wrapping */}
         <div className="space-y-4">
           <p className="text-zinc-600 dark:text-zinc-400">
-            I am a PhD student at the{' '}
+            I recently defended my PhD at the{' '}
             <a
               href="https://www.lti.cs.cmu.edu/"
               target="_blank"
@@ -105,7 +105,7 @@ export default function Personal() {
             >
               Language Technologies Institute at CMU
             </a>
-            , advised by{' '}
+            , where I was advised by{' '}
             <a
               href="http://maartensap.com/"
               target="_blank"
@@ -114,14 +114,14 @@ export default function Personal() {
             >
               Maarten Sap
             </a>
-            , and a{' '}
+            , and received a{' '}
             <a
               href="https://www.microsoft.com/en-us/research/academic-program/microsoft-research-fellowship/fellows/"
               target="_blank"
               rel="noopener noreferrer"
               className="font-medium text-zinc-900 underline decoration-zinc-300 underline-offset-2 dark:text-zinc-50 dark:decoration-zinc-700"
             >
-              2026 Microsoft Research Fellow
+              Microsoft PhD Fellowship
             </a>
             .
           </p>
