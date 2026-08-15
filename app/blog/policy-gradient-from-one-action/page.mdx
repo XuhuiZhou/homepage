@@ -1,5 +1,4 @@
 import {
-  OneStepTrajectory,
   ReturnDecomposition,
   ExpectationWorlds,
   QExpectationDemo,
@@ -10,10 +9,11 @@ import {
 } from './ChartComponents'
 
 export const metadata = {
-  title: 'Policy Gradient Review 2026: From One Answer',
+  title: 'Policy Gradient 2026: A LLM-centered perspective',
   description:
     'A visual derivation of policy gradient for language models, carefully walking from terminal reward to return, Q-value, and advantage.',
   date: '2026-07-17',
+  lastModified: '2026-08-15',
   authors: [{ name: 'Xuhui Zhou' }],
   openGraph: {
     title: 'Policy Gradient Review 2026: From One Answer',
@@ -21,6 +21,7 @@ export const metadata = {
       'The exact math behind the policy-gradient ladder: R to G_t, G_t to Q, and Q to advantage.',
     type: 'article',
     publishedTime: '2026-07-17',
+    modifiedTime: '2026-08-15',
     authors: ['Xuhui Zhou'],
   },
   twitter: {
@@ -35,17 +36,33 @@ export const metadata = {
 # Policy Gradient Review 2026: From One Answer
 
 <div className="not-prose mb-8 border-b border-zinc-200 pb-6">
-  <div className="text-sm text-zinc-500">By Xuhui Zhou · Jul 17, 2026</div>
+  <div className="text-sm text-zinc-500">By Xuhui Zhou</div>
+  <div className="mt-1 text-xs text-zinc-400">
+    Version history: <span className="font-medium text-zinc-500">[v1]</span>{' '}
+    <time dateTime="2026-07-17">Jul 17, 2026</time> ·{' '}
+    <span className="font-medium text-zinc-500">[v2]</span>{' '}
+    <time dateTime="2026-08-15">Aug 15, 2026</time> (revised)
+  </div>
   <div className="mt-1 text-sm text-zinc-400 italic">
     The math ladder from reward to return to Q to advantage.
   </div>
 </div>
+FWIW, there are numerous tutorials, videos, and blog posts introducing policy
+gradient. However, I often find them a bit hard to understand and follow
+because they become abstract too quickly. As an LLM guy, I want to work through
+a derivation with the right amount of intuition and help people like me better
+understand this fundamental idea behind almost all modern post-training.
+
+You do not need much background to follow along. I assume little to no prior
+knowledge of probability or statistics, and we will unpack each expectation
+and mathematical step as it appears.
 
 The core policy-gradient move is simple: if an action leads to better future outcomes than expected,
 make that action more likely next time. The hard part is being precise about what "future outcomes"
-means.
+means. (If you want to know more about RL in general, see my
+[Thinking in RL](/blog/thinking-in-rl) post.)
 
-This post is about one chain of equalities:
+And here we are, the policy gradient therom could be seen as chain of equalities:
 
 $$
 R
@@ -58,17 +75,17 @@ A^\pi(s_t,a_t).
 $$
 
 Each arrow is not a vibe. Each arrow is a legal replacement inside an expectation.
+We will work through them from the simplest case to the more general one,
+ending with why we use an advantage instead of a raw reward.
 
 ## The one-answer case
 
-Start with the smallest language-model RL problem:
-
-<Figure id="one-step">
-  <OneStepTrajectory />
-</Figure>
-
-A prompt $x$ arrives. The model samples one complete answer $y \sim \pi_\theta(\cdot \mid x)$.
-A judge gives one terminal reward $R(x,y)$. If the full answer is treated as one action, the objective is:
+Start with the smallest language-model RL problem. A prompt $x$ arrives. In
+this setting, $x$ is often a math problem or a question-answering problem that
+requires only one complete response to finish the interaction. The model
+samples that response $y \sim \pi_\theta(\cdot \mid x)$, and a judge gives it one
+terminal reward $R(x,y)$. If the full response is treated as one action, the
+objective is:
 
 $$
 J(\theta \mid x)
@@ -77,7 +94,15 @@ J(\theta \mid x)
 \left[R(x,y)\right].
 $$
 
-Write the expectation as a sum:
+What does this objective mean? Imagine repeatedly sampling answers from the
+policy. Some answers appear more often because the model assigns them more
+probability. $J(\theta \mid x)$ is the average reward across those samples, or
+equivalently, a weighted average of every possible answer's reward, where the
+weight is $\pi_\theta(y \mid x)$. We maximize $J$ so the policy places as much
+probability mass as possible on answers that receive high rewards, such as
+correct answers to the math or question-answering problem.
+
+To make this weighted average explicit, write the expectation as a sum:
 
 $$
 J(\theta \mid x)
@@ -86,7 +111,7 @@ J(\theta \mid x)
 \pi_\theta(y \mid x)R(x,y).
 $$
 
-Differentiate it:
+Now differentiate it:
 
 $$
 \begin{aligned}
@@ -211,6 +236,8 @@ $$
 
 This is the first raw trajectory formula. It says: attach the total return $G_1$ to every action.
 
+## From total return to reward-to-go
+
 But should an action receive credit for rewards that happened before the action was chosen?
 
 Before touching the algebra, imagine a game. An agent arrives at a checkpoint with **10 coins already
@@ -235,9 +262,7 @@ nothing numerically. Before every token, the accumulated reward is zero; the ent
 in the future. Thus $G_t=G_1=R(x,y)$ for every token. We need the general argument because other
 environments can have intermediate rewards, costs, tool outcomes, or safety penalties.
 
-## From total return to reward-to-go
-
-Define the reward-to-go from time $t$:
+Now define the reward-to-go from time $t$:
 
 $$
 G_t
@@ -508,9 +533,33 @@ s_t,a_t
 \right].
 $$
 
-Now the question is: why can $G_t$ be replaced by $Q^\pi(s_t,a_t)$ in the gradient?
+We have finally arrived at the Q-function. It is powerful because it turns all
+those uncertain futures into one number for each state-action pair. At a fixed
+state $s$, $Q^\pi(s,a)$ asks: if I take action $a$ now and follow policy $\pi$
+afterward, what return should I expect? Once we know these action values, we
+can compare the available actions and choose the one with the largest expected
+return:
 
-Let:
+$$
+a_{\text{greedy}}(s)
+=
+\arg\max_a Q^\pi(s,a).
+$$
+
+This is the central action-selection idea behind value-based methods such as
+Q-learning.<Cite id="q-learning">Q-learning was introduced in
+[Watkins's 1989 thesis](https://www.repository.cam.ac.uk/items/f1ce2aa9-2e01-4a08-92b7-1eec76b652ed),
+with its convergence result developed in detail by
+[Watkins and Dayan (1992)](https://doi.org/10.1007/BF00992698). The distinction
+is important: here we use $Q^\pi$, the expected return under the current policy.
+Classical Q-learning instead learns the optimal action-value function $Q^*$
+using a target containing $\max_{a'}Q(s',a')$.</Cite>
+
+For our policy-gradient derivation, we are not switching algorithms. We are
+asking one precise question: can the noisy sampled future $G_t$ be replaced by
+its conditional average $Q^\pi(s_t,a_t)$ without changing the expected gradient?
+
+To answer it, let:
 
 $$
 Z_t
@@ -582,7 +631,30 @@ They have the same expectation in the gradient, but $Q$ is less noisy if you can
 
 ## From Q to advantage
 
-This step uses two expectation scopes, and the notation often hides the switch between them.
+The Q-function gives an action an absolute score: how much return do we expect
+if we take this action? But an absolute score is missing context. The same
+$Q$-value might be impressive in a difficult state and disappointing in an
+easy one.
+
+Advantage turns that absolute score into a relative gain:
+
+$$
+A^\pi(s,a)
+=
+\underbrace{Q^\pi(s,a)}_{\text{expected return after choosing }a}
+-
+\underbrace{V^\pi(s)}_{\text{what the policy usually gets from }s}.
+$$
+
+A positive advantage says that this action gives us more return than we would
+normally expect at this state. A negative advantage says that choosing it gives
+up expected return. The magnitude tells us how large that gain or loss is. This
+is the information we want for a policy update: not merely whether an action is
+good, but whether it is better than what the policy usually does at this state.
+
+To see why subtracting $V^\pi(s)$ gives us this cleaner signal without changing
+the expected policy gradient, we need to track two expectation scopes. The
+notation often hides the switch between them.
 
 We begin at the **outer scope**:
 
@@ -637,14 +709,6 @@ $$
 
 $Q(s,a)$ first averages the possible futures after a fixed state-action pair. Then $V(s)$ averages
 those $Q$ values over the actions the policy might choose at the fixed state.
-
-The advantage is:
-
-$$
-A^\pi(s,a)
-=
-Q^\pi(s,a)-V^\pi(s).
-$$
 
 ### First, watch the cancellation in one state
 
@@ -758,10 +822,23 @@ Z(s,a)
 \end{aligned}
 $$
 
-### Now put the state buckets back together
+### From one state bucket back to full trajectories
 
-This is where the notation can create a false picture. It may look as if we first sampled a trajectory,
-threw it away, sampled a state, and then sampled an action. **That does not happen.**
+The previous subsection proved a **local** fact: after we fix one state $s$ and
+average over the actions available there, subtracting $V^\pi(s)$ contributes
+zero to the expected gradient. But the policy-gradient objective does not stay
+inside one fixed state. It averages complete trajectories, and different
+trajectories visit different states.
+
+This subsection lifts that local result back to the full objective. If every
+state bucket contributes zero, then weighting those buckets by how often the
+policy visits them still gives a weighted average of zeros. That is what lets a
+proof about one fixed state justify the baseline subtraction across the entire
+trajectory distribution.
+
+The notation can create a false picture here. It may look as if we first sampled
+a trajectory, threw it away, sampled a state, and then sampled an action.
+**That does not happen.**
 
 Fix one timestep $t$. A complete trajectory is a row containing many columns:
 

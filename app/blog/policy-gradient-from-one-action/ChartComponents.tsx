@@ -2,10 +2,6 @@
 
 import dynamic from 'next/dynamic'
 
-export const OneStepTrajectory = dynamic(() => import('./OneStepTrajectory'), {
-  ssr: false,
-})
-
 export const ReturnDecomposition = dynamic(
   () => import('./ReturnDecomposition'),
   { ssr: false },
