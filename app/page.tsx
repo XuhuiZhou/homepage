@@ -96,7 +96,11 @@ export default function Personal() {
         {/* Bio Content with Text Wrapping */}
         <div className="space-y-4">
           <p className="text-zinc-600 dark:text-zinc-400">
-            I recently defended my PhD at the{' '}
+            Currently, I am a{' '}
+            <span className="font-medium text-zinc-900 dark:text-zinc-50">
+              Research Scientist at Meta Superintelligence TBD Lab
+            </span>
+            . I recently defended my PhD at the{' '}
             <a
               href="https://www.lti.cs.cmu.edu/"
               target="_blank"
