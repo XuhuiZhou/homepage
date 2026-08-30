@@ -140,8 +140,8 @@ export const SOCIAL_LINKS: SocialLink[] = [
     link: 'https://scholar.google.com/citations?user=CKyX_Y8AAAAJ&hl',
   },
   {
-    label: 'Semantic Scholar',
-    link: 'https://www.semanticscholar.org/author/Xuhui-Zhou/144101734',
+    label: 'LinkedIn',
+    link: 'https://www.linkedin.com/in/xuhui-zhou-5b2b9b126/',
   },
   {
     label: 'BlueSky',
