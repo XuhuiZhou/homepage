@@ -135,6 +135,13 @@
   display: none !important;
 }
 
+.cv-root .cv-selected-note {
+  display: none;
+}
+.cv-root.selected-only .cv-selected-note {
+  display: block;
+}
+
 /* Hide non-selected pubs and all year headers when toggled */
 .cv-root.selected-only .cv-pubs > p {
   display: none;
