@@ -20,7 +20,7 @@ export function Header() {
             className="text-zinc-600 dark:text-zinc-500"
             delay={0.5}
           >
-            Building AI agents that amplify human potential
+            Building agents that help each of us realize our potential
           </TextEffect>
         </div>
       </div>

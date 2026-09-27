@@ -112,11 +112,9 @@ export default function Personal() {
               .
             </p>
             <p>
-              I build AI agents that fit seamlessly into society and help each of
-              us realize our full potential.
-            </p>
-            <p>
-              (1) Helping people:{' '}
+              My goal is to build AI agents that help each of us realize our
+              potential. To work well with people, agents need to (1) help us get
+              things done (
               <a
                 href="https://webarena.dev/"
                 target="_blank"
@@ -134,8 +132,7 @@ export default function Personal() {
               >
                 TOM-SWE
               </a>
-              ;{' '}
-              (2) Understanding people:{' '}
+              ); (2) understand people and society (
               <a
                 href="https://arxiv.org/abs/2606.14199"
                 target="_blank"
@@ -162,8 +159,7 @@ export default function Personal() {
               >
                 Sotopia
               </a>
-              ;{' '}
-              (3) Safety:{' '}
+              ); and (3) act safely and respect human values (
               <a
                 href="https://haicosystem.org/"
                 target="_blank"
@@ -181,7 +177,7 @@ export default function Personal() {
               >
                 OpenAgentSafety
               </a>
-              .
+              ).
             </p>
           </div>
           <motion.div
