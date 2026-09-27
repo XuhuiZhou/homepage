@@ -352,7 +352,7 @@ export default function Publications() {
           Publications
         </h1>
         <p className="text-zinc-600 dark:text-zinc-400">
-          Research on social AI, safety, and language understanding.
+          Research on AI agents, human behavior, and safety.
         </p>
       </motion.div>
 

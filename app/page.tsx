@@ -130,36 +130,18 @@ export default function Personal() {
             .
           </p>
           <p className="text-zinc-600 dark:text-zinc-400">
-            I am interested in socially intelligent AI. More specifically:
+            My goal is to build AI agents that understand people, fit seamlessly
+            into society, and help each of us realize our full potential. My
+            research asks:
           </p>
-          <ul className="space-y-2 text-zinc-600 dark:text-zinc-400">
-            <li className="flex gap-2">
-              <span>📢</span>
-              <span>
-                How do we build socially intelligent AI systems? e.g.,{' '}
-                <a
-                  href="https://sotopia.world/"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="font-medium text-zinc-900 underline decoration-zinc-300 underline-offset-2 dark:text-zinc-50 dark:decoration-zinc-700"
-                >
-                  Sotopia
-                </a>
-                ,{' '}
-                <a
-                  href="https://arxiv.org/abs/2509.00559"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="font-medium text-zinc-900 underline decoration-zinc-300 underline-offset-2 dark:text-zinc-50 dark:decoration-zinc-700"
-                >
-                  Social World Models
-                </a>
-              </span>
-            </li>
-            <li className="flex gap-2">
-              <span>🧱</span>
-              <span>
-                How do we create AI agents that effectively help humans? e.g.,{' '}
+          <ol className="clear-both list-decimal space-y-5 pl-5 pt-2 text-zinc-600 marker:font-medium marker:text-zinc-900 dark:text-zinc-400 dark:marker:text-zinc-50">
+            <li className="pl-1">
+              <p className="font-medium text-zinc-900 dark:text-zinc-50">
+                How do we create AI agents that effectively help people?
+              </p>
+              <p className="mt-1">
+                I study how agents can understand individual needs and help people
+                accomplish their goals through{' '}
                 <a
                   href="https://webarena.dev/"
                   target="_blank"
@@ -177,12 +159,60 @@ export default function Personal() {
                 >
                   TOM-SWE
                 </a>
-              </span>
+                , and my work on{' '}
+                <Link
+                  href="/blog/on-the-quest-of-user-effective-ai-agents"
+                  className="font-medium text-zinc-900 underline decoration-zinc-300 underline-offset-2 dark:text-zinc-50 dark:decoration-zinc-700"
+                >
+                  user-effective agents
+                </Link>
+                .
+              </p>
             </li>
-            <li className="flex gap-2">
-              <span>🛡️</span>
-              <span>
-                How do we ensure AI systems behave safely and align with human values? e.g.,{' '}
+            <li className="pl-1">
+              <p className="font-medium text-zinc-900 dark:text-zinc-50">
+                How can AI agents understand people and participate in society?
+              </p>
+              <p className="mt-1">
+                With{' '}
+                <a
+                  href="https://arxiv.org/abs/2606.14199"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="font-medium text-zinc-900 underline decoration-zinc-300 underline-offset-2 dark:text-zinc-50 dark:decoration-zinc-700"
+                >
+                  OdysSim
+                </a>{' '}
+                (NeurIPS 2026), I build foundation models for human behavior
+                simulation. I also study how agents understand and navigate social
+                interactions through{' '}
+                <a
+                  href="https://sotopia.world/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="font-medium text-zinc-900 underline decoration-zinc-300 underline-offset-2 dark:text-zinc-50 dark:decoration-zinc-700"
+                >
+                  Sotopia
+                </a>
+                {' '}and{' '}
+                <a
+                  href="https://arxiv.org/abs/2509.00559"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="font-medium text-zinc-900 underline decoration-zinc-300 underline-offset-2 dark:text-zinc-50 dark:decoration-zinc-700"
+                >
+                  Social World Models
+                </a>
+                .
+              </p>
+            </li>
+            <li className="pl-1">
+              <p className="font-medium text-zinc-900 dark:text-zinc-50">
+                How do we ensure AI agents act safely and align with human values?
+              </p>
+              <p className="mt-1">
+                I evaluate agent behavior and risks in human-AI interactions
+                through{' '}
                 <a
                   href="https://haicosystem.org/"
                   target="_blank"
@@ -191,7 +221,7 @@ export default function Personal() {
                 >
                   HAICOSYSTEM
                 </a>
-                ,{' '}
+                {' '}and{' '}
                 <a
                   href="https://arxiv.org/abs/2507.06134"
                   target="_blank"
@@ -200,9 +230,10 @@ export default function Personal() {
                 >
                   OpenAgentSafety
                 </a>
-              </span>
+                .
+              </p>
             </li>
-          </ul>
+          </ol>
         </div>
 
         {/* Clear float for next section */}
