@@ -115,80 +115,74 @@ export default function Personal() {
               I build AI agents that fit seamlessly into society and help each of
               us realize our full potential.
             </p>
-            <ol className="list-decimal space-y-0.5 pl-4 marker:text-zinc-900 dark:marker:text-zinc-50">
-              <li>
-                Helping people:{' '}
-                <a
-                  href="https://webarena.dev/"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="font-medium text-zinc-900 underline decoration-zinc-300 underline-offset-2 dark:text-zinc-50 dark:decoration-zinc-700"
-                >
-                  WebArena
-                </a>
-                ,{' '}
-                <a
-                  href="https://arxiv.org/abs/2510.21903"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="font-medium text-zinc-900 underline decoration-zinc-300 underline-offset-2 dark:text-zinc-50 dark:decoration-zinc-700"
-                >
-                  TOM-SWE
-                </a>
-                .
-              </li>
-              <li>
-                Understanding people:{' '}
-                <a
-                  href="https://arxiv.org/abs/2606.14199"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="font-medium text-zinc-900 underline decoration-zinc-300 underline-offset-2 dark:text-zinc-50 dark:decoration-zinc-700"
-                >
-                  OdysSim
-                </a>
-                ,{' '}
-                <a
-                  href="https://arxiv.org/abs/2509.00559"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="font-medium text-zinc-900 underline decoration-zinc-300 underline-offset-2 dark:text-zinc-50 dark:decoration-zinc-700"
-                >
-                  Social World Models
-                </a>
-                ,{' '}
-                <a
-                  href="https://sotopia.world/"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="font-medium text-zinc-900 underline decoration-zinc-300 underline-offset-2 dark:text-zinc-50 dark:decoration-zinc-700"
-                >
-                  Sotopia
-                </a>
-                .
-              </li>
-              <li>
-                Safety:{' '}
-                <a
-                  href="https://haicosystem.org/"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="font-medium text-zinc-900 underline decoration-zinc-300 underline-offset-2 dark:text-zinc-50 dark:decoration-zinc-700"
-                >
-                  HAICOSYSTEM
-                </a>
-                ,{' '}
-                <a
-                  href="https://arxiv.org/abs/2507.06134"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="font-medium text-zinc-900 underline decoration-zinc-300 underline-offset-2 dark:text-zinc-50 dark:decoration-zinc-700"
-                >
-                  OpenAgentSafety
-                </a>
-                .
-              </li>
-            </ol>
+            <p>
+              (1) Helping people:{' '}
+              <a
+                href="https://webarena.dev/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="font-medium text-zinc-900 underline decoration-zinc-300 underline-offset-2 dark:text-zinc-50 dark:decoration-zinc-700"
+              >
+                WebArena
+              </a>
+              ,{' '}
+              <a
+                href="https://arxiv.org/abs/2510.21903"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="font-medium text-zinc-900 underline decoration-zinc-300 underline-offset-2 dark:text-zinc-50 dark:decoration-zinc-700"
+              >
+                TOM-SWE
+              </a>
+              ;{' '}
+              (2) Understanding people:{' '}
+              <a
+                href="https://arxiv.org/abs/2606.14199"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="font-medium text-zinc-900 underline decoration-zinc-300 underline-offset-2 dark:text-zinc-50 dark:decoration-zinc-700"
+              >
+                OdysSim
+              </a>
+              ,{' '}
+              <a
+                href="https://arxiv.org/abs/2509.00559"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="font-medium text-zinc-900 underline decoration-zinc-300 underline-offset-2 dark:text-zinc-50 dark:decoration-zinc-700"
+              >
+                Social World Models
+              </a>
+              ,{' '}
+              <a
+                href="https://sotopia.world/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="font-medium text-zinc-900 underline decoration-zinc-300 underline-offset-2 dark:text-zinc-50 dark:decoration-zinc-700"
+              >
+                Sotopia
+              </a>
+              ;{' '}
+              (3) Safety:{' '}
+              <a
+                href="https://haicosystem.org/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="font-medium text-zinc-900 underline decoration-zinc-300 underline-offset-2 dark:text-zinc-50 dark:decoration-zinc-700"
+              >
+                HAICOSYSTEM
+              </a>
+              ,{' '}
+              <a
+                href="https://arxiv.org/abs/2507.06134"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="font-medium text-zinc-900 underline decoration-zinc-300 underline-offset-2 dark:text-zinc-50 dark:decoration-zinc-700"
+              >
+                OpenAgentSafety
+              </a>
+              .
+            </p>
           </div>
           <motion.div
             className="relative hidden h-60 md:block"
