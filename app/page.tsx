@@ -66,7 +66,7 @@ function MagneticSocialLink({
 export default function Personal() {
   return (
     <motion.main
-      className="space-y-24"
+      className="space-y-16"
       variants={VARIANTS_CONTAINER}
       initial="hidden"
       animate="visible"
@@ -75,73 +75,49 @@ export default function Personal() {
         variants={VARIANTS_SECTION}
         transition={TRANSITION_SECTION}
       >
-        {/* Profile Picture - Hidden on Mobile, Float Right on Desktop */}
-        <motion.div
-          className="hidden md:float-right md:ml-8 md:flex md:justify-end"
-          initial={{ opacity: 0, scale: 0.9 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.4 }}
-        >
-          <div className="relative w-46 h-60"> 
-            <Image
-              src="/profile.jpg"
-              alt="Xuhui Zhou"
-              fill
-              className="rounded-2xl object-cover object-top ring-2 ring-zinc-200 dark:ring-zinc-800"
-              priority
-            />
-          </div>
-        </motion.div>
-
-        {/* Bio Content with Text Wrapping */}
-        <div className="space-y-4">
-          <p className="text-zinc-600 dark:text-zinc-400">
-            Currently, I am a{' '}
-            <span className="font-medium text-zinc-900 dark:text-zinc-50">
-              Research Scientist at Meta Superintelligence TBD Lab
-            </span>
-            . I recently defended my PhD at the{' '}
-            <a
-              href="https://www.lti.cs.cmu.edu/"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="font-medium text-zinc-900 underline decoration-zinc-300 underline-offset-2 dark:text-zinc-50 dark:decoration-zinc-700"
-            >
-              Language Technologies Institute at CMU
-            </a>
-            , where I was advised by{' '}
-            <a
-              href="http://maartensap.com/"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="font-medium text-zinc-900 underline decoration-zinc-300 underline-offset-2 dark:text-zinc-50 dark:decoration-zinc-700"
-            >
-              Maarten Sap
-            </a>
-            , and received a{' '}
-            <a
-              href="https://www.microsoft.com/en-us/research/academic-program/microsoft-research-fellowship/fellows/"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="font-medium text-zinc-900 underline decoration-zinc-300 underline-offset-2 dark:text-zinc-50 dark:decoration-zinc-700"
-            >
-              Microsoft PhD Fellowship
-            </a>
-            .
-          </p>
-          <p className="text-zinc-600 dark:text-zinc-400">
-            My goal is to build AI agents that understand people, fit seamlessly
-            into society, and help each of us realize our full potential. My
-            research asks:
-          </p>
-          <ol className="clear-both list-decimal space-y-5 pl-5 pt-2 text-zinc-600 marker:font-medium marker:text-zinc-900 dark:text-zinc-400 dark:marker:text-zinc-50">
-            <li className="pl-1">
-              <p className="font-medium text-zinc-900 dark:text-zinc-50">
-                How do we create AI agents that effectively help people?
-              </p>
-              <p className="mt-1">
-                I study how agents can understand individual needs and help people
-                accomplish their goals through{' '}
+        <div className="grid gap-6 md:grid-cols-[minmax(0,1fr)_11.5rem] md:items-start">
+          <div className="space-y-2.5 text-base leading-normal text-zinc-600 dark:text-zinc-400">
+            <p>
+              I’m a{' '}
+              <span className="font-medium text-zinc-900 dark:text-zinc-50">
+                Research Scientist at Meta Superintelligence TBD Lab
+              </span>
+              . I recently defended my PhD at{' '}
+              <a
+                href="https://www.lti.cs.cmu.edu/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="font-medium text-zinc-900 underline decoration-zinc-300 underline-offset-2 dark:text-zinc-50 dark:decoration-zinc-700"
+              >
+                CMU
+              </a>
+              , advised by{' '}
+              <a
+                href="http://maartensap.com/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="font-medium text-zinc-900 underline decoration-zinc-300 underline-offset-2 dark:text-zinc-50 dark:decoration-zinc-700"
+              >
+                Maarten Sap
+              </a>
+              , and received a{' '}
+              <a
+                href="https://www.microsoft.com/en-us/research/academic-program/microsoft-research-fellowship/fellows/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="font-medium text-zinc-900 underline decoration-zinc-300 underline-offset-2 dark:text-zinc-50 dark:decoration-zinc-700"
+              >
+                Microsoft PhD Fellowship
+              </a>
+              .
+            </p>
+            <p>
+              I build AI agents that fit seamlessly into society and help each of
+              us realize our full potential.
+            </p>
+            <ol className="list-decimal space-y-0.5 pl-4 marker:text-zinc-900 dark:marker:text-zinc-50">
+              <li>
+                Helping people:{' '}
                 <a
                   href="https://webarena.dev/"
                   target="_blank"
@@ -159,22 +135,10 @@ export default function Personal() {
                 >
                   TOM-SWE
                 </a>
-                , and my work on{' '}
-                <Link
-                  href="/blog/on-the-quest-of-user-effective-ai-agents"
-                  className="font-medium text-zinc-900 underline decoration-zinc-300 underline-offset-2 dark:text-zinc-50 dark:decoration-zinc-700"
-                >
-                  user-effective agents
-                </Link>
                 .
-              </p>
-            </li>
-            <li className="pl-1">
-              <p className="font-medium text-zinc-900 dark:text-zinc-50">
-                How can AI agents understand people and participate in society?
-              </p>
-              <p className="mt-1">
-                With{' '}
+              </li>
+              <li>
+                Understanding people:{' '}
                 <a
                   href="https://arxiv.org/abs/2606.14199"
                   target="_blank"
@@ -182,19 +146,8 @@ export default function Personal() {
                   className="font-medium text-zinc-900 underline decoration-zinc-300 underline-offset-2 dark:text-zinc-50 dark:decoration-zinc-700"
                 >
                   OdysSim
-                </a>{' '}
-                (NeurIPS 2026), I build foundation models for human behavior
-                simulation. I also study how agents understand and navigate social
-                interactions through{' '}
-                <a
-                  href="https://sotopia.world/"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="font-medium text-zinc-900 underline decoration-zinc-300 underline-offset-2 dark:text-zinc-50 dark:decoration-zinc-700"
-                >
-                  Sotopia
                 </a>
-                {' '}and{' '}
+                ,{' '}
                 <a
                   href="https://arxiv.org/abs/2509.00559"
                   target="_blank"
@@ -203,16 +156,19 @@ export default function Personal() {
                 >
                   Social World Models
                 </a>
+                ,{' '}
+                <a
+                  href="https://sotopia.world/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="font-medium text-zinc-900 underline decoration-zinc-300 underline-offset-2 dark:text-zinc-50 dark:decoration-zinc-700"
+                >
+                  Sotopia
+                </a>
                 .
-              </p>
-            </li>
-            <li className="pl-1">
-              <p className="font-medium text-zinc-900 dark:text-zinc-50">
-                How do we ensure AI agents act safely and align with human values?
-              </p>
-              <p className="mt-1">
-                I evaluate agent behavior and risks in human-AI interactions
-                through{' '}
+              </li>
+              <li>
+                Safety:{' '}
                 <a
                   href="https://haicosystem.org/"
                   target="_blank"
@@ -221,7 +177,7 @@ export default function Personal() {
                 >
                   HAICOSYSTEM
                 </a>
-                {' '}and{' '}
+                ,{' '}
                 <a
                   href="https://arxiv.org/abs/2507.06134"
                   target="_blank"
@@ -231,13 +187,25 @@ export default function Personal() {
                   OpenAgentSafety
                 </a>
                 .
-              </p>
-            </li>
-          </ol>
+              </li>
+            </ol>
+          </div>
+          <motion.div
+            className="relative hidden h-60 md:block"
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.4 }}
+          >
+            <Image
+              src="/profile.jpg"
+              alt="Xuhui Zhou"
+              fill
+              sizes="184px"
+              className="rounded-2xl object-cover object-top ring-2 ring-zinc-200 dark:ring-zinc-800"
+              priority
+            />
+          </motion.div>
         </div>
-
-        {/* Clear float for next section */}
-        <div className="clear-both"></div>
       </motion.section>
 
       <motion.section
@@ -285,7 +253,7 @@ export default function Personal() {
             {EMAIL}
           </a>
         </p>
-        <div className="flex items-center justify-start space-x-3">
+        <div className="flex flex-wrap items-center justify-start gap-3">
           {SOCIAL_LINKS.map((link) => (
             <MagneticSocialLink key={link.label} link={link.link}>
               {link.label}
