@@ -12,7 +12,7 @@ export const MODEL_RELEASES: ModelRelease[] = [
   {
     name: 'Muse Wonder',
     date: '2026-10-12',
-    organization: 'Meta',
+    organization: 'Meta Superintelligence TBD Lab',
     url: 'https://research.meta.ai/blog/muse-wonder',
     reportUrl: 'https://research.meta.ai/static/muse-wonder-model-card',
     reportLabel: 'Model card',
@@ -21,7 +21,7 @@ export const MODEL_RELEASES: ModelRelease[] = [
   {
     name: 'Muse Spark 1.3',
     date: '2026-09-02',
-    organization: 'Meta',
+    organization: 'Meta Superintelligence TBD Lab',
     url: 'https://research.meta.ai/blog/introducing-muse-spark-1-3',
     reportUrl: 'https://research.meta.ai/static/muse-spark-1-3-multimodal-evaluation-methodology',
     reportLabel: 'Evaluation report',
