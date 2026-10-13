@@ -74,7 +74,7 @@ export function Footer() {
           <TextLoop className="text-xs text-zinc-500">
             <span>© 2026 Xuhui Zhou.</span>
             <span>Adopted from Nim theme.</span>
-            <span>Last updated: Sep 26, 2026.</span>
+            <span>Last updated: Oct 12, 2026.</span>
           </TextLoop>
         </a>
         <div className="text-xs text-zinc-400">

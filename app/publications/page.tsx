@@ -1,6 +1,8 @@
 'use client'
 import { motion } from 'motion/react'
 import { PUBLICATIONS, Publication } from '../data/publications'
+import { MODEL_RELEASES } from '../data/model-releases'
+import { formatDateOnly } from '@/lib/utils'
 import { useState, useMemo } from 'react'
 import { AnimatedBackground } from '@/components/ui/animated-background'
 
@@ -356,8 +358,36 @@ export default function Publications() {
         </p>
       </motion.div>
 
+      <motion.section variants={VARIANTS_ITEM}>
+        <h2 className="mb-4 text-lg font-semibold">Model Releases</h2>
+        <div className="space-y-4">
+          {MODEL_RELEASES.map((release) => (
+            <article
+              key={release.name}
+              className="rounded-xl bg-zinc-50/40 p-4 ring-1 ring-zinc-200/50 dark:bg-zinc-950/40 dark:ring-zinc-800/50"
+            >
+              <h3 className="text-base font-medium text-zinc-900 dark:text-zinc-50">
+                <a href={release.url} target="_blank" rel="noopener noreferrer" className="underline decoration-zinc-300 underline-offset-2 dark:decoration-zinc-700">
+                  {release.name}
+                </a>
+              </h3>
+              <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
+                {release.organization} team model release · {formatDateOnly(release.date)}
+              </p>
+              <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-400">
+                {release.description}
+              </p>
+              <a href={release.reportUrl} target="_blank" rel="noopener noreferrer" className="mt-2 inline-block text-sm text-zinc-600 underline decoration-zinc-300 underline-offset-2 hover:text-zinc-900 dark:text-zinc-400 dark:decoration-zinc-700 dark:hover:text-zinc-50">
+                {release.reportLabel}
+              </a>
+            </article>
+          ))}
+        </div>
+      </motion.section>
+
       {/* Filters */}
       <motion.div variants={VARIANTS_ITEM}>
+        <h2 className="mb-4 text-lg font-semibold">Research Papers</h2>
         <CollapsibleSection
           title="Filters"
           isExpanded={isFiltersExpanded}

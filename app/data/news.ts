@@ -5,8 +5,16 @@ export type NewsItem = {
 
 export const NEWS_ITEMS: NewsItem[] = [
   {
+    date: '2026-10-12',
+    content: 'Our team at Meta released <a href="https://research.meta.ai/blog/muse-wonder" target="_blank" rel="noopener noreferrer" class="font-medium text-zinc-900 underline decoration-zinc-300 underline-offset-2 dark:text-zinc-50 dark:decoration-zinc-700">Muse Wonder</a>, a model family for personal and professional AI agents.',
+  },
+  {
     date: '2026-09-26',
     content: '<a href="https://arxiv.org/abs/2606.14199" target="_blank" rel="noopener noreferrer" class="font-medium text-zinc-900 underline decoration-zinc-300 underline-offset-2 dark:text-zinc-50 dark:decoration-zinc-700">OdysSim: Building Foundation Models for Human Behavior Simulation</a> has been accepted to NeurIPS 2026!',
+  },
+  {
+    date: '2026-09-02',
+    content: 'Our team at Meta released <a href="https://research.meta.ai/blog/introducing-muse-spark-1-3" target="_blank" rel="noopener noreferrer" class="font-medium text-zinc-900 underline decoration-zinc-300 underline-offset-2 dark:text-zinc-50 dark:decoration-zinc-700">Muse Spark 1.3</a>, with a focus on long-running agent workflows, user collaboration, and coding.',
   },
   {
     date: '2026-08-12',

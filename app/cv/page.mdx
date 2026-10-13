@@ -1,6 +1,8 @@
 import './cv-print.css'
 import './cv-screen.css'
 import { CVToggle } from './CVToggle'
+import { MODEL_RELEASES } from '../data/model-releases'
+import { formatDateOnly } from '@/lib/utils'
 
 export const metadata = {
   title: 'CV - Xuhui Zhou',
@@ -14,7 +16,7 @@ export const metadata = {
   <div className="cv-header-left">
     # Xuhui Zhou
 
-    <p className="cv-last-update">Last update: September 26, 2026</p>
+    <p className="cv-last-update">Last update: October 12, 2026</p>
     <div className="cv-toggle-wrap"><CVToggle /></div>
   </div>
   <div className="cv-header-right">
@@ -90,6 +92,18 @@ AI agents that help people realize their potential. I study how agents can suppo
   <div className="cv-entry-date">Mar 2021 – Sep 2021</div>
 </div>
 
+
+## Model Releases
+
+<div className="cv-model-releases">
+  {MODEL_RELEASES.map((release) => (
+    <p key={release.name} className="break-inside-avoid">
+      <strong><a href={release.url}>{release.name}</a></strong>
+      {'. '}{release.organization} team model release, {formatDateOnly(release.date)}.
+      {' '}<a href={release.reportUrl}>{release.reportLabel}</a>.
+    </p>
+  ))}
+</div>
 
 ## Publications
 
